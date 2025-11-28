@@ -9,13 +9,15 @@
 #include "Entities.h"
 #include <stdint.h>
 #include <stdio.h>
+#include "inputs.c"
+#include "prog_states.c"
 
 extern void print(const char*);
 extern void print_dec(unsigned int);
 extern void display_string(char*);
-extern void time2string(char*,int);
-extern void tick(int*);
-extern void delay(int);
+//extern void time2string(char*,int);
+//extern void tick(int*);
+//extern void delay(int);
 extern int nextprime( int );
 extern void enable_interrupts(void);
 extern void render_game(volatile GameState* gs);
@@ -24,6 +26,7 @@ extern GameState run_start_up_seq(void);
 // Timer buffer
 volatile int* timer = (volatile int*) 0x04000020;
 
+/*Initiates the timer and sets its attributes*/
 void labinit(void) {
   // Set period to 3 MHz:
   int period_val = 3000000 -1; // Subtract 1 because timer counts from 0
@@ -38,13 +41,23 @@ void labinit(void) {
 void handle_interrupt(unsigned cause) 
 {};
 
-void read_swtch_pair(int *pair[], int offset) {
-  pair[0] = (volatile int*) 0x04000010 + offset;
-  pair[1] = (volatile int*) 0x04000010 + offset + 1;
+/* Helper function for getting the pause switch (which is switch n.4)*/
+int get_pause_swtch() {
+  return get_switch_states(4);
 }
 
-int get_pause_swtch() {
-  return (volatile int*) 0x04000010 + 4;
+int read_inputs() {
+  // LsB Pair
+  int ls_sw1 = get_switch_states(0);
+  int ls_sw2 = get_switch_states(1);
+  // MsB Pair
+  int ms_sw1 = get_switch_states(8);
+  int ms_sw2 = get_switch_states(9);
+  // Pause Switch
+  int pause_swtch = get_pause_swtch(4);
+  // Combine into input vector
+  int input_vector[] = {ls_sw1, ls_sw2, ms_sw1, ms_sw2, pause_swtch};
+  return input_vector;
 }
 
 /* Your code goes into main as well as any needed functions. */
@@ -56,22 +69,17 @@ int main() {
   enable_interrupts();
   
   // Display a welcome message.
-  GameState gs = run_start_up_seq(); // Set the game state
+  GameState gs = run_start_up(); // Set the game state and diffuculty mode.
   // Start game query ...
 
   // MAIN GAME LOOP
   while (1) {
-    
+
     // READ PLAYER INPUT
-    int lsSwtch[2]; // Input from p1
-    int msSwtch[2]; // Input from p2
-    read_swtch_pair(lsSwtch, 0);
-    read_swtch_pair(msSwtch, 8);
-    int pause_swtch = get_swtch();
-    int input_vector[] = {lsSwtch[0], lsSwtch[1], msSwtch[0], msSwtch[1], pause_swtch};
+    int input_vector[] = read_inputs();
     
-    //UPDATE THE GAME STATE:
-    // E.g., move pieces, check collisions, update scores, etc.
+    // UPDATE THE GAME STATE:
+    GameState_update(&gs, input_vector);
 
     // DELAY FOR A WHILE
     while((timer[0] & 0b1) == 0 ) {
@@ -79,8 +87,15 @@ int main() {
     }
     timer[0] = 0b1; // Reset TO flag
     
-    // RENDER
-    //render_game(&gs);
+    // RENDER GAME STATE
+    render_game(&gs);
+
+    // CHECK FOR PAUSE
+    if (get_pause_swtch() == 1) {
+      run_pause();
+    }  
+
+
     
   }
 }
