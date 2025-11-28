@@ -53,17 +53,19 @@ int main() {
   
   // Display a welcome message.
   GameState gs = run_start_up_seq(); // Set the game state
+  // Start game query ...
 
   // MAIN GAME LOOP
   while (1) {
+    
     // READ PLAYER INPUT
     int lsSwtch[2]; // Input from p1
     int msSwtch[2]; // Input from p2
-    read_swtch_pair(lsSwtch, 8);
-    read_swtch_pair(msSwtch, 0);
+    read_swtch_pair(lsSwtch, 0);
+    read_swtch_pair(msSwtch, 8);
     int input_vector[] = {lsSwtch[0], lsSwtch[1], msSwtch[0], msSwtch[1]};
     
-    // USE CASES TO UPDATE THE GAME STATE:
+    //UPDATE THE GAME STATE:
     // E.g., move pieces, check collisions, update scores, etc.
 
     // DELAY FOR A WHILE
