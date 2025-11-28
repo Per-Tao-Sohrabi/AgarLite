@@ -43,6 +43,10 @@ void read_swtch_pair(int *pair[], int offset) {
   pair[1] = (volatile int*) 0x04000010 + offset + 1;
 }
 
+int get_pause_swtch() {
+  return (volatile int*) 0x04000010 + 4;
+}
+
 /* Your code goes into main as well as any needed functions. */
 int main() {
   // Enable timer
@@ -63,7 +67,8 @@ int main() {
     int msSwtch[2]; // Input from p2
     read_swtch_pair(lsSwtch, 0);
     read_swtch_pair(msSwtch, 8);
-    int input_vector[] = {lsSwtch[0], lsSwtch[1], msSwtch[0], msSwtch[1]};
+    int pause_swtch = get_swtch();
+    int input_vector[] = {lsSwtch[0], lsSwtch[1], msSwtch[0], msSwtch[1], pause_swtch};
     
     //UPDATE THE GAME STATE:
     // E.g., move pieces, check collisions, update scores, etc.
