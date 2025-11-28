@@ -4,8 +4,12 @@
 
    For copyright and licensing, see file COPYING */
 
-
 /* Below functions are external and found in other files. */
+#include "GameState.h" 
+#include "Entities.h"
+#include <stdint.h>
+#include <stdio.h>
+
 extern void print(const char*);
 extern void print_dec(unsigned int);
 extern void display_string(char*);
@@ -13,29 +17,71 @@ extern void time2string(char*,int);
 extern void tick(int*);
 extern void delay(int);
 extern int nextprime( int );
+extern void enable_interrupts(void);
+extern void render_game(volatile GameState* gs);
+extern GameState run_start_up_seq(void);
 
-int mytime = 0x5957;
-char textstring[] = "text, more text, and even more text!";
+// Timer buffer
+volatile int* timer = (volatile int*) 0x04000020;
+
+void labinit(void) {
+  // Set period to 3 MHz:
+  int period_val = 3000000 -1; // Subtract 1 because timer counts from 0
+  timer[2] = period_val & 0xFFFF; //  Lower 16 bits
+  timer[3] = (period_val >> 16) & 0xFFFF;
+  
+  // Set start status
+  timer[0] = 0b110; // Enable timer, sets ito = off, cont = on, start = on, stop. = off. 
+}
 
 /* Below is the function that will be called when an interrupt is triggered. */
 void handle_interrupt(unsigned cause) 
-{}
+{};
 
-/* Add your code here for initializing interrupts. */
-void labinit(void)
-{}
+void read_swtch_pair(int *pair[], int offset) {
+  pair[0] = (volatile int*) 0x04000010 + offset;
+  pair[1] = (volatile int*) 0x04000010 + offset + 1;
+}
+
+int get_pause_swtch() {
+  return (volatile int*) 0x04000010 + 4;
+}
 
 /* Your code goes into main as well as any needed functions. */
 int main() {
-  // Call labinit()
+  // Enable timer
   labinit();
 
-  // Enter a forever loop
+  // Enable interrupts
+  enable_interrupts();
+  
+  // Display a welcome message.
+  GameState gs = run_start_up_seq(); // Set the game state
+  // Start game query ...
+
+  // MAIN GAME LOOP
   while (1) {
-    time2string( textstring, mytime ); // Converts mytime to string
-    display_string( textstring ); //Print out the string 'textstring'
-    delay( 2 );          // Delays 1 sec (adjust this value)
-    tick( &mytime );     // Ticks the clock once
+    
+    // READ PLAYER INPUT
+    int lsSwtch[2]; // Input from p1
+    int msSwtch[2]; // Input from p2
+    read_swtch_pair(lsSwtch, 0);
+    read_swtch_pair(msSwtch, 8);
+    int pause_swtch = get_swtch();
+    int input_vector[] = {lsSwtch[0], lsSwtch[1], msSwtch[0], msSwtch[1], pause_swtch};
+    
+    //UPDATE THE GAME STATE:
+    // E.g., move pieces, check collisions, update scores, etc.
+
+    // DELAY FOR A WHILE
+    while((timer[0] & 0b1) == 0 ) {
+      // Busy wait for TO flag
+    }
+    timer[0] = 0b1; // Reset TO flag
+    
+    // RENDER
+    //render_game(&gs);
+    
   }
 }
 
