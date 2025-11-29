@@ -1,88 +1,188 @@
-/* main.c
-
-   This file written 2024 by Artur Podobas and Pedro Antunes
-
-   For copyright and licensing, see file COPYING */
-
-/* Below functions are external and found in other files. */
-#include "GameState.h" 
-#include "Entities.h"
-#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-extern void print(const char*);
-extern void print_dec(unsigned int);
-extern void display_string(char*);
-extern void time2string(char*,int);
-extern void tick(int*);
-extern void delay(int);
-extern int nextprime( int );
-extern void enable_interrupts(void);
-extern void render_game(volatile GameState* gs);
-extern GameState run_start_up_seq(void);
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 480
+#define MAX_RADIUS 50
+#define MIN_RADIUS 2
+#define Food_count 100
 
-// Timer buffer
-volatile int* timer = (volatile int*) 0x04000020;
+typedef struct {
+    int x_pos;
+    int y_pos;
+    int radius;
+    int hp;
+    int dx;
+    int dy;
+    int velocity;
+    int color;
+} Player;
 
-void labinit(void) {
-  // Set period to 3 MHz:
-  int period_val = 3000000 -1; // Subtract 1 because timer counts from 0
-  timer[2] = period_val & 0xFFFF; //  Lower 16 bits
-  timer[3] = (period_val >> 16) & 0xFFFF;
-  
-  // Set start status
-  timer[0] = 0b110; // Enable timer, sets ito = off, cont = on, start = on, stop. = off. 
+typedef struct {
+    int x_pos;
+    int y_pos;
+    int radius;
+    int nutrition;
+} Food;
+
+typedef struct {
+    int var1;
+    int var2;
+    Player players[2]; // Can hold two players
+    Food crumbs[Food_count]; // Can hold five food pieces
+} GameState;
+
+GameState game;
+
+volatile char *VGA = (volatile char*) 0x08000000;
+
+void clear_screen(){
+    for (int i = 0; i < SCREEN_WIDTH*SCREEN_HEIGHT; i++)
+        VGA[i] = 0; 
 }
 
-/* Below is the function that will be called when an interrupt is triggered. */
-void handle_interrupt(unsigned cause) 
-{};
-
-void read_swtch_pair(int *pair[], int offset) {
-  pair[0] = (volatile int*) 0x04000010 + offset;
-  pair[1] = (volatile int*) 0x04000010 + offset + 1;
-}
-
-int get_pause_swtch() {
-  return (volatile int*) 0x04000010 + 4;
-}
-
-/* Your code goes into main as well as any needed functions. */
-int main() {
-  // Enable timer
-  labinit();
-
-  // Enable interrupts
-  enable_interrupts();
-  
-  // Display a welcome message.
-  GameState gs = run_start_up_seq(); // Set the game state
-  // Start game query ...
-
-  // MAIN GAME LOOP
-  while (1) {
-    
-    // READ PLAYER INPUT
-    int lsSwtch[2]; // Input from p1
-    int msSwtch[2]; // Input from p2
-    read_swtch_pair(lsSwtch, 0);
-    read_swtch_pair(msSwtch, 8);
-    int pause_swtch = get_swtch();
-    int input_vector[] = {lsSwtch[0], lsSwtch[1], msSwtch[0], msSwtch[1], pause_swtch};
-    
-    //UPDATE THE GAME STATE:
-    // E.g., move pieces, check collisions, update scores, etc.
-
-    // DELAY FOR A WHILE
-    while((timer[0] & 0b1) == 0 ) {
-      // Busy wait for TO flag
+void draw_circle (int cx, int cy, int radius, int color) {
+  int radius_squ = radius * radius;
+  for(int y = cy - radius; y <= cy+radius; y++){
+    for(int x = cx -radius; x <= cx+radius; x++){
+      if(x >= 0 && x < SCREEN_WIDTH && y >= 0 && y < SCREEN_HEIGHT){
+        int dx = x-cx;
+        int dy = y-cy;
+        if(dx*dx+dy*dy <= radius_squ)
+          VGA[y * SCREEN_WIDTH + x] = color;    
+      }
     }
-    timer[0] = 0b1; // Reset TO flag
-    
-    // RENDER
-    //render_game(&gs);
-    
   }
 }
 
+int check_collision_player(Player a, Player b){
+    int dx = a.x_pos - b.x_pos;
+    int dy = a.y_pos - b.y_pos;
+    int distance_squared = dx*dx + dy*dy;
+    int radius_sum = a.radius + b.radius;
+    return distance_squared <= radius_sum * radius_sum;
+}
 
+int check_collision_food(Player a, Food b){
+    int dx = a.x_pos - b.x_pos;
+    int dy = a.y_pos - b.y_pos;
+    int distance_squared = dx*dx + dy*dy;
+    int radius_sum = a.radius + b.radius;
+    return distance_squared <= radius_sum * radius_sum;
+}
+
+void update_game(){
+
+    int antal_player = sizeof(game.players) / sizeof(game.players[0]); 
+    int antal_food = sizeof(game.crumbs) / sizeof(game.crumbs[0]); 
+
+    for(int i = 0; i < antal_player; i++){
+        game.players[i].x_pos += game.players[i].dx;
+        game.players[i].y_pos += game.players[i].dy;
+
+        if(game.players[i].x_pos < game.players[i].radius){
+            game.players[i].x_pos = game.players[i].radius;
+        }
+
+        if(game.players[i].x_pos > SCREEN_WIDTH - game.players[i].radius){
+            game.players[i].x_pos = SCREEN_WIDTH - game.players[i].radius;
+        }
+
+        if(game.players[i].y_pos < game.players[i].radius){
+            game.players[i].y_pos = game.players[i].radius;
+        }
+
+        if(game.players[i].y_pos > SCREEN_HEIGHT - game.players[i].radius){
+            game.players[i].y_pos = SCREEN_HEIGHT - game.players[i].radius;
+        }
+    }
+   
+
+    if(check_collision_player(game.players[0], game.players[1])){
+        if(game.players[0].radius > game.players[1].radius){
+            game.players[0].radius += game.players[1].radius/2;
+            game.players[1].hp--;
+        }else{
+            game.players[1].radius += game.players[0].radius/2;
+            game.players[0].hp--;
+        }
+    }
+
+    for(int i = 0; i < antal_player; i++){
+        for(int j = 0; j < antal_food; j++){
+            if(check_collision_food(game.players[i], game.crumbs[j])){
+                if(game.players[i].radius < MAX_RADIUS){
+                game.players[i].radius += game.crumbs[j].nutrition;
+                }
+
+                //new position
+                game.crumbs[j].x_pos = rand() % SCREEN_WIDTH;
+                game.crumbs[j].y_pos = rand() % SCREEN_HEIGHT;
+            }
+        }
+    }
+}
+
+void render_game() {
+    clear_screen();
+
+    //player
+    int antal_player = sizeof(game.players) / sizeof(game.players[0]); 
+    for(int i = 0; i < antal_player; i++){
+        Player player = game.players[i];
+        draw_circle(player.x_pos, player.y_pos, player.radius, 255);
+    }
+
+    //food
+    int antal_food = sizeof(game.crumbs) / sizeof(game.crumbs[0]); 
+    for(int i = 0; i < antal_food;  i++){
+        Food food = game.crumbs[i];
+        draw_circle(food.x_pos, food.y_pos, food.radius, 46);
+    }
+   
+    //time
+}
+
+void handle_interrupt (unsigned _irq)
+{ }
+
+
+void init_game(){
+    game.players[0].x_pos = 50;
+    game.players[0].y_pos = 50;
+    game.players[0].radius = MIN_RADIUS;
+    game.players[0].dx = 2;
+    game.players[0].dy = 2;
+
+    game.players[1].x_pos = 3;
+    game.players[1].y_pos = 3;
+    game.players[1].radius = MIN_RADIUS;
+    game.players[1].dx = -2;
+    game.players[1].dy = 2;
+
+    
+    for(int i = 0; i < Food_count; i++){
+        game.crumbs[i].x_pos = rand() % SCREEN_WIDTH;
+        game.crumbs[i].y_pos = rand() % SCREEN_HEIGHT;
+        game.crumbs[i].radius = 1;
+        game.crumbs[i].nutrition = 1;
+    }
+}
+
+void delay(int cycles){
+    for(int i = 0; i < cycles; i++);
+}
+
+int main()
+{ 
+    init_game();
+  
+  // Enter a forever loop
+  while (1)
+    {
+        update_game();
+        render_game();
+
+        delay(1000000000000000000000);
+     }
+}
