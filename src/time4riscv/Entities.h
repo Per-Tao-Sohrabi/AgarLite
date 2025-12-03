@@ -6,6 +6,7 @@ typedef struct {
     int y_pos;
     int hp;
     int color;
+    int velocity;
     int dx, dy;
 } Player;
 
@@ -18,11 +19,10 @@ typedef struct {
 typedef struct {
     int x_pos;
     int y_pos;
-    int dx;
-    int dy;
     int hp;
-    int radius;
-    int surfce 
+    int color;
+    int velocity;
+    int dx, dy;
 } Ai;
 
 #endif // ENTITIES_H  // 3. Close the conditional block
