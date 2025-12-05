@@ -46,6 +46,11 @@ int get_pause_swtch() {
   return get_switch_states(4);
 }
 
+/* READ INPUTS
+    Reads the switch states and returns them in an array.
+  RETURNS 
+    An array with the switch values
+*/
 int read_inputs() {
   // LsB Pair
   int ls_sw1 = get_switch_states(0);
@@ -78,22 +83,22 @@ int main() {
     // READ PLAYER INPUT
     int input_vector[] = read_inputs();
     
+    // CHECK FOR PAUSE
+    if (get_pause_swtch() == 1) {
+      run_pause();
+    }  
     // UPDATE THE GAME STATE:
     GameState_update(&gs, input_vector);
 
-    // DELAY FOR A WHILE
+    // DELAY FOR A WHILE (UNTIL TIMER TO FLAG IS RAISED)
     while((timer[0] & 0b1) == 0 ) {
-      // Busy wait for TO flag
     }
     timer[0] = 0b1; // Reset TO flag
     
     // RENDER GAME STATE
     render_game(&gs);
 
-    // CHECK FOR PAUSE
-    if (get_pause_swtch() == 1) {
-      run_pause();
-    }  
+
 
   }
 }
