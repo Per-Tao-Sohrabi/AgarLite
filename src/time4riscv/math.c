@@ -27,11 +27,29 @@ void Dict_insert(Dictionary* dict, int key, int value) {
     dict->size++;
 }
 
-int Dict_get(Dictionary* dict, int key) {
+int Dict_get_value(Dictionary* dict, int key) {
     for (int i = 0; i < dict->size; i++) {
         if (dict->keys[i] == key) {
             return dict->values[i];
         }
     }
     return -1; // Not found
+}
+int Dict_get_key(Dictionary* dict, int value) {
+    for (int i = 0; i < dict->size; i++) {
+        if (dict->values[i] == value) {
+            return dict->keys[i];
+        }
+    }
+    return -1; // Not found
+}
+
+int Dict_set_value(Dictionary* dict, int key, int value) {
+    for (int i = 0; i < dict->size; i++) {
+        if (dict->keys[i] == key) {
+            dict->values[i] = value;
+            return 0; // Success
+        }
+    }
+    return -1; // Key not found
 }
