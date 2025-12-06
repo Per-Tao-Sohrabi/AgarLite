@@ -1,5 +1,8 @@
 #ifndef ENTITIES_H  // 1. Check if the guard symbol is NOT defined
 #define ENTITIES_H  // 2. Define the guard symbol
+#include <math.h>
+#include "GameState.h"
+#include "math.c" // For Dict_set_value
 
 typedef struct {
     int x_pos;
