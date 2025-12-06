@@ -5,7 +5,7 @@
 GameState run_start_up() {
     // Query game mode and difficulty
     int gm = query_game_mode(); // Sets number of players and diffuculty in gm varibale. 
-    int diff = query_diffculty();
+    int diff = query_game_diffculty();
     
     // Initiate the game state:
     GameState gs;
@@ -38,7 +38,7 @@ int query_game_difficulty() {
         int sw1 = get_switch_state(0);
         int sw2 = get_switch_state(1);
         int sw3 = get_switch_state(2);
-        volatile int diff = sw1 + sw2 + sw3;
+        volatile int diff = sw1 + sw2 + sw3; // Binary to decimal conversion
         
         int btn = get_btn();
         if (btn) {
@@ -85,4 +85,8 @@ void run_pause() {
             break;
         }
     }
+}
+
+void display_msg(char* msg) {
+    printf(msg);
 }

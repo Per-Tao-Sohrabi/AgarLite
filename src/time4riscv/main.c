@@ -88,8 +88,11 @@ int main() {
       run_pause();
     }  
     // UPDATE THE GAME STATE:
-    GameState_update(&gs, input_vector);
+    bool game_over = GameState_update(&gs, input_vector); 
 
+    if (game_over) {
+      run_game_over();
+    }
     // DELAY FOR A WHILE (UNTIL TIMER TO FLAG IS RAISED)
     while((timer[0] & 0b1) == 0 ) {
     }
