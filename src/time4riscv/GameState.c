@@ -224,7 +224,7 @@ bool GameState_update(GameState* gs, int input_vector[]) {
         // Check collision with other players
         for(int j = i+1; j <= gs->game_mode; j++) {
             Player* p2_ptr = &gs->players[j];
-            bool col = check_player_player_colision(p_ptr, p2_ptr);
+            bool col = check_player_player_collision(p_ptr, p2_ptr);
             if (col == false) { // If no collision, continue to next player. 
                 continue;
             } else {
@@ -235,7 +235,7 @@ bool GameState_update(GameState* gs, int input_vector[]) {
         // Check collision with food
         for(int j = 0; j < MAXFOOD; j++) {
             Food* f_ptr = &gs->crumbs[j];
-            bool col = check_player_food_colision(p_ptr, f_ptr);
+            bool col = check_player_food_collision(p_ptr, f_ptr);
             if (col == false) { // If no collision, continue to next player. 
                 continue;
             } else {
@@ -262,18 +262,18 @@ bool GameState_update(GameState* gs, int input_vector[]) {
                 if(ai2_ptr == NULL) {
                     continue; // Skip if AI does not exist
                 }
-                bool col = check_ai_ai_colision(ai_ptr, ai2_ptr);
+                bool col = check_ai_ai_collision(ai_ptr, ai2_ptr);
                 if (col == false) { // If no collision, continue to next AI. 
                     continue;
                 } else {
-                    GameState_handle_ai_ai_colision(gs, ai_ptr, ai2_ptr);
+                    GameState_handle_ai_ai_collision(gs, ai_ptr, ai2_ptr);
                 }
             }
 
             // Check collision with food
             for(int j = 0; j < MAXFOOD; j++) {
                 Food* f_ptr = &gs->crumbs[j];
-                bool col = check_ai_food_colision(ai_ptr, f_ptr);
+                bool col = check_ai_food_collision(ai_ptr, f_ptr);
                 if (col == false) { // If no collision, continue to next AI. 
                     continue;
                 } else {
@@ -458,11 +458,11 @@ void GameState_handle_player_food_collision(GameState* gs, Player* p, Food* f) {
     
     int coord_key_f = (f->x_pos << 16) | f->y_pos;  // Combine x and y into a single key
     Dict_set_value(&gs->occupied_coords_dict, coord_key_f, f->id);   
-    int coord_key_p = (f->x_pos << 16) | f->y_pos;  // Combine x and y into a single key
+    int coord_key_p = (p->x_pos << 16) | p->y_pos;  // Combine x and y into a single key
     Dict_set_value(&gs->occupied_coords_dict, coord_key_p, p->id);
 }
 /* Handle ai ai collisions*/
-void GameState_handle_ai_ai_colision(GameState* gs, Ai* ai1, Ai* ai2) {
+void GameState_handle_ai_ai_collision(GameState* gs, Ai* ai1, Ai* ai2) {
     Ai *ai; // Player with larger area, holds address
     Ai *aj; // Player with smaller area, holds address
     if (ai1->area > ai2->area) {
@@ -524,6 +524,6 @@ void GameState_handle_ai_food_collision(GameState* gs, Ai* ai, Food* f) {
     // Update occupied coords dictionary in GameState
     int coord_key_f = (f->x_pos << 16) | f->y_pos;  // Combine x and y into a single key
     Dict_set_value(&gs->occupied_coords_dict, coord_key_f, f->id);   
-    int coord_key_ai = (f->x_pos << 16) | f->y_pos;  // Combine x and y into a single key
+    int coord_key_ai = (ai->x_pos << 16) | ai->y_pos;  // Combine x and y into a single key
     Dict_set_value(&gs->occupied_coords_dict, coord_key_ai, ai->id);
 }
