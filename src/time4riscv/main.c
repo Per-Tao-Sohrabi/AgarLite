@@ -7,31 +7,33 @@
 /* Below functions are external and found in other files. */
 #include "GameState.h" 
 #include "Entities.h"
+#include "inputs.h"
+#include "prog_states.h"
+
 #include <stdbool.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "inputs.h"
-#include "prog_states.h"
-#include "render.c"
 
-extern void print(const char*);
-extern void print_dec(unsigned int);
-extern void display_string(char*);
+extern void enable_interrupts(void);
+
+//#include "render.c"
+//extern void print(const char*);
+//extern void print_dec(unsigned int);
+//extern void display_string(char*);
 //extern void time2string(char*,int);
 //extern void tick(int*);
 //extern void delay(int);
-extern int nextprime( int );
-extern void enable_interrupts(void);
-extern void render_game(volatile GameState* gs);
-extern GameState run_start_up(void);
-extern void run_pause(void);
-extern void run_game_over(void);
+//extern int nextprime( int );
+// extern void render_game(volatile GameState* gs);
+//extern GameState run_start_up(void);
+//extern void run_pause(void);
+//extern void run_game_over(void);
 
 // Timer buffer
 volatile int* timer = (volatile int*) 0x04000020;
 
-/*Initiates the timer and sets its attributes*/
+/* Initiates the timer and sets its attributes*/
 void labinit(void) {
   // Set period to 3 MHz:
   int period_val = 3000000 -1; // Subtract 1 because timer counts from 0
@@ -40,7 +42,7 @@ void labinit(void) {
 
   // Set start status
   timer[0] = 0b110; // Enable timer, sets ito = off, cont = on, start = on, stop. = off. 
-  print("---- Timer start status set.\n");
+  printf("---- Timer start status set.\n");
 }
 
 /* Below is the function that will be called when an interrupt is triggered. */
@@ -52,10 +54,10 @@ int get_pause_swtch() {
   return get_switch_states(4);
 }
 
-/* READ INPUTS
-    Reads the switch states and returns them in an array.
-  RETURNS 
-    An array with the switch values
+/* Helper function that
+    Reads the switch states and returns them in an array,
+   RETURNS 
+    An array with the switch values.
 */
 int read_inputs() {
   // LsB Pair
@@ -73,17 +75,18 @@ int read_inputs() {
 
 /* Your code goes into main as well as any needed functions. */
 int main() {
-  display_msg("- Starting Time4RiscV...\n");
+  printf("- Starting Time4RiscV...\n");
   // Enable timer
   labinit();
-  display_msg("- Timer enabled.\n");
+  printf("- Timer enabled.\n");
 
   // Enable interrupts
   enable_interrupts();
-  display_msg("- Interrupts enabled.\n");
+  printf("- Interrupts enabled.\n");
   // Display a welcome message.
-  display_msg('- Running startup sequence...\n');
+  printf('- Running startup sequence...\n');
   GameState gs = run_start_up(); // Set the game state and diffuculty mode.
+  volatile GameState* gs_ptr = &gs;
   // Start game query ...
   // MAIN GAME LOOP
   while (1) {
@@ -96,7 +99,7 @@ int main() {
       run_pause();
     }  
     // UPDATE THE GAME STATE:
-    bool game_over = GameState_update(&gs, input_vector); 
+    bool game_over = GameState_update(gs_ptr, input_vector); 
 
     if (game_over) {
       run_game_over();
@@ -107,9 +110,7 @@ int main() {
     timer[0] = 0b1; // Reset TO flag
     
     // RENDER GAME STATE
-    render_game(&gs);
-
-
+    //render_game(gs_ptr);
 
   }
 }

@@ -13,5 +13,5 @@ int query_game_mode();
 int query_game_difficulty();
 /* Pause logic*/
 void run_pause();
-void display_msg(char* msg);
+
 #endif
