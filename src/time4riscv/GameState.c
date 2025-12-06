@@ -17,7 +17,7 @@ extern int rand_range(int, int);
 void GameState_init(GameState* gs, int gm, int diff){
     
     // Populate ID pool
-    for(int i = 0; i< sizeof(gs->available_ids); i++) {
+    for(int i = 0; i< sizeof(MAXPLAYERS + MAXAI + MAXFOOD); i++) {
         gs->available_ids[i] = true; // All IDs are available at start
     }
     
@@ -52,7 +52,7 @@ int GameState_get_random_position(GameState* gs) {
 
 /* Helper function to get free ids*/
 int GameState_get_free_id(GameState* gs) {
-    for (int i = 0; i < sizeof(gs->available_ids); i++) {
+    for (int i = 0; i < sizeof(MAXPLAYERS + MAXAI + MAXFOOD); i++) {
         if (gs->available_ids[i] == true) {
             gs->available_ids[i] = false; // Mark as used
             return i;
@@ -182,7 +182,7 @@ void GameState_generate_ai(GameState* gs, int diff) {
 */
 bool GameState_update(GameState* gs, int input_vector[]) {
     // UPDATE PLAYER POSITION
-    for(int i = 0; i< sizeof(gs->players); i++) {
+    for(int i = 0; i< sizeof(gs->game_mode + 1); i++) {
         Player* p_i = &gs->players[i];
         
         // Read player input
@@ -192,7 +192,7 @@ bool GameState_update(GameState* gs, int input_vector[]) {
     }
 
     // UPDATE AI POSITION
-    for(int i = 0; i< sizeof(gs->ais); i++) {
+    for(int i = 0; i< sizeof(MAXAI); i++) {
         Ai* ai_i = &gs->ais[i];
         // Simple AI movement logic: random walk
         int x_ctrl = rand_range(0, 1); // Random x control
