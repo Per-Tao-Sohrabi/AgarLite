@@ -13,26 +13,6 @@ extern int rand_range(int, int);
 #define MAXAI 6
 #define MAXFOOD 20
 
-typedef struct {
-    int ticks;
-    int difficulty;
-    int game_mode;
-    int min_x;
-    int max_x;
-    int min_y;
-    int max_y;
-
-    Player players[MAXPLAYERS]; // Can hold two players
-    Food crumbs[MAXFOOD]; // Can hold five food pieces
-    Ai ais[MAXAI];
-
-    //Dict and data
-    bool available_ids[MAXPLAYERS + MAXAI + MAXFOOD]; // To track available entity IDs.
-
-    Dictionary occupied_coords_dict; // Key. coord id. Value: entity ID
-    Dictionary id_type_dict; // Key: entity ID. Value: entity type
-} GameState;
-
 /* Initializes the game state */
 void GameState_init(GameState* gs, int gm, int diff){
     
