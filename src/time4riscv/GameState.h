@@ -15,7 +15,7 @@ extern int rand_range(int, int);
 #define MAXAI 6
 #define MAXFOOD 20
 
-typedef struct {
+typedef struct GameState{
     int ticks;
     int difficulty;
     int game_mode;
