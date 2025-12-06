@@ -31,6 +31,22 @@ void GameState_init(volatile GameState* gs, int gm, int diff){
     gs->min_y = 0;
     gs->max_y = 480;
     
+    // Prepare entity lists
+    for(int i = 0; i< MAXPLAYERS; i++) {
+        Player p;
+        Player_init(&p, -1, -1, -1, -1); // Initialize with invalid values
+        gs->players[i] = p;
+    }
+    for(int i = 0; i< MAXFOOD; i++) {
+        Food f;
+        Food_init(&f, -1, -1, -1, -1); // Initialize with invalid values
+        gs->crumbs[i] = f;
+    }
+    for(int i = 0; i< MAXAI; i++) {
+        Ai ai;
+        Ai_init(&ai, -1, -1, -1, -1); // Initialize with invalid values
+        gs->ais[i] = ai;
+    }
     // Generate entities
     GameState_generate_players(gs, gm);
     GameState_generate_food(gs, gm, diff);
@@ -142,7 +158,7 @@ void GameState_generate_food(volatile GameState* gs, int gm, int diff) {
 
         // Store food item
         gs->crumbs[i] = f;
-        int coord_key = (f.x_pos << 16) | f.y_pos; // Combine x and y into a single key
+        coord_key = (f.x_pos << 16) | f.y_pos; // Combine x and y into a single key
         Dict_insert(&gs->occupied_coords_dict, coord_key, f.id); // Key: combined coord, Value: food index
         Dict_insert(&gs->id_type_dict, f.id, 2); // Key: food index, Value: entity type (1 for food)
         // To check, get the type and then check the id in the type entity list. 
@@ -170,7 +186,7 @@ void GameState_generate_ai(volatile GameState* gs, int diff) {
         
         // Save
         gs->ais[i] = ai;
-        int coord_key = (ai.x_pos << 16) | ai.y_pos; // Combine x and y into a single key
+        coord_key = (ai.x_pos << 16) | ai.y_pos; // Combine x and y into a single key
         Dict_insert(&gs->occupied_coords_dict, coord_key, ai.id); // Key:
         Dict_insert(&gs->id_type_dict, ai.id, 1); // Key: food index, Value: entity type (1 for food)
     }
@@ -184,7 +200,9 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
     // UPDATE PLAYER POSITION
     for(int i = 0; i< gs->game_mode + 1; i++) {
         volatile Player* p_i = &gs->players[i];
-        
+        if(p_i->id == -1) {
+            continue; // Skip if Player does not exist
+        }
         // Read player input
         int x_ctrl = input_vector[i]; // X control
         int y_ctrl = input_vector[i+1]; // Y control
@@ -194,6 +212,9 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
     // UPDATE AI POSITION
     for(int i = 0; i< MAXAI; i++) {
         volatile Ai* ai_i = &gs->ais[i];
+        if(ai_i->id == -1) {
+            continue; // Skip if AI does not exist
+        }
         // Simple AI movement logic: random walk
         int x_ctrl = rand_range(0, 1); // Random x control
         int y_ctrl = rand_range(0, 1); // Random y control
@@ -205,10 +226,13 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
         
         // Fix a player
         volatile Player* p_ptr = &gs->players[i];
+        if(p_ptr->id == -1) {
+            continue; // Skip if Player does not exist
+        }
 
         // Check collision with AI
         for(int j = 0; j < MAXAI; j++) {
-            if(&gs->ais[j] == NULL) {
+            if(&gs->ais[j] == -1) {
                 continue; // Skip if AI does not exist
             }
             volatile Ai* ai_ptr = &gs->ais[j];
@@ -224,6 +248,9 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
         // Check collision with other players
         for(int j = i+1; j <= gs->game_mode; j++) {
             volatile Player* p2_ptr = &gs->players[j];
+            if(p2_ptr->id == -1) {
+                continue; // Skip if Player does not exist
+            }
             bool col = check_player_player_collision(p_ptr, p2_ptr);
             if (col == false) { // If no collision, continue to next player. 
                 continue;
@@ -235,6 +262,9 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
         // Check collision with food
         for(int j = 0; j < MAXFOOD; j++) {
             volatile Food* f_ptr = &gs->crumbs[j];
+            if(f_ptr->id == -1) {
+                continue; // Skip if Food does not exist
+            }
             bool col = check_player_food_collision(p_ptr, f_ptr);
             if (col == false) { // If no collision, continue to next player. 
                 continue;
@@ -252,14 +282,13 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
     // HANLDE COLLISIONS BETWEEN AI AND OTHER TODO...
     for(int i = 0; i < MAXAI; i++) {
             volatile Ai* ai_ptr = &gs->ais[i];
-            if(ai_ptr == NULL) {
+            if(ai_ptr->id == -1) {
                 continue; // Skip if AI does not exist
             }
-
             // Check collision with other AI
             for(int j = i+1; j < MAXAI; j++) {
                 volatile Ai* ai2_ptr = &gs->ais[j];
-                if(ai2_ptr == NULL) {
+                if(ai2_ptr->id == -1) {
                     continue; // Skip if AI does not exist
                 }
                 bool col = check_ai_ai_collision(ai_ptr, ai2_ptr);
@@ -273,6 +302,10 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
             // Check collision with food
             for(int j = 0; j < MAXFOOD; j++) {
                 volatile Food* f_ptr = &gs->crumbs[j];
+                if(f_ptr->id == -1) {
+                    continue; // Skip if Food does not exist
+                }
+
                 bool col = check_ai_food_collision(ai_ptr, f_ptr);
                 if (col == false) { // If no collision, continue to next AI. 
                     continue;
@@ -287,6 +320,9 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
     // Check game over conditions TODO...
     for(int i = 0; i <= gs->game_mode; i++) {
         volatile Player* p_i = &gs->players[i];
+        if(p_i->id == -1) {
+            continue; // Skip if Player does not exist
+        }
         if (p_i->area <= 0) {
             // Handle game over for player i
             return true;
