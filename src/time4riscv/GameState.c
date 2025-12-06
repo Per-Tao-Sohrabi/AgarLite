@@ -17,7 +17,7 @@ extern int rand_range(int, int);
 void GameState_init(GameState* gs, int gm, int diff){
     
     // Populate ID pool
-    for(int i = 0; i< sizeof(MAXPLAYERS + MAXAI + MAXFOOD); i++) {
+    for(int i = 0; i< MAXPLAYERS + MAXAI + MAXFOOD; i++) {
         gs->available_ids[i] = true; // All IDs are available at start
     }
     
@@ -52,7 +52,7 @@ int GameState_get_random_position(GameState* gs) {
 
 /* Helper function to get free ids*/
 int GameState_get_free_id(GameState* gs) {
-    for (int i = 0; i < sizeof(MAXPLAYERS + MAXAI + MAXFOOD); i++) {
+    for (int i = 0; i < MAXPLAYERS + MAXAI + MAXFOOD; i++) {
         if (gs->available_ids[i] == true) {
             gs->available_ids[i] = false; // Mark as used
             return i;
@@ -182,7 +182,7 @@ void GameState_generate_ai(GameState* gs, int diff) {
 */
 bool GameState_update(GameState* gs, int input_vector[]) {
     // UPDATE PLAYER POSITION
-    for(int i = 0; i< sizeof(gs->game_mode + 1); i++) {
+    for(int i = 0; i< gs->game_mode + 1; i++) {
         Player* p_i = &gs->players[i];
         
         // Read player input
@@ -192,7 +192,7 @@ bool GameState_update(GameState* gs, int input_vector[]) {
     }
 
     // UPDATE AI POSITION
-    for(int i = 0; i< sizeof(MAXAI); i++) {
+    for(int i = 0; i< MAXAI; i++) {
         Ai* ai_i = &gs->ais[i];
         // Simple AI movement logic: random walk
         int x_ctrl = rand_range(0, 1); // Random x control
@@ -304,6 +304,14 @@ bool check_player_food_collision(Player* p, Food* f) {
     return distance_squared <= radius_sum*radius_sum;
 }
 
+bool check_player_player_collision(Player* p1, Player* p2) {
+    int dx = p1-> x_pos - p2-> x_pos;
+    int dy = p1-> y_pos - p2-> y_pos;
+    int distance_squared = dx*dx + dy*dy;
+    int radius_sum = p1->radius + p2->radius;
+    return distance_squared <= radius_sum*radius_sum;
+}
+
 bool check_player_ai_collision(Player* p, Ai* ai) {
     int dx = p-> x_pos - ai-> x_pos;
     int dy = p-> y_pos - ai-> y_pos;
@@ -328,21 +336,6 @@ bool check_ai_food_collision(Ai* ai, Food* f) {
     return distance_squared <= radius_sum*radius_sum;
 }
 
-bool check_player_player_collision(Player* p1, Player* p2) {
-    int dx = p1-> x_pos - p2-> x_pos;
-    int dy = p1-> y_pos - p2-> y_pos;
-    int distance_squared = dx*dx + dy*dy;
-    int radius_sum = p1->radius + p2->radius;
-    return distance_squared <= radius_sum*radius_sum;
-}
-
-bool check_player_ai_collision(Food* f1, Food* f2) {
-    int dx = f1-> x_pos - f2-> x_pos;
-    int dy = f1-> y_pos - f2-> y_pos;
-    int distance_squared = dx*dx + dy*dy;
-    int radius_sum = f1->radius + f2->radius;
-    return distance_squared <= radius_sum*radius_sum;
-}
 
 // HANDLE COLLISION RESPONSES
 /* Handle player ai collisions*/
