@@ -1,5 +1,6 @@
+#include "prog_states.h"
 #include "GameState.h"
-#include "inputs.c"
+#include "inputs.h"
 
 // Initalize a game state
 GameState run_start_up() {

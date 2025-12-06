@@ -11,8 +11,8 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "inputs.c"
-#include "prog_states.c"
+#include "inputs.h"
+#include "prog_states.h"
 #include "render.c"
 
 extern void print(const char*);
