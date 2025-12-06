@@ -212,7 +212,7 @@ bool GameState_update(GameState* gs, int input_vector[]) {
                 continue; // Skip if AI does not exist
             }
             Ai* ai_ptr = &gs->ais[j];
-            bool col = check_player_ai_colision(p_ptr, ai_ptr);
+            bool col = check_player_ai_collision(p_ptr, ai_ptr);
             if (col == false) { // If no collision, continue to next player. 
                 continue;
             } else {
@@ -436,7 +436,7 @@ void GameState_handle_player_player_collision(GameState* gs, Player* p1, Player*
     Dict_set_value(&gs->occupied_coords_dict, coord_key_pi, pi->id);
 }
 /* Handle player food collision*/   
-void GameState_handle_player_food_coolision(GameState* gs, Player* p, Food* f) {
+void GameState_handle_player_food_collision(GameState* gs, Player* p, Food* f) {
     // Update player area based on nutrient
     // Compute current area:
     double area = (double)p->radius * (double)p->radius * 3.14; 
@@ -468,7 +468,7 @@ void GameState_handle_ai_ai_colision(GameState* gs, Ai* ai1, Ai* ai2) {
     if (ai1->area > ai2->area) {
         ai = ai1;
         aj = ai2;
-    } else if (ai1->area > ai1->area) {
+    } else if (ai2->area > ai1->area) {
         ai = ai2;
         aj = ai1;
     }   else {
