@@ -5,8 +5,8 @@
 
 // 1. FORWARD DECLARATION for GameState
 typedef struct GameState GameState; 
-// 2. FORWARD DECLARATION for Dictionary (Used in GameState struct)
-typedef struct Dictionary Dictionary;
+// // 2. FORWARD DECLARATION for Dictionary (Used in GameState struct)
+// typedef struct Dictionary Dictionary;
 
 typedef struct {
     int x_pos;
