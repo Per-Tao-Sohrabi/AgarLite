@@ -14,7 +14,7 @@ extern int rand_range(int, int);
 #define MAXFOOD 20
 
 /* Initializes the game state */
-void GameState_init(GameState* gs, int gm, int diff){
+void GameState_init(volatile GameState* gs, int gm, int diff){
     
     // Populate ID pool
     for(int i = 0; i< MAXPLAYERS + MAXAI + MAXFOOD; i++) {
@@ -38,7 +38,7 @@ void GameState_init(GameState* gs, int gm, int diff){
 }
 
 // Check for occupied positions, if occupied, regenerate
-int GameState_get_random_position(GameState* gs) {
+int GameState_get_random_position(volatile GameState* gs) {
     // Set random position
     int x_pos = rand_range(gs->min_x, gs->max_x);
     int y_pos = rand_range(gs->min_y, gs->max_y);
@@ -51,7 +51,7 @@ int GameState_get_random_position(GameState* gs) {
 }
 
 /* Helper function to get free ids*/
-int GameState_get_free_id(GameState* gs) {
+int GameState_get_free_id(volatile GameState* gs) {
     for (int i = 0; i < MAXPLAYERS + MAXAI + MAXFOOD; i++) {
         if (gs->available_ids[i] == true) {
             gs->available_ids[i] = false; // Mark as used
@@ -68,7 +68,7 @@ int GameState_get_free_id(GameState* gs) {
 }
 
 /* Generate Players, Food, and AI based on game mode and difficulty */
-void GameState_generate_players(GameState* gs, int game_mode) {
+void GameState_generate_players(volatile GameState* gs, int game_mode) {
     volatile int colors[] = {100, 200, 150, 50, 250};
     for(int i = 0; i<=game_mode; i++) {
         // Create Player
@@ -84,14 +84,14 @@ void GameState_generate_players(GameState* gs, int game_mode) {
         gs->players[i] = p;
         
         // Set initial positions
-        int coord_key = (p.x_pos << 16) | p.y_pos; // Combine x and y into a single key
+        coord_key = (p.x_pos << 16) | p.y_pos; // Combine x and y into a single key
         Dict_insert(&gs->occupied_coords_dict, coord_key, p.id); // Key: combined coord, Value: food index
         Dict_insert(&gs->id_type_dict, p.id, 0); // Key: food index, Value: entity type (1 for food)
     }
 }
 
 /* Generate Food based on game mode and difficulty */ // TODO: Skapa Food_init().
-void GameState_generate_food(GameState* gs, int gm, int diff) {
+void GameState_generate_food(volatile GameState* gs, int gm, int diff) {
     
     // Calc numb of food based on difficulty (from the 7 diff levels) and gm (2 gm). 
     int base_food_n = 10; // TODO: Rewrite 
@@ -150,7 +150,7 @@ void GameState_generate_food(GameState* gs, int gm, int diff) {
 }
 
 /* Generate AI based on difficulty */
-void GameState_generate_ai(GameState* gs, int diff) {
+void GameState_generate_ai(volatile GameState* gs, int diff) {
     int total_ai_n = diff * 2; // Each diff level adds 2 AI
     if (total_ai_n > MAXAI) {
         total_ai_n = MAXAI; // Cap to MAXAI
@@ -180,10 +180,10 @@ void GameState_generate_ai(GameState* gs, int diff) {
 - Entity movements
     - Collision detection
 */
-bool GameState_update(GameState* gs, int input_vector[]) {
+bool GameState_update(volatile GameState* gs, int input_vector[]) {
     // UPDATE PLAYER POSITION
     for(int i = 0; i< gs->game_mode + 1; i++) {
-        Player* p_i = &gs->players[i];
+        volatile Player* p_i = &gs->players[i];
         
         // Read player input
         int x_ctrl = input_vector[i]; // X control
@@ -193,7 +193,7 @@ bool GameState_update(GameState* gs, int input_vector[]) {
 
     // UPDATE AI POSITION
     for(int i = 0; i< MAXAI; i++) {
-        Ai* ai_i = &gs->ais[i];
+        volatile Ai* ai_i = &gs->ais[i];
         // Simple AI movement logic: random walk
         int x_ctrl = rand_range(0, 1); // Random x control
         int y_ctrl = rand_range(0, 1); // Random y control
@@ -204,14 +204,14 @@ bool GameState_update(GameState* gs, int input_vector[]) {
     for(int i = 0; i <= gs->game_mode; i++) { // For every player
         
         // Fix a player
-        Player* p_ptr = &gs->players[i];
+        volatile Player* p_ptr = &gs->players[i];
 
         // Check collision with AI
         for(int j = 0; j < MAXAI; j++) {
             if(&gs->ais[j] == NULL) {
                 continue; // Skip if AI does not exist
             }
-            Ai* ai_ptr = &gs->ais[j];
+            volatile Ai* ai_ptr = &gs->ais[j];
             bool col = check_player_ai_collision(p_ptr, ai_ptr);
             if (col == false) { // If no collision, continue to next player. 
                 continue;
@@ -223,7 +223,7 @@ bool GameState_update(GameState* gs, int input_vector[]) {
 
         // Check collision with other players
         for(int j = i+1; j <= gs->game_mode; j++) {
-            Player* p2_ptr = &gs->players[j];
+            volatile Player* p2_ptr = &gs->players[j];
             bool col = check_player_player_collision(p_ptr, p2_ptr);
             if (col == false) { // If no collision, continue to next player. 
                 continue;
@@ -234,7 +234,7 @@ bool GameState_update(GameState* gs, int input_vector[]) {
 
         // Check collision with food
         for(int j = 0; j < MAXFOOD; j++) {
-            Food* f_ptr = &gs->crumbs[j];
+            volatile Food* f_ptr = &gs->crumbs[j];
             bool col = check_player_food_collision(p_ptr, f_ptr);
             if (col == false) { // If no collision, continue to next player. 
                 continue;
@@ -251,14 +251,14 @@ bool GameState_update(GameState* gs, int input_vector[]) {
 
     // HANLDE COLLISIONS BETWEEN AI AND OTHER TODO...
     for(int i = 0; i < MAXAI; i++) {
-            Ai* ai_ptr = &gs->ais[i];
+            volatile Ai* ai_ptr = &gs->ais[i];
             if(ai_ptr == NULL) {
                 continue; // Skip if AI does not exist
             }
 
             // Check collision with other AI
             for(int j = i+1; j < MAXAI; j++) {
-                Ai* ai2_ptr = &gs->ais[j];
+                volatile Ai* ai2_ptr = &gs->ais[j];
                 if(ai2_ptr == NULL) {
                     continue; // Skip if AI does not exist
                 }
@@ -272,7 +272,7 @@ bool GameState_update(GameState* gs, int input_vector[]) {
 
             // Check collision with food
             for(int j = 0; j < MAXFOOD; j++) {
-                Food* f_ptr = &gs->crumbs[j];
+                volatile Food* f_ptr = &gs->crumbs[j];
                 bool col = check_ai_food_collision(ai_ptr, f_ptr);
                 if (col == false) { // If no collision, continue to next AI. 
                     continue;
@@ -286,7 +286,7 @@ bool GameState_update(GameState* gs, int input_vector[]) {
     
     // Check game over conditions TODO...
     for(int i = 0; i <= gs->game_mode; i++) {
-        Player* p_i = &gs->players[i];
+        volatile Player* p_i = &gs->players[i];
         if (p_i->area <= 0) {
             // Handle game over for player i
             return true;
@@ -296,7 +296,7 @@ bool GameState_update(GameState* gs, int input_vector[]) {
 }
 
 // CHECK COLLISIONS BETWEEN ENTITIES
-bool check_player_food_collision(Player* p, Food* f) {
+bool check_player_food_collision(volatile Player* p, volatile Food* f) {
     int dx = p-> x_pos - f-> x_pos;
     int dy = p-> y_pos - f-> y_pos;
     int distance_squared = dx*dx + dy*dy;
@@ -304,7 +304,7 @@ bool check_player_food_collision(Player* p, Food* f) {
     return distance_squared <= radius_sum*radius_sum;
 }
 
-bool check_player_player_collision(Player* p1, Player* p2) {
+bool check_player_player_collision(volatile Player* p1, volatile Player* p2) {
     int dx = p1-> x_pos - p2-> x_pos;
     int dy = p1-> y_pos - p2-> y_pos;
     int distance_squared = dx*dx + dy*dy;
@@ -312,7 +312,7 @@ bool check_player_player_collision(Player* p1, Player* p2) {
     return distance_squared <= radius_sum*radius_sum;
 }
 
-bool check_player_ai_collision(Player* p, Ai* ai) {
+bool check_player_ai_collision(volatile Player* p, volatile Ai* ai) {
     int dx = p-> x_pos - ai-> x_pos;
     int dy = p-> y_pos - ai-> y_pos;
     int distance_squared = dx*dx + dy*dy;
@@ -320,7 +320,7 @@ bool check_player_ai_collision(Player* p, Ai* ai) {
     return distance_squared <= radius_sum*radius_sum;
 }
 
-bool check_ai_ai_collision(Ai* ai1, Ai* ai2) {
+bool check_ai_ai_collision(volatile Ai* ai1, volatile Ai* ai2) {
     int dx = ai1-> x_pos - ai2-> x_pos;
     int dy = ai1-> y_pos - ai2-> y_pos;
     int distance_squared = dx*dx + dy*dy;
@@ -328,7 +328,7 @@ bool check_ai_ai_collision(Ai* ai1, Ai* ai2) {
     return distance_squared <= radius_sum*radius_sum;
 }
 
-bool check_ai_food_collision(Ai* ai, Food* f) {
+bool check_ai_food_collision(volatile Ai* ai, volatile Food* f) {
     int dx = ai-> x_pos - f-> x_pos;
     int dy = ai-> y_pos - f-> y_pos;
     int distance_squared = dx*dx + dy*dy;
@@ -339,7 +339,7 @@ bool check_ai_food_collision(Ai* ai, Food* f) {
 
 // HANDLE COLLISION RESPONSES
 /* Handle player ai collisions*/
-void GameState_handle_player_ai_collision(GameState* gs, Player* p, Ai* ai) {
+void GameState_handle_player_ai_collision(volatile GameState* gs, volatile Player* p, volatile Ai* ai) {
     if (p->area > ai->area) {
     
         double a_ratio = (double)p->area / (double)p->area;
@@ -395,9 +395,9 @@ void GameState_handle_player_ai_collision(GameState* gs, Player* p, Ai* ai) {
     }
 }
 /* Handle player player collisions*/
-void GameState_handle_player_player_collision(GameState* gs, Player* p1, Player* p2) {
-    Player *pi; // Player with larger area, holds address
-    Player *pj; // Player with smaller area, holds address
+void GameState_handle_player_player_collision(volatile GameState* gs, volatile Player* p1, volatile Player* p2) {
+    volatile Player* pi; // Player with larger area, holds address
+    volatile Player* pj; // Player with smaller area, holds address
     if (p1->area > p2->area) {
         pi = p1;
         pj = p2;
@@ -436,7 +436,7 @@ void GameState_handle_player_player_collision(GameState* gs, Player* p1, Player*
     Dict_set_value(&gs->occupied_coords_dict, coord_key_pi, pi->id);
 }
 /* Handle player food collision*/   
-void GameState_handle_player_food_collision(GameState* gs, Player* p, Food* f) {
+void GameState_handle_player_food_collision(volatile GameState* gs, volatile Player* p, volatile Food* f) {
     // Update player area based on nutrient
     // Compute current area:
     double area = (double)p->radius * (double)p->radius * 3.14; 
@@ -462,9 +462,9 @@ void GameState_handle_player_food_collision(GameState* gs, Player* p, Food* f) {
     Dict_set_value(&gs->occupied_coords_dict, coord_key_p, p->id);
 }
 /* Handle ai ai collisions*/
-void GameState_handle_ai_ai_collision(GameState* gs, Ai* ai1, Ai* ai2) {
-    Ai *ai; // Player with larger area, holds address
-    Ai *aj; // Player with smaller area, holds address
+void GameState_handle_ai_ai_collision(volatile GameState* gs, volatile Ai* ai1, volatile Ai* ai2) {
+    volatile Ai* ai; // Player with larger area, holds address
+    volatile Ai* aj; // Player with smaller area, holds address
     if (ai1->area > ai2->area) {
         ai = ai1;
         aj = ai2;
@@ -503,7 +503,7 @@ void GameState_handle_ai_ai_collision(GameState* gs, Ai* ai1, Ai* ai2) {
     Dict_set_value(&gs->occupied_coords_dict, coord_key_ai, ai->id);
 }
 /* Handle ai food collisions*/
-void GameState_handle_ai_food_collision(GameState* gs, Ai* ai, Food* f) {
+void GameState_handle_ai_food_collision(volatile GameState* gs, volatile Ai* ai, volatile Food* f) {
     // Update AI area based on nutrient
     
     // Update player area based on nutrient, radius, and velocity
