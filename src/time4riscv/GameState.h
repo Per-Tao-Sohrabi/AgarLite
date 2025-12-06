@@ -1,3 +1,7 @@
+
+#ifndef GAMESTATE_H
+#define GAMESTATE_H
+
 #include "Entities.h"
 #include <stdbool.h>
 #include <math.h>
@@ -540,3 +544,5 @@ void GameState_handle_ai_food_collision(GameState* gs, Ai* ai, Food* f) {
     int coord_key_ai = (f->x_pos << 16) | f->y_pos;  // Combine x and y into a single key
     Dict_set_value(&gs->occupied_coords_dict, coord_key_ai, ai->id);
 }
+
+#endif // GAMESTATE_H
