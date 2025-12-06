@@ -1,4 +1,5 @@
 
+#include "math_tools.h"
 int rand() {
         static unsigned long next = 1;
         next = next * 1103515245 + 12345;
@@ -8,12 +9,6 @@ int rand() {
 int rand_range(int min, int max) {
     return min + rand() % (max - min + 1);
 }
-
-typedef struct {
-    int keys[100];
-    int values[100];
-    int size;
-} Dictionary;
 
 void Dict_insert(Dictionary* dict, int key, int value) {
     for (int i = 0; i < dict->size; i++) {
@@ -35,6 +30,7 @@ int Dict_get_value(Dictionary* dict, int key) {
     }
     return -1; // Not found
 }
+
 int Dict_get_key(Dictionary* dict, int value) {
     for (int i = 0; i < dict->size; i++) {
         if (dict->values[i] == value) {

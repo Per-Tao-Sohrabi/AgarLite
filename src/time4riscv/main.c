@@ -7,6 +7,8 @@
 /* Below functions are external and found in other files. */
 #include "GameState.h" 
 #include "Entities.h"
+#include <stdbool.h>
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include "inputs.c"
