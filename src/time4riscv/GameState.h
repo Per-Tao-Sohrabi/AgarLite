@@ -3,10 +3,11 @@
 #define GAMESTATE_H
 
 #include "Entities.h"
+#include "math_tools.h"
+
 #include <stdbool.h>
 #include <math.h>
 #include <stddef.h>
-#include "math_tools.h"
 
 extern int rand_range(int, int);
 
@@ -45,30 +46,7 @@ void GameState_generate_players(GameState* gs, int game_mode);
 /* Generate Food based on game mode and difficulty */ // TODO: Skapa Food_init().
 void GameState_generate_food(GameState* gs, int gm, int diff);
 /* Generate AI based on difficulty */
-void GameState_generate_ai(GameState* gs, int diff) {
-    int total_ai_n = diff * 2; // Each diff level adds 2 AI
-    if (total_ai_n > MAXAI) {
-        total_ai_n = MAXAI; // Cap to MAXAI
-    }
-    volatile int colors[] = {120, 220, 170, 70, 255, 30};
-    for(int i = 0; i<total_ai_n; i++) {
-        Ai ai;
-        ai.color = colors[i];
-        int id = GameState_get_free_id(gs);
-        
-        // Set random position
-        int x_pos, y_pos = GameState_get_random_position(gs);
-
-        Ai_init(&ai, id, ai.color, x_pos, y_pos);
-        
-        // Save
-        gs->ais[i] = ai;
-        int coord_key = (ai.x_pos << 16) | ai.y_pos; // Combine x and y into a single key
-        Dict_insert(&gs->occupied_coords_dict, coord_key, ai.id); // Key:
-        Dict_insert(&gs->id_type_dict, ai.id, 1); // Key: food index, Value: entity type (1 for food)
-    }
-}
-
+void GameState_generate_ai(GameState* gs, int diff);
 /* Update the Game State
 - Entity movements
     - Collision detection

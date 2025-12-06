@@ -1,7 +1,12 @@
 #ifndef ENTITIES_H  // 1. Check if the guard symbol is NOT defined
 #define ENTITIES_H  // 2. Define the guard symbol
 #include <math.h>
-#include "GameState.h"
+//#include "GameState.h"
+
+// 1. FORWARD DECLARATION for GameState
+typedef struct GameState GameState; 
+// 2. FORWARD DECLARATION for Dictionary (Used in GameState struct)
+typedef struct Dictionary Dictionary;
 
 typedef struct {
     int x_pos;

@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include "math_tools.h"
 
+
 extern int rand_range(int, int);
 
 #define MAXPLAYERS 2
@@ -65,7 +66,8 @@ int GameState_get_random_position(GameState* gs) {
         x_pos = rand_range(gs->min_x, gs->max_x);
         y_pos = rand_range(gs->min_y, gs->max_y);
     }
-    return x_pos, y_pos;
+    int coord_key = (x_pos << 16) | y_pos;
+    return coord_key;
 }
 
 /* Helper function to get free ids*/
@@ -93,7 +95,9 @@ void GameState_generate_players(GameState* gs, int game_mode) {
         Player p;
         int color = colors[i];
         int id = GameState_get_free_id(gs);
-        int x_pos, y_pos = GameState_get_random_position(gs);
+        int coord_key = GameState_get_random_position(gs);
+        int x_pos = coord_key >> 16;                       // Unpack X
+        int y_pos = coord_key & 0xFFFF;                    // Unpack Y
         Player_init(&p, id, color, x_pos, y_pos);
         
         // Save
@@ -151,7 +155,9 @@ void GameState_generate_food(GameState* gs, int gm, int diff) {
         
         // take id from available ids, then update available ids
         int id = GameState_get_free_id(gs);        
-        int x_pos, y_pos = GameState_get_random_position(gs);
+        int coord_key = GameState_get_random_position(gs);
+        int x_pos = coord_key >> 16;                       // Unpack X
+        int y_pos = coord_key & 0xFFFF;                    // Unpack Y
         Food_init(&f, id, type, x_pos, y_pos);
 
         // Store food item
@@ -176,7 +182,9 @@ void GameState_generate_ai(GameState* gs, int diff) {
         int id = GameState_get_free_id(gs);
         
         // Set random position
-        int x_pos, y_pos = GameState_get_random_position(gs);
+        int coord_key = GameState_get_random_position(gs);
+        int x_pos = coord_key >> 16;                       // Unpack X
+        int y_pos = coord_key & 0xFFFF;                    // Unpack Y
 
         Ai_init(&ai, id, ai.color, x_pos, y_pos);
         
@@ -468,7 +476,9 @@ void GameState_handle_player_food_coolision(GameState* gs, Player* p, Food* f) {
     
     // Update food position. 
     Dict_set_value(&gs->occupied_coords_dict, (f->x_pos << 16) | f->y_pos, -1);  // Reset old position in occupied coords dict
-    int x_pos, y_pos = GameState_get_random_position(gs);
+    int coord_key = GameState_get_random_position(gs);
+    int x_pos = coord_key >> 16;                       // Unpack X
+    int y_pos = coord_key & 0xFFFF;                    // Unpack Y
     f-> x_pos = x_pos;
     f-> y_pos = y_pos;
     // Update occupied coords dictionary in GameState
@@ -532,7 +542,9 @@ void GameState_handle_ai_food_collision(GameState* gs, Ai* ai, Food* f) {
 
     // Update food position. 
     Dict_set_value(&gs->occupied_coords_dict, (f->x_pos << 16) | f->y_pos, -1);  // Reset old position in occupied coords dict
-    int x_pos, y_pos = GameState_get_random_position(gs);
+    int coord_key = GameState_get_random_position(gs);
+    int x_pos = coord_key >> 16;                       // Unpack X
+    int y_pos = coord_key & 0xFFFF;                    // Unpack Y
     f-> x_pos = x_pos;
     f-> y_pos = y_pos;
     
