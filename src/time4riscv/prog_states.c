@@ -6,7 +6,6 @@ GameState run_start_up() {
     // Query game mode and difficulty
     int gm = query_game_mode(); // Sets number of players and diffuculty in gm varibale. 
     int diff = query_game_diffculty();
-    
     // Initiate the game state:
     GameState gs;
     GameState_init(&gs, gm, diff);
