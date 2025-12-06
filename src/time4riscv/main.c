@@ -35,6 +35,7 @@ volatile int* timer = (volatile int*) 0x04000020;
 
 /* Initiates the timer and sets its attributes*/
 void labinit(void) {
+  printf("---- Initializing timer...\n");
   // Set period to 3 MHz:
   int period_val = 3000000 -1; // Subtract 1 because timer counts from 0
   timer[2] = period_val & 0xFFFF; //  Lower 16 bits
