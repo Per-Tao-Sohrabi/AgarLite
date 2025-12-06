@@ -60,7 +60,7 @@ int get_pause_swtch() {
    RETURNS 
     An array with the switch values.
 */
-int read_inputs() {
+void read_inputs(int* input_vector) {
   // LsB Pair
   int ls_sw1 = get_switch_states(0);
   int ls_sw2 = get_switch_states(1);
@@ -70,8 +70,11 @@ int read_inputs() {
   // Pause Switch
   int pause_swtch = get_pause_swtch(4);
   // Combine into input vector
-  int input_vector[] = {ls_sw1, ls_sw2, ms_sw1, ms_sw2, pause_swtch};
-  return input_vector;
+  input_vector[0] = ls_sw1;
+  input_vector[1] = ls_sw2;
+  input_vector[2] = ms_sw1;
+  input_vector[3] = ms_sw2; 
+  input_vector[4] = pause_swtch;
 }
 
 /* Your code goes into main as well as any needed functions. */
@@ -90,10 +93,11 @@ int main() {
   volatile GameState* gs_ptr = &gs;
   // Start game query ...
   // MAIN GAME LOOP
+  int input_vector[5] = {0}; // Input vector to hold switch states
   while (1) {
 
     // READ PLAYER INPUT
-    int input_vector[] = read_inputs();
+    read_inputs(input_vector);
     
     // CHECK FOR PAUSE
     if (get_pause_swtch() == 1) {
