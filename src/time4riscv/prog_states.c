@@ -2,12 +2,6 @@
 #include "prog_states.h"
 #include "GameState.h"
 #include "inputs.h"
-#include "render.h"
-
-extern void draw_string_wrapped(int x, int y, const char *str, int color, int max_width);
-extern void clear_screen();
-extern void draw_msg(char* ch);
-
 
 // Initalize a game state
 GameState run_start_up() {
@@ -24,24 +18,21 @@ GameState run_start_up() {
 /* Query the player about the game mode they want to play at*/
 int query_game_mode() {
     char* msg = "Select Game Mode: 1 or 2 Players by toggling the first switch up for single player. Switch up down for multiplayer. Press button to confirm.\n";
-    draw_string_wrapped(MAGRIN, (int) SCREEN_HEIGHT/3, msg, WHITE, TOTAL_WIDTH);
+
     print(msg); // render function
     // Wait for user input and return selected mode
     while(1) {
         int mode = get_switch_state(0);      // Read the mode input
         if(get_btn() == 1) {                 // Poll the button
-            clear_screen();
             return mode;                     // Return set mode
         }
     }
-    clear_screen();
     return 1; // Placeholder return value
 }
 
 /* Query the player about the difficulty they want to play at*/
 int query_game_difficulty() {
     char* msg = "Use the three first switches to set your difficulty. Note binary numbers! Press button to confirm.\n";
-    draw_string_wrapped(MAGRIN, (int) SCREEN_HEIGHT/3, msg, WHITE, TOTAL_WIDTH);
     print(msg); // render function
     
     // Wait for user input and return selected mode
@@ -85,7 +76,6 @@ int query_game_difficulty() {
             }
         }
     }
-    clear_screen();
     return 1; // Placeholder return value
 }
  
@@ -94,9 +84,6 @@ void run_pause() {
     int status = get_switch_state(4);
     while(1) {
         print("Toggle switch 4 down to exit pause");
-        char* msg = "Toggle switch 4 down to exit pause";
-        void draw_msg(msg);
-
         if(status = 0) {
             break;
         }
@@ -106,9 +93,6 @@ void run_pause() {
 /* Game Over*/
 void run_game_over() {
     print("Game Over! Press button to restart.");
-    char* msg = "Game Over! Press button to restart.";
-    void draw_msg(msg);
-
     while(1) {
         if(get_btn() == 1) {
             break;
