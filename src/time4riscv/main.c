@@ -33,6 +33,8 @@ extern void print(const char*);
 // Timer buffer
 volatile int* timer = (volatile int*) 0x04000020;
 
+volatile bool game_tick = false;
+
 /* Initiates the timer and sets its attributes*/
 void labinit(void) {
   print("---- Initializing timer...\n");
@@ -47,8 +49,10 @@ void labinit(void) {
 }
 
 /* Below is the function that will be called when an interrupt is triggered. */
-void handle_interrupt(unsigned cause) 
-{};
+void handle_interrupt(unsigned cause) {
+  timer[0] = 0b1; // Reset TO flag
+  game_tick = true;
+};
 
 /* Helper function for getting the pause switch (which is switch n.4)*/
 int get_pause_swtch() {
@@ -100,6 +104,12 @@ int main() {
   
   int input_vector[5] = {0}; // Input vector to hold switch states
   while (1) {
+    while (game_tick == false){
+      // Keep waiting
+    }
+
+    game_tick = false;
+    
 
     // READ PLAYER INPUT
     read_inputs(input_vector);
@@ -114,10 +124,6 @@ int main() {
     if (game_over) {
       run_game_over();
     }
-    // DELAY FOR A WHILE (UNTIL TIMER TO FLAG IS RAISED)
-    while((timer[0] & 0b1) == 0 ) {
-    }
-    timer[0] = 0b1; // Reset TO flag
     
     // RENDER GAME STATE
     //render_game(gs_ptr);
