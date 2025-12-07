@@ -91,18 +91,17 @@ void read_inputs(int* input_vector) {
 /* Your code goes into main as well as any needed functions. */
 int main() {
   // Enable timer
+  clear_screen();
   labinit();
   enable_interrupts();
   
   print("- Timer enabled.\n");
   draw_string_wrapped(10, 180, "- Timer enabled.\n", 255, 300);
   clear_screen();
-  one_sec();
 
   print("- Starting Time4RiscV...\n");
   draw_string_wrapped(10, 180, "- Starting Time4RiscV...\n", 255, 300);
   clear_screen();
-    one_sec();
   
     // Display a welcome message.
   print("- Running startup sequence...\n");
@@ -113,12 +112,10 @@ int main() {
   volatile GameState* gs_ptr = &gs;
   // Start game query ...
   
-  one_sec();
     // Enable interrupts
   print("- Interrupts enabled.\n");
   draw_string_wrapped(10, 180, "- Interrupts enabled.\n", 255, 300);
   clear_screen();
-
 
   // MAIN GAME LOOP
   
@@ -139,9 +136,7 @@ int main() {
       run_game_over();
     }
     // DELAY FOR A WHILE (UNTIL TIMER TO FLAG IS RAISED)
-    while((timer[0] & 0b1) == 0 ) {
-    }
-    timer[0] = 0b1; // Reset TO flag
+    one_sec();
     
     // RENDER GAME STATE
     //render_game(gs_ptr);
