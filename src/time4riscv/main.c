@@ -81,15 +81,20 @@ void read_inputs(int* input_vector) {
 int main() {
   // Enable timer
   labinit();
+  timer[0] = 0b1; // Reset TO flag
   print("- Timer enabled.\n");
 
+  timer[0] = 0b1; // Reset TO flag
   print("- Starting Time4RiscV...\n");
 
   // Enable interrupts
+  timer[0] = 0b1; // Reset TO flag
   enable_interrupts();
+  timer[0] = 0b1; // Reset TO flag
   print("- Interrupts enabled.\n");
 
   // Display a welcome message.
+  timer[0] = 0b1; // Reset TO flag
   print("- Running startup sequence...\n");
   GameState gs = run_start_up(); // Set the game state and diffuculty mode.
   volatile GameState* gs_ptr = &gs;
