@@ -460,7 +460,7 @@ void GameState_handle_player_ai_collision(volatile GameState* gs, volatile Playe
         int coord_key_ai = (ai->x_pos << 16) | ai->y_pos;  // Combine x and y into a single key
         Dict_set_value(&gs->occupied_coords_dict, coord_key_ai, ai->id);
     } else {
-        print("--------  Equal size")
+        print("--------  Equal size");
         // Equal area, no one eats
         int coord_key_ai = (ai->x_pos << 16) | ai->y_pos;  // Combine x and y into a single key
         Dict_set_value(&gs->occupied_coords_dict, coord_key_ai, ai->id);   
