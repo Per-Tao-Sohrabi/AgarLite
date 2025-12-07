@@ -442,3 +442,8 @@ void render_game(GameState *game) {
         draw_circle(food.x_pos, food.y_pos, food.radius, food.nutrition);
     }
 }
+
+void draw_msg(char* ch){
+    draw_filled_rect(80, 60, 160, 120, 0);
+    draw_string_wrapped(80, 60, &ch, 255, MSG_WIDTH);
+}

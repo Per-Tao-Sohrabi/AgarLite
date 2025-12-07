@@ -92,34 +92,33 @@ void read_inputs(int* input_vector) {
 int main() {
   // Enable timer
   labinit();
+  enable_interrupts();
+  
   print("- Timer enabled.\n");
-  draw_string(10, 180, "- Timer enabled.\n", 255);
-
+  draw_string_wrapped(10, 180, "- Timer enabled.\n", 255, 300);
+  clear_screen();
   one_sec();
 
   print("- Starting Time4RiscV...\n");
-  clear_screen();
   draw_string_wrapped(10, 180, "- Starting Time4RiscV...\n", 255, 300);
-
-  one_sec();
-
-  // Enable interrupts
-  enable_interrupts();
-  print("- Interrupts enabled.\n");
   clear_screen();
-  draw_string_wrapped(10, 180, "- Interrupts enabled.\n", 255, 300);
-
-  one_sec();
-
-  // Display a welcome message.
-  print("- Running startup sequence...\n");
-  clear_screen();
-  draw_string_wrapped(10, 180, "- Running startup sequence...\n", 255, 300);
+    one_sec();
   
+    // Display a welcome message.
+  print("- Running startup sequence...\n");
+  draw_string_wrapped(10, 180, "- Running startup sequence...\n", 255, 300);
+  clear_screen();
+
   GameState gs = run_start_up(); // Set the game state and diffuculty mode.
   volatile GameState* gs_ptr = &gs;
   // Start game query ...
   
+  one_sec();
+    // Enable interrupts
+  print("- Interrupts enabled.\n");
+  draw_string_wrapped(10, 180, "- Interrupts enabled.\n", 255, 300);
+  clear_screen();
+
 
   // MAIN GAME LOOP
   
@@ -146,8 +145,6 @@ int main() {
     
     // RENDER GAME STATE
     //render_game(gs_ptr);
-
   }
 }
-
 
