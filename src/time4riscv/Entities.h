@@ -4,6 +4,7 @@
 typedef struct {
     int x_pos;
     int y_pos;
+    int radius;
     int hp;
     int velocity;
     int color;
@@ -12,6 +13,7 @@ typedef struct {
 typedef struct {
     int x_pos;
     int y_pos;
+    int radius;
     int nutrition;
 } Food;
 

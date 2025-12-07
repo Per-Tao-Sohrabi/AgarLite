@@ -1,11 +1,18 @@
+#include "render.h"
 #include "Entities.h"
 #include "GameState.h"
 
+void vga_int(){
+    volatile char *VGA = (volatile char*) VGA_BASE;
+}
 
-#define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 480
-#define MAX_RADIUS 50
-#define MIN_RADIUS 2
+extern volatile char *VGA = (volatile char*) VGA_BASE;
+
+void clear_screen(){
+    for (int i = 0; i < SCREEN_WIDTH*SCREEN_HEIGHT; i++)
+    VGA[i] = 0; 
+};
+
 
 void draw_circle (int cx, int cy, int radius, int color) {
   int radius_squ = radius * radius;
@@ -21,70 +28,111 @@ void draw_circle (int cx, int cy, int radius, int color) {
   }
 }
 
-
-int check_collision(Player a, Player b){
-    int dx = a.x_pos - b.x_pos;
-    int dy = a.y_pos - b.y_pos;
-    int distance_squared = dx*dx + dy*dy;
-    int radius_sum = a.radius + b.radius;
-    return distance_squared <= radius_sum * radius_sum;
+void draw_pixel(int x, int y, int color){
+    if(x >= 0 && x < SCREEN_WIDTH && y >= 0 && y < SCREEN_HEIGHT){
+        int offset = y * SCREEN_WIDTH + x;
+        VGA[offset] = color;
+    }
 }
 
-void update_game(GameState){
+void draw_char(int x, int y, char ch, int color){
+    if(ch < 32 || ch > 126) return;
 
-    //player
-    // int antal_player = sizeof(GameState.player) / sizeof(GameState.player[0]); 
-    // for(int i = 0; i < antal_player; i++){
-    //     Player player = GameState.player[i];
-    //     player.x_pos += player.dx;
-    //     player.y_pos += player.dy;
-    // }
-
-    //food random?
-   
-
-    if(check_collision(GameState.player[0], GameState.player[1])){
-        if(GameState.player[0].radius > GameState.player[1].radius){
-            GameState.player[0].radius += GameState.player[1].radius/2;
-            GameState.player[1].hp--;
-        }else{
-            GameState.player[1].radius += GameState.player[0].radius/2;
-            GameState.player[0].hp--;
-        }
-    }
-
-    int antal_player = sizeof(GameState.player) / sizeof(GameState.player[0]); 
-    int antal_food = sizeof(GameState.crumbs) / sizeof(GameState.crumbs[0]); 
-    for(int i = 0; i < antal_player; i++){
-        for(int j = 0; j < antal_food; j++){
-            if(check_collision(GameState.player[i], GameState.crumbs[j])){
-                if(GameState.player[i].radius < MAX_RADIUS){
-                GameState.player[i].radius += GameState.crumbs[j].nutrition;
-                }
-
-                //new position
-                GameState.crumbs[j].x_pos = rand() % SCREEN_WIDTH;
-                GameState.crumbs[j].y_pos = rand() % SCREEN_HEIGHT;
+    int index = ch - 32;
+    for(int row = 0; row < FONT_HEIGHT; row++){
+        uint8_t line = font_5x7[index][row];
+        for(int col = 0; col < FONT_WIDTH; col++){
+            if(line & (0x10 >> col)){
+                draw_pixel(x+col, y+row, color);
             }
         }
     }
 }
 
-void render_game(GameState) {
+void draw_string(int x, int y, const char* str, int color){
+    int start_x = x;
 
-    //player
-    int antal_player = sizeof(GameState.player) / sizeof(GameState.player[0]); 
-    for(int i = 0; i < antal_player; i++){
-        Player player = GameState.player[i];
+    while(*str){
+        if(*str == '\n'){
+            y+= FONT_HEIGHT + LINE_SPACING;
+            x = start_x;
+        }else if(*str == '\t'){
+            x += (FONT_WIDTH + CHAR_SPACING) * 4;
+        }else{
+            draw_char(x, y, *str, color);
+            x += FONT_WIDTH + CHAR_SPACING;
+        }
+        str++;
+    }
+}
+
+void draw_string_wrapped(int x, int y, const char* str, int color, int max_width){
+    int start_x = x;
+    int word_start_x = x;
+    const char* word_start = str;
+
+    while(*str){
+        if(*str == '\n'){
+            y += FONT_HEIGHT + LINE_SPACING;
+            x = start_x;
+            word_start_x = x;
+            str++;
+            word_start = str;
+        }else if(*str == ' '){
+            draw_char(x, y, ' ', color);
+            x += FONT_WIDTH + CHAR_SPACING;
+            str++;
+            word_start_x = x;
+            word_start_x = str;
+        }else{
+            int word_length = 0;
+            const char* temp = word_start;
+            while((*temp) && (*temp != ' ') && (*temp != '\n')){
+                word_length++;
+                temp++;
+            }
+            
+            int word_pixels = word_length * (FONT_WIDTH + CHAR_SPACING);
+            if(x + word_pixels - word_start_x > max_width){
+                y += FONT_HEIGHT + LINE_SPACING;
+                x += start_x;
+                word_start_x = x;
+            }
+
+            draw_char(x, y, *str, color);
+            x += FONT_WIDTH + CHAR_SPACING;
+            str++;
+        }
+    }
+}
+
+void draw_string_centered(int y, const char* str, int color) {
+    int len = 0;
+    const char* temp = str;
+    while (*temp && *temp != '\n') {
+        len++;
+        temp++;
+    }
+    
+    int total_width = len * (FONT_WIDTH + CHAR_SPACING);
+    int x = (SCREEN_WIDTH - total_width) / 2;
+    
+    draw_string(x, y, str, color);
+}
+
+void render_game(GameState* game) {
+
+    //players
+    int antal_players = sizeof(game -> players) / sizeof(game -> players[0]); 
+    for(int i = 0; i < antal_players; i++){
+        Player player = game -> players[i];
         draw_circle(player.x_pos, player.y_pos, player.radius, player.color);
     }
 
     //food
-    int antal_food = sizeof(GameState.crumbs) / sizeof(GameState.crumbs[0]); 
+    int antal_food = sizeof(game -> crumbs) / sizeof(game -> crumbs[0]); 
     for(int i = 0; i < antal_food;  i++){
-        Food food = GameState.crumbs[i];
+        Food food = game -> crumbs[i];
         draw_circle(food.x_pos, food.y_pos, food.radius, food.nutrition);
     }
-   
-    //time
 }

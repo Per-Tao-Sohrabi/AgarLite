@@ -7,6 +7,8 @@
 #define MIN_RADIUS 2
 #define Food_count 100
 
+extern void enable_interrupts(void);
+
 typedef struct {
     int x_pos;
     int y_pos;
@@ -169,20 +171,42 @@ void init_game(){
     }
 }
 
+volatile int* timer = (volatile int*) 0x04000020;
+
+void labinit(void) {
+  print("---- Initializing timer...\n");
+  // Set period to 3 MHz:
+  int period_val = 3000000 -1; // Subtract 1 because timer counts from 0
+  timer[2] = period_val & 0xFFFF; //  Lower 16 bits
+  timer[3] = (period_val >> 16) & 0xFFFF;
+
+  // Set start status
+  timer[0] = 0b110; // Enable timer, sets ito = off, cont = on, start = on, stop. = off. 
+  print("---- Timer start status set.\n");
+}
+
 void delay(int cycles){
     for(int i = 0; i < cycles; i++);
 }
 
 int main()
 { 
+    enable_interrupts();
     init_game();
+    char* msg = "Select Game Mode: 1 or 2 Players by toggling the first switch up for single player. Switch up down for multiplayer. Press button to confirm.\n";
+    draw_string_wrapped(10, 180, &msg, 300);
+
+    while((timer[0] & 0b1) == 0 ) {
+    }
+    timer[0] = 0b1;
   
   // Enter a forever loop
-  while (1)
-    {
-        update_game();
-        render_game();
+    while (1)
+        {
+            update_game();
+            render_game();
 
-        delay(1000000000000000000000);
-     }
+            while((timer[0] & 0b1) == 0 ) {}
+                timer[0] = 0b1;
+        }
 }
