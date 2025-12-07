@@ -111,13 +111,13 @@ void GameState_generate_players(volatile GameState* gs, int game_mode) {
         Player_init(&p, id, color, x_pos, y_pos);
         //print("---- Player %d initialized: id=%d, pos=(%d,%d), color=%d, radius=%.2f\n", i, p.id, p.x_pos, p.y_pos, p.color, p.radius);
         // Save
-        gs->players[i] = p;
+        //gs->players[i] = p;
         
         // Set initial positions
         //print("---- Setting occupied position for player %d at (%d, %d)\n", i, x_pos, y_pos);
-        int coord_key = (p.x_pos << 16) | p.y_pos; // Combine x and y into a single key
-        Dict_insert(&gs->occupied_coords_dict, coord_key, p.id); // Key: combined coord, Value: food index
-        Dict_insert(&gs->id_type_dict, p.id, 0); // Key: food index, Value: entity type (1 for food)
+        int coord_key = (x_pos << 16) | y_pos; // Combine x and y into a single key
+        Dict_insert(&gs->occupied_coords_dict, coord_key, id); // Key: combined coord, Value: food index
+        Dict_insert(&gs->id_type_dict, id, 0); // Key: food index, Value: entity type (1 for food)
     }
     print("---- Player generation complete.\n");
 }
