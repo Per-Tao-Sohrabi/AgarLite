@@ -346,7 +346,7 @@
 //         }else if(*str == '\t'){
 //             x += (FONT_WIDTH + CHAR_SPACING) * 4;
 //         }else{
-//             draw_char(x, y, *str, color);
+//             draw_chars(x, y, *str, color);
 //             x += FONT_WIDTH + CHAR_SPACING;
 //         }
 //         str++;
@@ -366,7 +366,7 @@
 //             str++;
 //             word_start = str;
 //         }else if(*str == ' '){
-//             draw_char(x, y, ' ', color);
+//             draw_chars(x, y, ' ', color);
 //             x += FONT_WIDTH + CHAR_SPACING;
 //             str++;
 //             word_start_x = x;
@@ -386,7 +386,7 @@
 //                 word_start_x = x;
 //             }
 
-//             draw_char(x, y, *str, color);
+//             draw_chars(x, y, *str, color);
 //             x += FONT_WIDTH + CHAR_SPACING;
 //             str++;
 //         }
@@ -827,7 +827,7 @@ void draw_string_wrapped(int x, int y, const char *str, int color, int max_width
             str++;
             word_start = str;
         }else if(*str == ' '){
-            draw_char(x, y, ' ', color);
+            draw_chars(x, y, ' ', color);
             x += FONT_WIDTH + CHAR_SPACING;
             str++;
             word_start_x = x;
@@ -847,7 +847,7 @@ void draw_string_wrapped(int x, int y, const char *str, int color, int max_width
                 word_start_x = x;
             }
 
-            draw_char(x, y, *str, color);
+            draw_chars(x, y, *str, color);
             x += FONT_WIDTH + CHAR_SPACING;
             str++;
         }
