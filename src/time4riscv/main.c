@@ -86,16 +86,15 @@ int main() {
 
   print("- Starting Time4RiscV...\n");
 
-  // Enable interrupts
-  enable_interrupts();
-  print("- Interrupts enabled.\n");
-
   // Display a welcome message.
   print("- Running startup sequence...\n");
   GameState gs = run_start_up(); // Set the game state and diffuculty mode.
   volatile GameState* gs_ptr = &gs;
   // Start game query ...
   
+    // Enable interrupts
+  enable_interrupts();
+  print("- Interrupts enabled.\n");
 
   // MAIN GAME LOOP
   
