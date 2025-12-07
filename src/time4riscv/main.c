@@ -6,9 +6,9 @@
 
 // #define SCREEN_WIDTH 320
 // #define SCREEN_HEIGHT 240
-#define MAX_RADIUS 50
-#define MIN_RADIUS 2
-#define Food_count 100
+// #define MAX_RADIUS 50
+// #define MIN_RADIUS 2
+// #define Food_count 100
 
 extern void enable_interrupts(void);
 
@@ -91,7 +91,7 @@ void update_game(){
     for(int i = 0; i < antal_player; i++){
         for(int j = 0; j < antal_food; j++){
             if(check_collision_food(game.players[i], game.crumbs[j])){
-                if(game.players[i].radius < MAX_RADIUS){
+                if(game.players[i].radius < 50){
                 game.players[i].radius += game.crumbs[j].nutrition;
                 }
 
