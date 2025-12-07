@@ -172,7 +172,7 @@ int main()
     enable_interrupts();
     init_game();
     char* msg = "Select Game Mode: 1 or 2 Players by toggling the first switch up for single player. Switch up down for multiplayer. Press button to confirm.\n";
-    draw_string(10, 180, &msg, 255);
+    draw_string(10, 180, msg, 255);
 
     while((timer[0] & 0b1) == 0 ) {
     }
