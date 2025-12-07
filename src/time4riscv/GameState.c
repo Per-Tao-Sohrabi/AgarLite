@@ -104,9 +104,9 @@ void GameState_generate_players(volatile GameState* gs, int game_mode) {
         Player p;
         int color = colors[i];
         int id = GameState_get_free_id(gs);
-        int coord_key = GameState_get_random_position(gs);
-        int x_pos = coord_key >> 16;                       // Unpack X
-        int y_pos = coord_key & 0xFFFF;                    // Unpack Y
+        //int coord_key = GameState_get_random_position(gs);
+        int x_pos = i*10 + 50;//coord_key >> 16;                       // Unpack X
+        int y_pos = i*10 + 50;// coord_key & 0xFFFF;                    // Unpack Y
         //print("---- Initializing player %d with id %d at position (%d, %d) and color %d\n", i, id, x_pos, y_pos, color);
         Player_init(&p, id, color, x_pos, y_pos);
         //print("---- Player %d initialized: id=%d, pos=(%d,%d), color=%d, radius=%.2f\n", i, p.id, p.x_pos, p.y_pos, p.color, p.radius);
