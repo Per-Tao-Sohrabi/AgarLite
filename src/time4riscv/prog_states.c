@@ -9,6 +9,7 @@ GameState run_start_up() {
     int gm = query_game_mode(); // Sets number of players and diffuculty in gm varibale. 
     int diff = query_game_difficulty();
     // Initiate the game state:
+    print("Starting GameState initalization Sequence with mode %d and difficulty %d\n", gm, diff);
     GameState gs;
     GameState_init(&gs, gm, diff);
     return  gs;
@@ -16,7 +17,7 @@ GameState run_start_up() {
 
 /* Query the player about the game mode they want to play at*/
 int query_game_mode() {
-    char* msg = "Select Game Mode: 1 or 2 Players by toggling the first switch up for single player. Switch up down for multiplayer. Press button to confirm.";
+    char* msg = "Select Game Mode: 1 or 2 Players by toggling the first switch up for single player. Switch up down for multiplayer. Press button to confirm.\n";
 
     print(msg); // render function
     // Wait for user input and return selected mode
@@ -31,7 +32,7 @@ int query_game_mode() {
 
 /* Query the player about the difficulty they want to play at*/
 int query_game_difficulty() {
-    char* msg = "Use the three first switches to set your difficulty. Note binary numbers! Press button to confirm.";
+    char* msg = "Use the three first switches to set your difficulty. Note binary numbers! Press button to confirm.\n";
     print(msg); // render function
     
     // Wait for user input and return selected mode
@@ -42,6 +43,7 @@ int query_game_difficulty() {
         volatile int diff = sw1 + sw2 + sw3; // Binary to decimal conversion
         
         int btn = get_btn();
+        print("Selected difficulty: d%d\n", diff);
         if (btn) {
             switch (diff)
             {

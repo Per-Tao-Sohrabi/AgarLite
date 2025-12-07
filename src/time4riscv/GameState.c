@@ -16,9 +16,10 @@ extern int rand_range(int, int);
 
 /* Initializes the game state */
 void GameState_init(volatile GameState* gs, int gm, int diff){
-    
+    print("---- Initializing GameState...\n");
     // Populate ID pool
     for(int i = 0; i< MAXPLAYERS + MAXAI + MAXFOOD; i++) {
+        print("---- Setting available_ids[%d] to true\n", i);
         gs->available_ids[i] = true; // All IDs are available at start
     }
     
