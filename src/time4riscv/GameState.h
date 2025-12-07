@@ -10,4 +10,6 @@ typedef struct {
     Food crumbs[Food_count]; // Can hold five food pieces
 } GameState;
 
+void init_game(GameState* game);
+
 #endif
