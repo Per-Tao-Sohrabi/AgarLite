@@ -57,8 +57,8 @@ void GameState_init(volatile GameState* gs, int gm, int diff){
     // Generate entities
     print("---- Generating entities based on game mode and difficulty...\n");
     GameState_generate_players(gs, gm);
-    //GameState_generate_food(gs, gm, diff);
-    //GameState_generate_ai(gs, diff);
+    GameState_generate_food(gs, gm, diff);
+    GameState_generate_ai(gs, diff);
 }
 
 // Check for occupied positions, if occupied, regenerate
