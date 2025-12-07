@@ -386,46 +386,127 @@ void draw_string_centered(int y, const char *str, int color){
     draw_string(x, y, str, color);
 }
 
-void draw_string_wrapped(int x, int y, const char *str, int color, int max_width){
-    int start_x = x;
-    int word_start_x = x;
-    const char* word_start = str;
+// void draw_string_wrapped(int x, int y, const char *str, int color, int max_width){
+//     int start_x = x;
+//     int word_start_x = x;
+//     const char* word_start = str;
 
-    while(*str){
-        if(*str == '\n'){
-            y += FONT_HEIGHT + LINE_SPACING;
-            x = start_x;
-            word_start_x = x;
-            str++;
-            word_start = str;
-        }else if(*str == ' '){
-            draw_chars(x, y, ' ', color);
-            x += FONT_WIDTH + CHAR_SPACING;
-            str++;
-            word_start_x = x;
-            word_start = str;
-        }else{
-            int word_length = 0;
-            const char* temp = word_start;
-            while((*temp) && (*temp != ' ') && (*temp != '\n')){
-                word_length++;
-                temp++;
+//     while(*str){
+//         if(*str == '\n'){
+//             y += FONT_HEIGHT + LINE_SPACING;
+//             x = start_x;
+//             word_start_x = x;
+//             str++;
+//             word_start = str;
+//         }else if(*str == ' '){
+//             draw_chars(x, y, ' ', color);
+//             x += FONT_WIDTH + CHAR_SPACING;
+//             str++;
+//             word_start_x = x;
+//             word_start = str;
+//         }else{
+//             int word_length = 0;
+//             const char* temp = word_start;
+//             while((*temp) && (*temp != ' ') && (*temp != '\n')){
+//                 word_length++;
+//                 temp++;
+//             }
+            
+//             int word_pixels = word_length * (FONT_WIDTH + CHAR_SPACING);
+//             if(x + word_pixels - word_start_x > max_width){
+//                 y += FONT_HEIGHT + LINE_SPACING;
+//                 x = start_x;
+//                 word_start_x = x;
+//             }
+
+//             draw_chars(x, y, *str, color);
+//             x += FONT_WIDTH + CHAR_SPACING;
+//             str++;
+//         }
+//     }
+// }
+
+void draw_string_wrapped(int x, int y, const char *str, int color, int max_width) {
+    int current_x = x;
+    int current_y = y;
+    int line_start = 0;
+    int i = 0;
+    
+    if (max_width <= 0) {
+        max_width = SCREEN_WIDTH - x;
+    }
+    
+    
+    if (x + max_width > SCREEN_WIDTH) {
+        max_width = SCREEN_WIDTH - x;
+    }
+    
+    
+    if (y >= SCREEN_HEIGHT) {
+        return;  
+    }
+    
+    while (str[i] != '\0') {
+        
+        if (current_y >= SCREEN_HEIGHT - FONT_HEIGHT) {
+           
+            break;
+        }
+        
+        if (str[i] == '\n') {
+            current_x = x;
+            current_y += FONT_HEIGHT + LINE_SPACING;
+            line_start = i + 1;
+            i++;
+            continue;
+        }
+        
+        if (current_x + FONT_HEIGHT > x + max_width) {
+            
+            
+            int last_space = i - 1;
+            while (last_space > line_start && str[last_space] != ' ') {
+                last_space--;
             }
             
-            int word_pixels = word_length * (FONT_WIDTH + CHAR_SPACING);
-            if(x + word_pixels - word_start_x > max_width){
-                y += FONT_HEIGHT + LINE_SPACING;
-                x = start_x;
-                word_start_x = x;
+            if (last_space > line_start && str[last_space] == ' ') {
+            
+                i = last_space + 1;
+                current_x = x;
+                current_y += FONT_HEIGHT + LINE_SPACING;
+                line_start = i;
+                
+                
+                if (current_y >= SCREEN_HEIGHT - FONT_HEIGHT) {
+                    break;
+                }
+                continue;
+            } else {
+                
+                current_x = x;
+                current_y += FONT_HEIGHT + LINE_SPACING;
+                line_start = i;
+                
+                if (current_y >= SCREEN_HEIGHT - FONT_HEIGHT) {
+                    break;
+                }
+                
+                if (current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT) {
+                    draw_char(current_x, current_y, str[i], color);
+                }
+                current_x += FONT_WIDTH;
+                i++;
+                continue;
             }
-
-            draw_chars(x, y, *str, color);
-            x += FONT_WIDTH + CHAR_SPACING;
-            str++;
         }
+        
+        if (current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT) {
+            draw_char(current_x, current_y, str[i], color);
+        }
+        current_x += FONT_WIDTH;
+        i++;
     }
 }
-
 void render_game(GameState *game) {
 
     //players
