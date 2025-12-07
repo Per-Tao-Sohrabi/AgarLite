@@ -1,17 +1,18 @@
-#include "Entities.h"
 #include <math.h>
+
+#include "Entities.h"
 #include "GameState.h"
 #include "math_tools.h" // For Dict_set_value
 
 void Ai_init(volatile Ai* ai, int id, int color, int x_pos, int y_pos) {
     ai->x_pos = x_pos; //TODO: Random start position
     ai->y_pos = y_pos; //TODO: Random start position
-    ai->area = 100;
+    ai->area = 100.0f;
     ai->color = color;
     ai->velocity = 5; // Inital velocity
     ai->dx = 0;
     ai->dy = 0;
-    ai->radius = (int) sqrt(ai->area/3.14);
+    ai->radius = sqrt(ai->area/3.14f);
     ai->id = id;
 }
 
@@ -23,12 +24,12 @@ void Player_init(volatile Player* p, int id, int color, int x_pos, int y_pos) {
     p->velocity = 5; // Inital velocity
     p->dx = 0;
     p->dy = 0;
-    p->radius = (int) sqrt(p->area/3.14);
+    p->radius = sqrt(p->area/3.14f);
     p->id = id;
 }
 
 void Food_init(volatile Food* f, int id, int type, int x_pos, int y_pos) {
-    f->radius = 1;
+    f->radius = 1.0f;
     f->x_pos = x_pos; //TODO: Random start position
     f->y_pos = y_pos; //TODO: Random start position
     f->type = type;
@@ -96,14 +97,14 @@ void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ct
         int new_y_pos = p_old_y_pos + p->dy;
 
         // Check x-axis boundaries
-        if (gs->min_x < new_x_pos - p->radius) { 
-            if (gs->max_x > new_x_pos + p->radius) {
+        if (gs->min_x < new_x_pos - ((int)p->radius)) { 
+            if (gs->max_x > new_x_pos + ((int)p->radius)) {
                 p->x_pos = new_x_pos;
             }
         }
         // Check y-axis boundaries
-        if (gs->min_y < new_y_pos - p->radius) {
-                if (gs-> max_y > new_y_pos + p->radius) {
+        if (gs->min_y < new_y_pos - ((int)p->radius)) {
+                if (gs-> max_y > new_y_pos + ((int)p->radius)) {
                     p->y_pos = new_y_pos;
                 }
         }
@@ -112,7 +113,11 @@ void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ct
 }
 
 void Player_update_velocity(volatile Player* p) {
-    p->velocity = 5 + (int)(sqrt((double)p->area) / 10.0); // Example: velocity increases with the square root of area
+    int base_velocity = 5;
+    p->velocity = base_velocity - ((int)p->area / 100);
+    if (p->velocity < 1) {
+        p->velocity = 1;
+    }
 }
 
 void AI_update_position(volatile Ai* ai, volatile GameState* gs, int x_ctrl, int y_ctrl) {
@@ -156,19 +161,23 @@ void AI_update_position(volatile Ai* ai, volatile GameState* gs, int x_ctrl, int
         int new_y_pos = ai_old_y_pos + ai->dy;
 
         // Check x-axis boundaries
-        if (gs->min_x < new_x_pos - ai->radius) {
-            if (gs->max_x > new_x_pos + ai->radius) {
+        if (gs->min_x < new_x_pos - ((int)ai->radius)) {
+            if (gs->max_x > new_x_pos + ((int)ai->radius)) {
                 ai->x_pos = new_x_pos;
             }
         }
         // Check y-axis boundaries
-        if (gs->min_y < new_y_pos - ai->radius) {
-                if (gs-> max_y > new_y_pos + ai->radius) {
+        if (gs->min_y < new_y_pos - (int)ai->radius) {
+                if (gs-> max_y > new_y_pos + (int)ai->radius) {
                     ai->y_pos = new_y_pos;
                 }
         }
 }
 
 void AI_update_velocity(volatile Ai* ai) {
-    ai->velocity = 5 + (int)(sqrt((double)ai->area) / 10.0); // Example: velocity increases with the square root of area
+    int base_velocity = 5;
+    ai->velocity = base_velocity - ((int)ai->area / 100);
+    if (ai->velocity < 1) {
+        ai->velocity = 1;
+    }
 }

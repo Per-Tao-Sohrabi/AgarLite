@@ -9,34 +9,34 @@ typedef struct GameState GameState;
 // typedef struct Dictionary Dictionary;
 
 typedef struct {
+    int id;
     int x_pos;
     int y_pos;
-    int area;
+    float area;
+    float radius;
     int color;
     int velocity;
     int dx, dy;
-    int radius;
-    int id;
 } Player;
 
 typedef struct {
+    int id;
+    float radius;
     int x_pos;
     int y_pos;
     int nutrition;
     int type;
-    int id;
-    int radius;
 } Food;
 
 typedef struct {
+    int id;
     int x_pos;
     int y_pos;
-    int area;
+    float area;
+    float radius;
     int color;
     int velocity;
     int dx, dy;
-    int radius;
-    int id;
 } Ai;
 
 void Ai_init(volatile Ai* ai, int id, int color, int x_pos, int y_pos);
