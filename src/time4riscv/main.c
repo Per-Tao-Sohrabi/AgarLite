@@ -46,8 +46,10 @@ void labinit(void) {
 
 /* Below is the function that will be called when an interrupt is triggered. */
 void handle_interrupt(unsigned cause) {
-  timer[0] = 0b1; // Reset TO flag
+  //timer[0] = 0b1; // Reset TO flag
+  timer[0] = 0b1110; // Enable timer, sets ito = off, cont = on, start = on, stop. = off. 
   game_tick = true;
+  
 };
 
 /* Helper function for getting the pause switch (which is switch n.4)*/
