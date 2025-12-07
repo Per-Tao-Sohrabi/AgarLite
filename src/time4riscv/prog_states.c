@@ -25,7 +25,7 @@ GameState run_start_up() {
 int query_game_mode() {
     clear_screen();   
     char* msg = "Select Game Mode: 1 or 2 Players by toggling the first switch up for single player. Switch up down for multiplayer. Press button to confirm.\n";
-    draw_string_wrapped(80, 60, &msg, WHITE, MSG_WIDTH);
+    draw_string_wrapped(80, 60, msg, WHITE, MSG_WIDTH);
     print(msg); // render function
     // Wait for user input and return selected mode
     while(1) {
@@ -42,7 +42,7 @@ int query_game_mode() {
 /* Query the player about the difficulty they want to play at*/
 int query_game_difficulty() {
     char* msg = "Use the three first switches to set your difficulty. Note binary numbers! Press button to confirm.\n";
-    draw_string_wrapped(80, 60, &msg, WHITE, MSG_WIDTH);
+    draw_string_wrapped(80, 60, msg, WHITE, MSG_WIDTH);
     print(msg); // render function
     
     // Wait for user input and return selected mode
@@ -98,7 +98,7 @@ void run_pause() {
         print("Toggle switch 4 down to exit pause");
         char* msg = "Toggle switch 4 down to exit pause";
         clear_screen();
-        draw_string_wrapped(80, 60, &msg, WHITE, MSG_WIDTH);
+        draw_string_wrapped(80, 60, msg, WHITE, MSG_WIDTH);
 
         if(status = 0) {
             clear_screen();
@@ -112,7 +112,7 @@ void run_game_over() {
     print("Game Over! Press button to restart.");
     clear_screen();
     char* msg = "Game Over! Press button to restart.";
-    draw_string_wrapped(80, 60, &msg, WHITE, MSG_WIDTH);
+    draw_string_wrapped(80, 60, msg, WHITE, MSG_WIDTH);
     while(1) {
         if(get_btn() == 1) {
             break;
