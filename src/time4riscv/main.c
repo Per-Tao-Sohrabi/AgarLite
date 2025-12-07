@@ -22,7 +22,6 @@ extern void draw_string_wrapped(int x, int y, const char *str, int color, int ma
 extern void clear_screen();
 
 
-//#include "render.c"
 extern void print(const char*);
 //extern void print_dec(unsigned int);
 //extern void display_string(char*);

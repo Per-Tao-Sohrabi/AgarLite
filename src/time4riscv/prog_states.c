@@ -5,6 +5,7 @@
 #include "render.h"
 
 extern void draw_string_wrapped(int x, int y, const char *str, int color, int max_width);
+extern void clear_screen();
 extern void draw_msg(char* ch);
 
 
@@ -29,9 +30,11 @@ int query_game_mode() {
     while(1) {
         int mode = get_switch_state(0);      // Read the mode input
         if(get_btn() == 1) {                 // Poll the button
+            clear_screen();
             return mode;                     // Return set mode
         }
     }
+    clear_screen();
     return 1; // Placeholder return value
 }
 
@@ -82,6 +85,7 @@ int query_game_difficulty() {
             }
         }
     }
+    clear_screen();
     return 1; // Placeholder return value
 }
  
