@@ -6,7 +6,7 @@ void vga_int(){
     volatile char *VGA = (volatile char*) VGA_BASE;
 }
 
-extern volatile char *VGA = (volatile char*) VGA_BASE;
+volatile char *VGA = (volatile char*) VGA_BASE;
 
 void clear_screen(){
     for (int i = 0; i < SCREEN_WIDTH*SCREEN_HEIGHT; i++)

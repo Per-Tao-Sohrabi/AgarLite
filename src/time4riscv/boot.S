@@ -125,3 +125,8 @@ _start:
 	jal main
 	
 loop:	j loop
+
+enable_interrupts:
+	csrsi mie, 16 // allow timer interrupts
+	csrsi mie, 17 // allow external interupts
+	csrsi mstatus, 3 // enable global interrupts
