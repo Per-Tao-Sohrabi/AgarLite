@@ -71,7 +71,7 @@ int GameState_get_random_position(volatile GameState* gs) {
         x_pos = rand_range(gs->min_x, gs->max_x);
         y_pos = rand_range(gs->min_y, gs->max_y);
     }
-    print("---- Random position = (%d, %d)\n", x_pos, y_pos);
+    print("------ Random position = (%d, %d)\n", x_pos, y_pos);
     int coord_key = (x_pos << 16) | y_pos;
     return coord_key;
 }
