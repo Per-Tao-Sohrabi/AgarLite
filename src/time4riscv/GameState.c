@@ -15,6 +15,10 @@ extern int rand_range(int, int);
 #define MAXAI 6
 #define MAXFOOD 20
 
+extern void clear_screen();
+extern void draw_string_wrapped(int x, int y, const char *str, int color, int max_width);
+
+
 /* Initializes the game state */
 void GameState_init(volatile GameState* gs, int gm, int diff){
     print("---- Initializing GameState...\n");

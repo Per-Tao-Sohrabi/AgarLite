@@ -507,8 +507,9 @@ void draw_string_wrapped(int x, int y, const char *str, int color, int max_width
         i++;
     }
 }
-void render_game(GameState *game) {
 
+void render_game(GameState *game) {
+    clear_screen();
     //players
     int antal_players = sizeof(game -> players) / sizeof(game -> players[0]); 
     for(int i = 0; i < antal_players; i++){
@@ -521,6 +522,13 @@ void render_game(GameState *game) {
     for(int i = 0; i < antal_food;  i++){
         Food food = game -> crumbs[i];
         draw_circle(food.x_pos, food.y_pos, food.radius, food.nutrition);
+    }
+
+    //ai
+    int antal_ai = sizeof(game -> ais)/sizeof(game->ais[0]);
+    for(int i = 0; i < antal_ai; i++){
+        Ai ai = game -> ais[i];
+        draw_circle(ai.x_pos, ai.y_pos, ai.radius, ai.color);
     }
 }
 

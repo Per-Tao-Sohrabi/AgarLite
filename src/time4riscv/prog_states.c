@@ -95,7 +95,12 @@ void run_pause() {
     int status = get_switch_state(4);
     while(1) {
         print("Toggle switch 4 down to exit pause");
+        char* msg = "Toggle switch 4 down to exit pause";
+        clear_screen();
+        draw_string_wrapped(80, 60, &msg, WHITE, MSG_WIDTH);
+
         if(status = 0) {
+            clear_screen();
             break;
         }
     }
@@ -104,6 +109,9 @@ void run_pause() {
 /* Game Over*/
 void run_game_over() {
     print("Game Over! Press button to restart.");
+    clear_screen();
+    char* msg = "Game Over! Press button to restart.";
+    draw_string_wrapped(80, 60, &msg, WHITE, MSG_WIDTH);
     while(1) {
         if(get_btn() == 1) {
             break;

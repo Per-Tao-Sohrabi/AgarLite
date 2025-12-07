@@ -83,7 +83,7 @@ void read_inputs(int* input_vector) {
 }
 
 /* Your code goes into main as well as any needed functions. */
-int main() {
+int main() {  
   // Enable timer
   labinit();
   
@@ -102,16 +102,23 @@ int main() {
   print("- Interrupts enabled.\n");
 
   // MAIN GAME LOOP
-  
   int input_vector[5] = {0}; // Input vector to hold switch states
   while (1) {
-    while (game_tick == false){
-      // Keep waiting
+    bool tick_occurred = false;
+
+    while (!tick_occurred) {
+      if (game_tick) {
+        tick_occurred = true;
+        game_tick = false;
+      }
     }
 
-    game_tick = false;
-    
+    // while (game_tick == false){
+    //   // Keep waiting
+    // }
 
+    // game_tick = false;
+    
     // READ PLAYER INPUT
     read_inputs(input_vector);
     
@@ -127,8 +134,7 @@ int main() {
     }
     
     // RENDER GAME STATE
-    //render_game(gs_ptr);
-
+    render_game(gs_ptr);
   }
 }
 
