@@ -152,7 +152,7 @@ void handle_interrupt (unsigned _irq)
 volatile int* timer = (volatile int*) 0x04000020;
 
 void labinit(void) {
-  print("---- Initializing timer...\n");
+  printf("---- Initializing timer...\n");
   // Set period to 3 MHz:
   int period_val = 3000000 -1; // Subtract 1 because timer counts from 0
   timer[2] = period_val & 0xFFFF; //  Lower 16 bits
@@ -160,7 +160,7 @@ void labinit(void) {
 
   // Set start status
   timer[0] = 0b110; // Enable timer, sets ito = off, cont = on, start = on, stop. = off. 
-  print("---- Timer start status set.\n");
+  printf("---- Timer start status set.\n");
 }
 
 void delay(int cycles){
@@ -170,7 +170,7 @@ void delay(int cycles){
 int main()
 { 
     enable_interrupts();
-    init_game();
+    init_game(&game);
     char* msg = "Select Game Mode: 1 or 2 Players by toggling the first switch up for single player. Switch up down for multiplayer. Press button to confirm.\n";
     draw_string(10, 180, msg, 255);
 
