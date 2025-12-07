@@ -11,6 +11,7 @@
 // #define Food_count 100
 
 extern void enable_interrupts(void);
+extern void print(const char*);
 
 GameState game;
 
@@ -152,7 +153,7 @@ void handle_interrupt (unsigned _irq)
 volatile int* timer = (volatile int*) 0x04000020;
 
 void labinit(void) {
-  printf("---- Initializing timer...\n");
+  print("---- Initializing timer...\n");
   // Set period to 3 MHz:
   int period_val = 3000000 -1; // Subtract 1 because timer counts from 0
   timer[2] = period_val & 0xFFFF; //  Lower 16 bits
@@ -160,7 +161,7 @@ void labinit(void) {
 
   // Set start status
   timer[0] = 0b110; // Enable timer, sets ito = off, cont = on, start = on, stop. = off. 
-  printf("---- Timer start status set.\n");
+  print("---- Timer start status set.\n");
 }
 
 void delay(int cycles){
