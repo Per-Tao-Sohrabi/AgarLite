@@ -42,10 +42,6 @@ void labinit(void) {
   int period_val = 3000000 -1; // Subtract 1 because timer counts from 0
   timer[2] = period_val & 0xFFFF; //  Lower 16 bits
   timer[3] = (period_val >> 16) & 0xFFFF;
-
-  // Set start status
-  timer[0] = 0b1110; // Enable timer, sets ito = off, cont = on, start = on, stop. = off. 
-  print("---- Timer start status set.\n");
 }
 
 /* Below is the function that will be called when an interrupt is triggered. */
@@ -99,6 +95,10 @@ int main() {
     // Enable interrupts
   enable_interrupts();
   print("- Interrupts enabled.\n");
+
+  // Set start status
+  timer[0] = 0b1110; // Enable timer, sets ito = off, cont = on, start = on, stop. = off. 
+  print("---- Timer start status set.\n");
 
   // MAIN GAME LOOP
   
