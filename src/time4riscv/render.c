@@ -831,7 +831,7 @@ void draw_string_wrapped(int x, int y, const char* str, int color, int max_width
             x += FONT_WIDTH + CHAR_SPACING;
             str++;
             word_start_x = x;
-            word_start_x = str;
+            word_start = str;
         }else{
             int word_length = 0;
             const char* temp = word_start;
@@ -843,7 +843,7 @@ void draw_string_wrapped(int x, int y, const char* str, int color, int max_width
             int word_pixels = word_length * (FONT_WIDTH + CHAR_SPACING);
             if(x + word_pixels - word_start_x > max_width){
                 y += FONT_HEIGHT + LINE_SPACING;
-                x += start_x;
+                x = start_x;
                 word_start_x = x;
             }
 
