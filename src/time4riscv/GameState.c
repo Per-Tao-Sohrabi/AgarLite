@@ -192,7 +192,7 @@ void GameState_generate_ai(volatile GameState* gs, int diff) {
     if (total_ai_n > MAXAI) {
         total_ai_n = MAXAI; // Cap to MAXAI
     }
-    priint("---- Total AI to generate: %d\n", total_ai_n);
+    print("---- Total AI to generate: %d\n", total_ai_n);
     volatile int colors[] = {120, 220, 170, 70, 255, 30};
     for(int i = 0; i<total_ai_n; i++) {
         print("---- Generating AI %d...\n", i);
