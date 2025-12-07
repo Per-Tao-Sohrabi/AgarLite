@@ -12,7 +12,7 @@ build: clean main.bin
 
 main.elf: 
 	$(TOOLCHAIN)gcc -c $(CFLAGS) $(SOURCES)
-	$(TOOLCHAIN)gcc $(CFLAGS) -T $(LINKER) -o $@ $(filter-out boot.o, $(OBJECTS)) softfloat.a -lgcc
+	$(TOOLCHAIN)gcc $(CFLAGS) -T $(LINKER) -o $@ $(filter-out boot.o, $(OBJECTS)) softfloat.a -lm -lc -lgcc
 
 main.bin: main.elf
 	$(TOOLCHAIN)objcopy --output-target binary $< $@
