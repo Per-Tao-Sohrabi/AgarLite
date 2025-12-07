@@ -814,6 +814,46 @@ void draw_centred_string(int y, const char *str, int color){
     draw_string(x, y, str, color);
 }
 
+void draw_string_wrapped(int x, int y, const char* str, int color, int max_width){
+    int start_x = x;
+    int word_start_x = x;
+    const char* word_start = str;
+
+    while(*str){
+        if(*str == '\n'){
+            y += FONT_HEIGHT + LINE_SPACING;
+            x = start_x;
+            word_start_x = x;
+            str++;
+            word_start = str;
+        }else if(*str == ' '){
+            draw_char(x, y, ' ', color);
+            x += FONT_WIDTH + CHAR_SPACING;
+            str++;
+            word_start_x = x;
+            word_start_x = str;
+        }else{
+            int word_length = 0;
+            const char* temp = word_start;
+            while((*temp) && (*temp != ' ') && (*temp != '\n')){
+                word_length++;
+                temp++;
+            }
+            
+            int word_pixels = word_length * (FONT_WIDTH + CHAR_SPACING);
+            if(x + word_pixels - word_start_x > max_width){
+                y += FONT_HEIGHT + LINE_SPACING;
+                x += start_x;
+                word_start_x = x;
+            }
+
+            draw_char(x, y, *str, color);
+            x += FONT_WIDTH + CHAR_SPACING;
+            str++;
+        }
+    }
+}
+
 void render_game(GameState* game) {
 
     //players
