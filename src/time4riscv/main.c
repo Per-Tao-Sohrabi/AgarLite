@@ -14,7 +14,7 @@ extern void enable_interrupts(void);
 
 GameState game;
 
-volatile char *VGA = (volatile char*) 0x08000000;
+// volatile char *VGA = (volatile char*) 0x08000000;
 
 // void clear_screen(){
 //     for (int i = 0; i < SCREEN_WIDTH*SCREEN_HEIGHT; i++)
