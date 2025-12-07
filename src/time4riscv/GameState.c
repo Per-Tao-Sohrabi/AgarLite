@@ -6,6 +6,7 @@
 #include "GameState.h"
 #include "Entities.h"
 #include "math_tools.h"
+#include "render.h"
 
 
 extern int rand_range(int, int);
