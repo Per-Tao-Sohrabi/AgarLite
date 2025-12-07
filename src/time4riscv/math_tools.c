@@ -1,10 +1,23 @@
 
 #include "math_tools.h"
+#include <stdint.h> 
+
+// For fast rand
+static uint32_t xorshift_state = 1;
 
 int rand() {
-        static unsigned long next = 1;
-        next = next * 1103515245 + 12345;
-        return (unsigned int)(next/65536) % 32768;
+    uint32_t x = xorshift_state;
+        
+    // Xorshift operations (12, 25, 27 are common choices)
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    
+    xorshift_state = x;
+    
+    // Output the middle bits (faster than using the modulo 32768)
+    // Note: The output quality depends heavily on the shifts, but it's fast.
+    return (int)(x & 0x7FFF); // Equivalent to % 32768
 }
 
 int rand_range(int min, int max) {
