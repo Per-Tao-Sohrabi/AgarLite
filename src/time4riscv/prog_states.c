@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "prog_states.h"
 #include "GameState.h"
 #include "inputs.h"

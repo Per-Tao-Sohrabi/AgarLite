@@ -10,10 +10,10 @@
 #include "inputs.h"
 #include "prog_states.h"
 
-#include <stdbool.h>
-#include <math.h>
-#include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <math.h>
 
 extern void enable_interrupts(void);
 
