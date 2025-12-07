@@ -52,7 +52,7 @@ void handle_interrupt(unsigned cause)
 
 /* Helper function for getting the pause switch (which is switch n.4)*/
 int get_pause_swtch() {
-  return get_switch_states(4);
+  return get_switch_state(4);
 }
 
 /* Helper function that
@@ -62,11 +62,11 @@ int get_pause_swtch() {
 */
 void read_inputs(int* input_vector) {
   // LsB Pair
-  int ls_sw1 = get_switch_states(0);
-  int ls_sw2 = get_switch_states(1);
+  int ls_sw1 = get_switch_state(0);
+  int ls_sw2 = get_switch_state(1);
   // MsB Pair
-  int ms_sw1 = get_switch_states(8);
-  int ms_sw2 = get_switch_states(9);
+  int ms_sw1 = get_switch_state(8);
+  int ms_sw2 = get_switch_state(9);
   // Pause Switch
   int pause_swtch = get_pause_swtch(4);
   // Combine into input vector
