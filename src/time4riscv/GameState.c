@@ -200,9 +200,9 @@ void GameState_generate_ai(volatile GameState* gs, int diff) {
 bool GameState_update(volatile GameState* gs, int input_vector[]) {
     
     // UPDATE PLAYER POSITION
-    printf("--- Updating player positions...\n");
+    print("--- Updating player positions...\n");
     for(int i = 0; i< gs->game_mode + 1; i++) {
-        printf("---- Updating player %d position...\n", i);
+        print("---- Updating player %d position...\n", i);
         volatile Player* p_i = &gs->players[i];
         if(p_i->id == -1) {
             continue; // Skip if Player does not exist
@@ -214,9 +214,9 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
     }
 
     // UPDATE AI POSITION
-    printf("--- Updating AI positions...\n");
+    print("--- Updating AI positions...\n");
     for(int i = 0; i< MAXAI; i++) {
-        printf("---- Updating AI %d position...\n", i);
+        print("---- Updating AI %d position...\n", i);
         volatile Ai* ai_i = &gs->ais[i];
         if(ai_i->id == -1) {
             continue; // Skip if AI does not exist
@@ -228,9 +228,9 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
     }
 
     // HANDLE COLLISIONS BETWEEN PLAYER AND OTHER TODO...
-    printf("--- Checking collisions between players and other entities...\n");
+    print("--- Checking collisions between players and other entities...\n");
     for(int i = 0; i <= gs->game_mode; i++) { // For every player
-        printf("---- Checking collisions for player %d with...\n", i);
+        print("---- Checking collisions for player %d with...\n", i);
         // Fix a player
         volatile Player* p_ptr = &gs->players[i];
         if(p_ptr->id == -1) {
@@ -242,13 +242,13 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
                 continue; // Skip if AI does not exist
             }
             volatile Ai* ai_ptr = &gs->ais[j];
-            printf("------ AI %d\n", j);
+            print("------ AI %d\n", j);
             bool col = check_player_ai_collision(p_ptr, ai_ptr);
             if (col == false) { // If no collision, continue to next player. 
-                printf("-------- No collision detected.\n");
+                print("-------- No collision detected.\n");
                 continue;
             } else {
-                printf("-------- Collision detected at \n x: %d, y: %d\n", p_ptr->x_pos, p_ptr->y_pos);
+                print("-------- Collision detected at \n x: %d, y: %d\n", p_ptr->x_pos, p_ptr->y_pos);
                 GameState_handle_player_ai_collision(gs, p_ptr, ai_ptr);
             }
             // Collision Logic
@@ -386,9 +386,7 @@ bool check_ai_food_collision(volatile Ai* ai, volatile Food* f) {
 /* Handle player ai collisions*/
 void GameState_handle_player_ai_collision(volatile GameState* gs, volatile Player* p, volatile Ai* ai) {
     if (p->area > ai->area) {
-        printf("Player %d eats AI %d\n", p->id, ai->id);
-        printf("Player area: %f, AI area: %f\n", p->area, ai->area);
-        
+        print("Player %d eats AI %d\n", p->id, ai->id);
         // p eats ai
         float old_area_ai = ai->area;
         float new_area_ai = (ai->area * (1.0f - 0.5f)); // Reduce ai area by 50%
@@ -399,11 +397,10 @@ void GameState_handle_player_ai_collision(volatile GameState* gs, volatile Playe
         p->area += delta_area_ai; // Increase p area
         ai->radius = sqrtf(ai->area / 3.14f); // Update AI radius
         p->radius = sqrtf(p->area / 3.14f); // Update player radius
-        printf("New Player area: %f, New AI area: %f\n", p->area, ai->area);
         Player_update_velocity(p);
-        printf("Updated Player %d velocity to %d\n", p->id, p->velocity);
+        print("Updated Player %d velocity to %d\n", p->id, p->velocity);
         AI_update_velocity(ai);
-        printf("Updated AI %d velocity to %d\n", ai->id, ai->velocity);
+        print("Updated AI %d velocity to %d\n", ai->id, ai->velocity);
         
         // Update occupied coords dictionary in GameState
         int coord_key_ai = (ai->x_pos << 16) | ai->y_pos;  // Combine x and y into a single key

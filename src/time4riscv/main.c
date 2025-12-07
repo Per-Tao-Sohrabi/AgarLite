@@ -35,7 +35,7 @@ volatile int* timer = (volatile int*) 0x04000020;
 
 /* Initiates the timer and sets its attributes*/
 void labinit(void) {
-  printf("---- Initializing timer...\n");
+  print("---- Initializing timer...\n");
   // Set period to 3 MHz:
   int period_val = 3000000 -1; // Subtract 1 because timer counts from 0
   timer[2] = period_val & 0xFFFF; //  Lower 16 bits
@@ -43,7 +43,7 @@ void labinit(void) {
 
   // Set start status
   timer[0] = 0b110; // Enable timer, sets ito = off, cont = on, start = on, stop. = off. 
-  printf("---- Timer start status set.\n");
+  print("---- Timer start status set.\n");
 }
 
 /* Below is the function that will be called when an interrupt is triggered. */
@@ -79,16 +79,16 @@ void read_inputs(int* input_vector) {
 
 /* Your code goes into main as well as any needed functions. */
 int main() {
-  printf("- Starting Time4RiscV...\n");
+  print("- Starting Time4RiscV...\n");
   // Enable timer
   labinit();
-  printf("- Timer enabled.\n");
+  print("- Timer enabled.\n");
 
   // Enable interrupts
   enable_interrupts();
-  printf("- Interrupts enabled.\n");
+  print("- Interrupts enabled.\n");
   // Display a welcome message.
-  printf("- Running startup sequence...\n");
+  print("- Running startup sequence...\n");
   GameState gs = run_start_up(); // Set the game state and diffuculty mode.
   volatile GameState* gs_ptr = &gs;
   // Start game query ...

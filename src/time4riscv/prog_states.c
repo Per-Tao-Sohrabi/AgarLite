@@ -18,7 +18,7 @@ GameState run_start_up() {
 int query_game_mode() {
     char* msg = "Select Game Mode: 1 or 2 Players by toggling the first switch up for single player. Switch up down for multiplayer. Press button to confirm.";
 
-    printf(msg); // render function
+    print(msg); // render function
     // Wait for user input and return selected mode
     while(1) {
         int mode = get_switch_state(0);      // Read the mode input
@@ -32,7 +32,7 @@ int query_game_mode() {
 /* Query the player about the difficulty they want to play at*/
 int query_game_difficulty() {
     char* msg = "Use the three first switches to set your difficulty. Note binary numbers! Press button to confirm.";
-    printf(msg); // render function
+    print(msg); // render function
     
     // Wait for user input and return selected mode
     while(1) {
@@ -81,7 +81,7 @@ int query_game_difficulty() {
 void run_pause() {
     int status = get_switch_state(4);
     while(1) {
-        printf("Toggle switch 4 down to exit pause");
+        print("Toggle switch 4 down to exit pause");
         if(status = 0) {
             break;
         }
@@ -90,7 +90,7 @@ void run_pause() {
 
 /* Game Over*/
 void run_game_over() {
-    printf("Game Over! Press button to restart.");
+    print("Game Over! Press button to restart.");
     while(1) {
         if(get_btn() == 1) {
             break;
