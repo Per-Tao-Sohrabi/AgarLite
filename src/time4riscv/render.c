@@ -492,7 +492,7 @@ void draw_string_wrapped(int x, int y, const char *str, int color, int max_width
                 }
                 
                 if (current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT) {
-                    draw_char(current_x, current_y, str[i], color);
+                    draw_chars(current_x, current_y, str[i], color);
                 }
                 current_x += FONT_WIDTH;
                 i++;
@@ -501,7 +501,7 @@ void draw_string_wrapped(int x, int y, const char *str, int color, int max_width
         }
         
         if (current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT) {
-            draw_char(current_x, current_y, str[i], color);
+            draw_chars(current_x, current_y, str[i], color);
         }
         current_x += FONT_WIDTH;
         i++;
