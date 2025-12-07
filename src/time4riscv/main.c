@@ -80,19 +80,22 @@ void read_inputs(int* input_vector) {
 /* Your code goes into main as well as any needed functions. */
 int main() {
   print("- Starting Time4RiscV...\n");
-  // Enable timer
-  labinit();
-  print("- Timer enabled.\n");
 
   // Enable interrupts
   enable_interrupts();
   print("- Interrupts enabled.\n");
+
   // Display a welcome message.
   print("- Running startup sequence...\n");
   GameState gs = run_start_up(); // Set the game state and diffuculty mode.
   volatile GameState* gs_ptr = &gs;
   // Start game query ...
+  
+  // Enable timer
+  labinit();
+  print("- Timer enabled.\n");
   // MAIN GAME LOOP
+  
   int input_vector[5] = {0}; // Input vector to hold switch states
   while (1) {
 
