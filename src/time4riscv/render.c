@@ -322,7 +322,7 @@
 //     }
 // }
 
-// void draw_char(int x, int y, char ch, int color){
+// void draw_chars(int x, int y, char ch, int color){
 //     if(ch < 32 || ch > 126) return;
 
 //     int index = ch - 32;
@@ -336,7 +336,7 @@
 //     }
 // }
 
-// void draw_string(int x, int y, const char* str, int color){
+// void draw_string(int x, int y, const char *str, int color){
 //     int start_x = x;
 
 //     while(*str){
@@ -393,7 +393,7 @@
 //     }
 // }
 
-// void draw_string_centered(int y, const char* str, int color) {
+// void draw_string_centered(int y, const char *str, int color) {
 //     int len = 0;
 //     const char* temp = str;
 //     while (*temp && *temp != '\n') {
@@ -800,7 +800,7 @@ void draw_string(int x, int y, const char *str, int color){
 
 }
 
-void draw_centred_string(int y, const char *str, int color){
+void draw_string_centered(int y, const char *str, int color){
     int len = 0;
     const char* temp = str;
 
@@ -814,7 +814,7 @@ void draw_centred_string(int y, const char *str, int color){
     draw_string(x, y, str, color);
 }
 
-void draw_string_wrapped(int x, int y, const char* str, int color, int max_width){
+void draw_string_wrapped(int x, int y, const char *str, int color, int max_width){
     int start_x = x;
     int word_start_x = x;
     const char* word_start = str;
@@ -854,7 +854,7 @@ void draw_string_wrapped(int x, int y, const char* str, int color, int max_width
     }
 }
 
-void render_game(GameState* game) {
+void render_game(GameState *game) {
 
     //players
     int antal_players = sizeof(game -> players) / sizeof(game -> players[0]); 

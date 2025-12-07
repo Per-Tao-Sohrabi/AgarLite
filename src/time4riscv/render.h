@@ -20,22 +20,24 @@ extern volatile char *VGA;
 
 extern const uint8_t font_5x7[96][7];
 
-void vga_int();
+// void vga_int();
 
 void clear_screen();
 
 void draw_circle (int cx, int cy, int radius, int color);
 
+void draw_filled_rect(int x, int y, int width, int height, int color);
+
 void draw_pixel(int x, int y, int color);
 
-void draw_char(int x, int y, char ch, int color);
+void draw_chars(int x, int y, char ch, int color);
 
-void draw_string(int x, int y, const char* str, int color);
+void draw_string(int x, int y, const char *str, int color);
 
-void draw_string_wrapped(int x, int y, const char* str, int color, int max_width);
+void draw_string_wrapped(int x, int y, const char *str, int color, int max_width);
 
-void draw_string_centered(int y, const char* str, int color);
+void draw_string_centered(int y, const char *str, int color);
 
-void render_game(GameState* game);
+void render_game(GameState *game);
 
 #endif
