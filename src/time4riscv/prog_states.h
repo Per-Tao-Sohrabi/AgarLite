@@ -14,4 +14,7 @@ int query_game_difficulty();
 /* Pause logic*/
 void run_pause();
 
+/* Game Over*/
+void run_game_over();
+
 #endif

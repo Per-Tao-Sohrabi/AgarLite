@@ -87,3 +87,13 @@ void run_pause() {
         }
     }
 }
+
+/* Game Over*/
+void run_game_over() {
+    printf("Game Over! Press button to restart.");
+    while(1) {
+        if(get_btn() == 1) {
+            break;
+        }
+    }
+}
