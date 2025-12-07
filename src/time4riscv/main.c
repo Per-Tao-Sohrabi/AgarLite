@@ -1,157 +1,44 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "GameState.h"
+/* main.c
+
+   This file written 2024 by Artur Podobas and Pedro Antunes
+
+   For copyright and licensing, see file COPYING */
+
+/* Below functions are external and found in other files. */
+#include "GameState.h" 
 #include "Entities.h"
+#include "inputs.h"
+#include "prog_states.h"
 #include "render.h"
 
-// #define SCREEN_WIDTH 320
-// #define SCREEN_HEIGHT 240
-// #define MAX_RADIUS 50
-// #define MIN_RADIUS 2
-// #define Food_count 100
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <math.h>
 
 extern void enable_interrupts(void);
+extern void draw_string(int x, int y, const char *str, int color);
+extern void draw_string_wrapped(int x, int y, const char *str, int color, int max_width);
+extern void clear_screen();
+
+
+//#include "render.c"
 extern void print(const char*);
+//extern void print_dec(unsigned int);
+//extern void display_string(char*);
+//extern void time2string(char*,int);
+//extern void tick(int*);
+//extern void delay(int);
+//extern int nextprime( int );
+// extern void render_game(volatile GameState* gs);
+//extern GameState run_start_up(void);
+//extern void run_pause(void);
+//extern void run_game_over(void);
 
-GameState game;
-
-// volatile char *VGA = (volatile char*) 0x08000000;
-
-// void clear_screen(){
-//     for (int i = 0; i < SCREEN_WIDTH*SCREEN_HEIGHT; i++)
-//         VGA[i] = 0; 
-// }
-
-// void draw_circle (int cx, int cy, int radius, int color) {
-//   int radius_squ = radius * radius;
-//   for(int y = cy - radius; y <= cy+radius; y++){
-//     for(int x = cx -radius; x <= cx+radius; x++){
-//       if(x >= 0 && x < SCREEN_WIDTH && y >= 0 && y < SCREEN_HEIGHT){
-//         int dx = x-cx;
-//         int dy = y-cy;
-//         if(dx*dx+dy*dy <= radius_squ)
-//           VGA[y * SCREEN_WIDTH + x] = color;    
-//       }
-//     }
-//   }
-// }
-
-int check_collision_player(Player a, Player b){
-    int dx = a.x_pos - b.x_pos;
-    int dy = a.y_pos - b.y_pos;
-    int distance_squared = dx*dx + dy*dy;
-    int radius_sum = a.radius + b.radius;
-    return distance_squared <= radius_sum * radius_sum;
-}
-
-int check_collision_food(Player a, Food b){
-    int dx = a.x_pos - b.x_pos;
-    int dy = a.y_pos - b.y_pos;
-    int distance_squared = dx*dx + dy*dy;
-    int radius_sum = a.radius + b.radius;
-    return distance_squared <= radius_sum * radius_sum;
-}
-
-void update_game(){
-
-    int antal_player = sizeof(game.players) / sizeof(game.players[0]); 
-    int antal_food = sizeof(game.crumbs) / sizeof(game.crumbs[0]); 
-
-    for(int i = 0; i < antal_player; i++){
-        game.players[i].x_pos += game.players[i].dx;
-        game.players[i].y_pos += game.players[i].dy;
-
-        if(game.players[i].x_pos < game.players[i].radius){
-            game.players[i].x_pos = game.players[i].radius;
-        }
-
-        if(game.players[i].x_pos > SCREEN_WIDTH - game.players[i].radius){
-            game.players[i].x_pos = SCREEN_WIDTH - game.players[i].radius;
-        }
-
-        if(game.players[i].y_pos < game.players[i].radius){
-            game.players[i].y_pos = game.players[i].radius;
-        }
-
-        if(game.players[i].y_pos > SCREEN_HEIGHT - game.players[i].radius){
-            game.players[i].y_pos = SCREEN_HEIGHT - game.players[i].radius;
-        }
-    }
-   
-
-    if(check_collision_player(game.players[0], game.players[1])){
-        if(game.players[0].radius > game.players[1].radius){
-            game.players[0].radius += game.players[1].radius/2;
-            game.players[1].hp--;
-        }else{
-            game.players[1].radius += game.players[0].radius/2;
-            game.players[0].hp--;
-        }
-    }
-
-    for(int i = 0; i < antal_player; i++){
-        for(int j = 0; j < antal_food; j++){
-            if(check_collision_food(game.players[i], game.crumbs[j])){
-                if(game.players[i].radius < 50){
-                game.players[i].radius += game.crumbs[j].nutrition;
-                }
-
-                //new position
-                game.crumbs[j].x_pos = rand() % SCREEN_WIDTH;
-                game.crumbs[j].y_pos = rand() % SCREEN_HEIGHT;
-            }
-        }
-    }
-}
-
-// void render_game() {
-//     clear_screen();
-
-//     //player
-//     int antal_player = sizeof(game.players) / sizeof(game.players[0]); 
-//     for(int i = 0; i < antal_player; i++){
-//         Player player = game.players[i];
-//         draw_circle(player.x_pos, player.y_pos, player.radius, 255);
-//     }
-
-//     //food
-//     int antal_food = sizeof(game.crumbs) / sizeof(game.crumbs[0]); 
-//     for(int i = 0; i < antal_food;  i++){
-//         Food food = game.crumbs[i];
-//         draw_circle(food.x_pos, food.y_pos, food.radius, 46);
-//     }
-   
-//     //time
-// }
-
-void handle_interrupt (unsigned _irq)
-{ }
-
-
-// void init_game(){
-//     game.players[0].x_pos = 50;
-//     game.players[0].y_pos = 50;
-//     game.players[0].radius = MIN_RADIUS;
-//     game.players[0].dx = 2;
-//     game.players[0].dy = 2;
-
-//     game.players[1].x_pos = 3;
-//     game.players[1].y_pos = 3;
-//     game.players[1].radius = MIN_RADIUS;
-//     game.players[1].dx = -2;
-//     game.players[1].dy = 2;
-
-    
-//     for(int i = 0; i < Food_count; i++){
-//         game.crumbs[i].x_pos = rand() % SCREEN_WIDTH;
-//         game.crumbs[i].y_pos = rand() % SCREEN_HEIGHT;
-//         game.crumbs[i].radius = 1;
-//         game.crumbs[i].nutrition = 1;
-//     }
-// }
-
+// Timer buffer
 volatile int* timer = (volatile int*) 0x04000020;
 
+/* Initiates the timer and sets its attributes*/
 void labinit(void) {
   print("---- Initializing timer...\n");
   // Set period to 3 MHz:
@@ -164,28 +51,103 @@ void labinit(void) {
   print("---- Timer start status set.\n");
 }
 
-void delay(int cycles){
-    for(int i = 0; i < cycles; i++);
-}
-
-int main()
-{ 
-    enable_interrupts();
-    init_game(&game);
-    char* msg = "Select Game Mode: 1 or 2 Players by toggling the first switch up for single player. Switch up down for multiplayer. Press button to confirm.\n";
-    draw_string(10, 180, msg, 255);
-
+void one_sec(){
     while((timer[0] & 0b1) == 0 ) {
     }
-    timer[0] = 0b1;
-  
-  // Enter a forever loop
-    while (1)
-        {
-            update_game();
-            render_game(&game);
-
-            while((timer[0] & 0b1) == 0 ) {}
-                timer[0] = 0b1;
-        }
+    timer[0] = 0b1; // Reset TO flag
 }
+
+/* Below is the function that will be called when an interrupt is triggered. */
+void handle_interrupt(unsigned cause) 
+{};
+
+/* Helper function for getting the pause switch (which is switch n.4)*/
+int get_pause_swtch() {
+  return get_switch_state(4);
+}
+
+/* Helper function that
+    Reads the switch states and returns them in an array,
+   RETURNS 
+    An array with the switch values.
+*/
+void read_inputs(int* input_vector) {
+  // LsB Pair
+  int ls_sw1 = get_switch_state(0);
+  int ls_sw2 = get_switch_state(1);
+  // MsB Pair
+  int ms_sw1 = get_switch_state(8);
+  int ms_sw2 = get_switch_state(9);
+  // Pause Switch
+  int pause_swtch = get_pause_swtch(4);
+  // Combine into input vector
+  input_vector[0] = ls_sw1;
+  input_vector[1] = ls_sw2;
+  input_vector[2] = ms_sw1;
+  input_vector[3] = ms_sw2; 
+  input_vector[4] = pause_swtch;
+}
+
+/* Your code goes into main as well as any needed functions. */
+int main() {
+  // Enable timer
+  labinit();
+  print("- Timer enabled.\n");
+  draw_string(10, 180, "- Timer enabled.\n", 255);
+
+  one_sec();
+
+  print("- Starting Time4RiscV...\n");
+  clear_screen();
+  draw_string_wrapped(10, 180, "- Starting Time4RiscV...\n", 255, 300);
+
+  one_sec();
+
+  // Enable interrupts
+  enable_interrupts();
+  print("- Interrupts enabled.\n");
+  clear_screen();
+  draw_string_wrapped(10, 180, "- Interrupts enabled.\n", 255, 300);
+
+  one_sec();
+
+  // Display a welcome message.
+  print("- Running startup sequence...\n");
+  clear_screen();
+  draw_string_wrapped(10, 180, "- Running startup sequence...\n", 255, 300);
+  
+  GameState gs = run_start_up(); // Set the game state and diffuculty mode.
+  volatile GameState* gs_ptr = &gs;
+  // Start game query ...
+  
+
+  // MAIN GAME LOOP
+  
+  int input_vector[5] = {0}; // Input vector to hold switch states
+  while (1) {
+
+    // READ PLAYER INPUT
+    read_inputs(input_vector);
+    
+    // CHECK FOR PAUSE
+    if (get_pause_swtch() == 1) {
+      run_pause();
+    }  
+    // UPDATE THE GAME STATE:
+    bool game_over = GameState_update(gs_ptr, input_vector); 
+
+    if (game_over) {
+      run_game_over();
+    }
+    // DELAY FOR A WHILE (UNTIL TIMER TO FLAG IS RAISED)
+    while((timer[0] & 0b1) == 0 ) {
+    }
+    timer[0] = 0b1; // Reset TO flag
+    
+    // RENDER GAME STATE
+    //render_game(gs_ptr);
+
+  }
+}
+
+

@@ -4,7 +4,7 @@ welcome_msg: .asciz "================================================\n===== RIS
 	
 .section .text
 .align 2
-.globl _start
+.globl _start, enable_interrupts
 	
 _isr_handler:
 	j _isr_routine	   /* ISR service routine here */
