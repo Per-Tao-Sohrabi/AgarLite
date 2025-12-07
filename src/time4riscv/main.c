@@ -9,6 +9,7 @@
 #include "Entities.h"
 #include "inputs.h"
 #include "prog_states.h"
+#include "render.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -126,7 +127,7 @@ int main() {
     }
     
     // RENDER GAME STATE
-    //render_game(gs_ptr);
+    render_game(gs_ptr);
 
   }
 }
