@@ -98,7 +98,7 @@ int GameState_get_free_id(volatile GameState* gs) {
 /* Generate Players, Food, and AI based on game mode and difficulty */
 void GameState_generate_players(volatile GameState* gs, int game_mode) {
     print("---- Generating %d players...\n", game_mode + 1);
-    volatile int colors[] = {100, 200, 150, 50, 250};
+    volatile int colors[] = {100, 250};
     for(int i = 0; i<=game_mode; i++) {
         // Create Player
         Player p;
