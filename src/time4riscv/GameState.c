@@ -115,7 +115,7 @@ void GameState_generate_players(volatile GameState* gs, int game_mode) {
         
         // Set initial positions
         //print("---- Setting occupied position for player %d at (%d, %d)\n", i, x_pos, y_pos);
-        coord_key = (p.x_pos << 16) | p.y_pos; // Combine x and y into a single key
+        int coord_key = (p.x_pos << 16) | p.y_pos; // Combine x and y into a single key
         Dict_insert(&gs->occupied_coords_dict, coord_key, p.id); // Key: combined coord, Value: food index
         Dict_insert(&gs->id_type_dict, p.id, 0); // Key: food index, Value: entity type (1 for food)
     }
