@@ -63,7 +63,7 @@ void GameState_init(volatile GameState* gs, int gm, int diff){
 
 // Check for occupied positions, if occupied, regenerate
 int GameState_get_random_position(volatile GameState* gs) {
-    print("---- Generating random position...\n");
+    print("------ Generating random position...\n");
     // Set random position
     int x_pos = rand_range(gs->min_x, gs->max_x);
     int y_pos = rand_range(gs->min_y, gs->max_y);
@@ -78,7 +78,7 @@ int GameState_get_random_position(volatile GameState* gs) {
 
 /* Helper function to get free ids*/
 int GameState_get_free_id(volatile GameState* gs) {
-    print("---- Searching for free entity ID...\n");
+    print("------ Searching for free entity ID...\n");
     for (int i = 0; i < MAXPLAYERS + MAXAI + MAXFOOD; i++) {
         if (gs->available_ids[i] == true) {
             gs->available_ids[i] = false; // Mark as used
