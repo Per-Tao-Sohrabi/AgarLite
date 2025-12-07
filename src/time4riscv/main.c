@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "GameState.h"
+#include "Entities.h"
+#include "render.h"
 
-#define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 480
+// #define SCREEN_WIDTH 320
+// #define SCREEN_HEIGHT 240
 #define MAX_RADIUS 50
 #define MIN_RADIUS 2
 #define Food_count 100
@@ -170,7 +172,7 @@ int main()
     enable_interrupts();
     init_game();
     char* msg = "Select Game Mode: 1 or 2 Players by toggling the first switch up for single player. Switch up down for multiplayer. Press button to confirm.\n";
-    draw_string_wrapped(10, 180, &msg, 300);
+    draw_string(10, 180, &msg, 255);
 
     while((timer[0] & 0b1) == 0 ) {
     }

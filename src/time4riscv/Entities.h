@@ -3,6 +3,7 @@
 
 #define Food_count 50
 #define MIN_RADIUS 10
+
 typedef struct {
     int x_pos;
     int y_pos;
