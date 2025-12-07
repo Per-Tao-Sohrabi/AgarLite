@@ -5,6 +5,7 @@
 // #include "graphics.h"
 
 volatile char *VGA = (volatile char*) VGA_BASE;
+char back_buffer[VGA_BUFFER_SIZE];
 
 const uint8_t font_5x7[96][7] = {
     // 空格 (ASCII 32)
@@ -294,8 +295,21 @@ const uint8_t font_5x7[96][7] = {
 };
 
 void clear_screen(){
-    for (int i = 0; i < SCREEN_WIDTH*SCREEN_HEIGHT; i++)
+    for (int i = 0; i < SCREEN_WIDTH*SCREEN_HEIGHT; i++){
         VGA[i] = 0; 
+        back_buffer[i] = 0;
+    }
+}
+
+void clear_backbuffer(){
+    for (int i = 0; i < VGA_BUFFER_SIZE; i++)
+        back_buffer[i] = 0; 
+}
+
+void swap_buffers(){
+    for(int i = 0; i < VGA_BUFFER_SIZE; i++){
+        VGA[i] = back_buffer[i];
+    }
 }
 
 void draw_circle (int cx, int cy, int radius, int color) {
@@ -307,7 +321,7 @@ void draw_circle (int cx, int cy, int radius, int color) {
         int dy = y-cy;
         if(dx*dx+dy*dy <= radius_squ){
             int offset = y * SCREEN_WIDTH + x; 
-            VGA[offset] = color; 
+            back_buffer[offset] = color; 
         }   
       }
     }
@@ -509,7 +523,7 @@ void draw_string_wrapped(int x, int y, const char *str, int color, int max_width
 }
 
 void render_game(GameState *game) {
-    clear_screen();
+    clear_backbuffer();
     //players
     int antal_players = sizeof(game -> players) / sizeof(game -> players[0]); 
     for(int i = 0; i < antal_players; i++){
@@ -530,6 +544,7 @@ void render_game(GameState *game) {
         Ai ai = game -> ais[i];
         draw_circle(ai.x_pos, ai.y_pos, ai.radius, ai.color);
     }
+    swap_buffers();
 }
 
 void draw_msg(char* ch){

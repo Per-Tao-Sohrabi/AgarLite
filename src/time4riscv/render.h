@@ -21,11 +21,17 @@
 #define MSG_WIDTH 160
 #define MSG_HEIGHT 120
 
+#define VGA_BUFFER_SIZE SCREEN_WIDTH*SCREEN_HEIGHT
 extern volatile char *VGA;
+extern char back_buffer[VGA_BUFFER_SIZE];
 
 extern const uint8_t font_5x7[96][7];
 
 // void vga_int();
+
+void clear_backbuffer();
+
+void swap_buffers();
 
 void clear_screen();
 

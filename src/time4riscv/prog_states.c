@@ -23,7 +23,7 @@ GameState run_start_up() {
 
 /* Query the player about the game mode they want to play at*/
 int query_game_mode() {
-    clear_screen();
+    clear_screen();   
     char* msg = "Select Game Mode: 1 or 2 Players by toggling the first switch up for single player. Switch up down for multiplayer. Press button to confirm.\n";
     draw_string_wrapped(80, 60, &msg, WHITE, MSG_WIDTH);
     print(msg); // render function
