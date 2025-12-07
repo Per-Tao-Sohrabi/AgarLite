@@ -18,7 +18,7 @@
 extern void enable_interrupts(void);
 
 //#include "render.c"
-//extern void print(const char*);
+extern void print(const char*);
 //extern void print_dec(unsigned int);
 //extern void display_string(char*);
 //extern void time2string(char*,int);
@@ -88,7 +88,7 @@ int main() {
   enable_interrupts();
   printf("- Interrupts enabled.\n");
   // Display a welcome message.
-  printf('- Running startup sequence...\n');
+  printf("- Running startup sequence...\n");
   GameState gs = run_start_up(); // Set the game state and diffuculty mode.
   volatile GameState* gs_ptr = &gs;
   // Start game query ...

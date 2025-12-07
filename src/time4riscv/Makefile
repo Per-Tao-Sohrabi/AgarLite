@@ -1,6 +1,6 @@
 SRC_DIR ?= ./
 OBJ_DIR ?= ./
-SOURCES ?= $(shell find $(SRC_DIR) -name '*.c' -or -name '*.S')
+SOURCES ?= $(shell find $(SRC_DIR) -name '*.c' -or -name '*.S') my_sqrt.c
 OBJECTS ?= $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 LINKER ?= $(SRC_DIR)/dtekv-script.lds
 
@@ -12,7 +12,7 @@ build: clean main.bin
 
 main.elf: 
 	$(TOOLCHAIN)gcc -c $(CFLAGS) $(SOURCES)
-	$(TOOLCHAIN)gcc $(CFLAGS) -T $(LINKER) -o $@ $(filter-out boot.o, $(OBJECTS)) softfloat.a -lm -lc -lgcc
+	$(TOOLCHAIN)gcc $(CFLAGS) -T $(LINKER) -o $@ $(filter-out boot.o, $(OBJECTS)) softfloat.a -lgcc
 
 main.bin: main.elf
 	$(TOOLCHAIN)objcopy --output-target binary $< $@
