@@ -1,13 +1,11 @@
-
-#include "GameState.h"
-#include "Entities.h"
-#include "math_tools.h"
-
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h> // for sqrt
 #include <stddef.h>
 
+#include "GameState.h"
+#include "Entities.h"
+#include "math_tools.h"
 
 
 extern int rand_range(int, int);
