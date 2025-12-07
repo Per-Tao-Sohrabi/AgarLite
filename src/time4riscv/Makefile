@@ -5,14 +5,14 @@ OBJECTS ?= $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 LINKER ?= $(SRC_DIR)/dtekv-script.lds
 
 TOOLCHAIN ?= riscv32-unknown-elf-
-CFLAGS ?= -Wall -nostartfiles -O3 -mabi=ilp32 -march=rv32im -msoft-float
+CFLAGS ?= -Wall -nostartfiles -O3 -mabi=ilp32 -march=rv32im
 
 
 build: clean main.bin
 
 main.elf: 
 	$(TOOLCHAIN)gcc -c $(CFLAGS) $(SOURCES)
-	$(TOOLCHAIN)gcc $(CFLAGS) -T $(LINKER) -o $@ $(filter-out boot.o, $(OBJECTS)) softfloat.a -lm -lc -lgcc
+	$(TOOLCHAIN)gcc $(CFLAGS) -T $(LINKER) -o $@ $(filter-out boot.o, $(OBJECTS)) -lm -lc -lgcc
 
 main.bin: main.elf
 	$(TOOLCHAIN)objcopy --output-target binary $< $@
