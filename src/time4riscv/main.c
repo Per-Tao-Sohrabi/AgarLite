@@ -85,7 +85,6 @@ int main() {
   print("- Timer enabled.\n");
 
   // Enable interrupts
-  print("- Enabling interrupts...\n");
   enable_interrupts();
   print("- Interrupts enabled.\n");
   // Display a welcome message.

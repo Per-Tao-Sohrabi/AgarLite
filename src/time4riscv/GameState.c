@@ -24,32 +24,38 @@ void GameState_init(volatile GameState* gs, int gm, int diff){
     }
     
     // Set game mode and difficulty
+    print("---- Setting game mode to %d and difficulty to %d\n", gm, diff);
     gs->game_mode = gm;
     gs->difficulty = diff;
 
     // Set boundaries
+    print("---- Setting game boundaries...\n");
     gs->min_x = 0;
     gs->max_x = 320;
     gs->min_y = 0;
     gs->max_y = 480;
     
     // Prepare entity lists
+    print("---- Initializing players lists...\n");
     for(int i = 0; i< MAXPLAYERS; i++) {
         Player p;
         Player_init(&p, -1, -1, -1, -1); // Initialize with invalid values
         gs->players[i] = p;
     }
+    print("---- Initializing food list...\n");
     for(int i = 0; i< MAXFOOD; i++) {
         Food f;
         Food_init(&f, -1, -1, -1, -1); // Initialize with invalid values
         gs->crumbs[i] = f;
     }
+    print("---- Initializing AI list...\n");
     for(int i = 0; i< MAXAI; i++) {
         Ai ai;
         Ai_init(&ai, -1, -1, -1, -1); // Initialize with invalid values
         gs->ais[i] = ai;
     }
     // Generate entities
+    print("---- Generating entities based on game mode and difficulty...\n");
     GameState_generate_players(gs, gm);
     GameState_generate_food(gs, gm, diff);
     GameState_generate_ai(gs, diff);
@@ -57,6 +63,7 @@ void GameState_init(volatile GameState* gs, int gm, int diff){
 
 // Check for occupied positions, if occupied, regenerate
 int GameState_get_random_position(volatile GameState* gs) {
+    print("---- Generating random position...\n");
     // Set random position
     int x_pos = rand_range(gs->min_x, gs->max_x);
     int y_pos = rand_range(gs->min_y, gs->max_y);
@@ -64,15 +71,18 @@ int GameState_get_random_position(volatile GameState* gs) {
         x_pos = rand_range(gs->min_x, gs->max_x);
         y_pos = rand_range(gs->min_y, gs->max_y);
     }
+    print("---- Random position = (%d, %d)\n", x_pos, y_pos);
     int coord_key = (x_pos << 16) | y_pos;
     return coord_key;
 }
 
 /* Helper function to get free ids*/
 int GameState_get_free_id(volatile GameState* gs) {
+    print("---- Searching for free entity ID...\n");
     for (int i = 0; i < MAXPLAYERS + MAXAI + MAXFOOD; i++) {
         if (gs->available_ids[i] == true) {
             gs->available_ids[i] = false; // Mark as used
+            print("---- Found free ID: %d\n", i);
             return i;
         }
     }
@@ -87,6 +97,7 @@ int GameState_get_free_id(volatile GameState* gs) {
 
 /* Generate Players, Food, and AI based on game mode and difficulty */
 void GameState_generate_players(volatile GameState* gs, int game_mode) {
+    print("---- Generating %d players...\n", game_mode + 1);
     volatile int colors[] = {100, 200, 150, 50, 250};
     for(int i = 0; i<=game_mode; i++) {
         // Create Player
@@ -96,21 +107,24 @@ void GameState_generate_players(volatile GameState* gs, int game_mode) {
         int coord_key = GameState_get_random_position(gs);
         int x_pos = coord_key >> 16;                       // Unpack X
         int y_pos = coord_key & 0xFFFF;                    // Unpack Y
+        print("---- Initializing player %d with id %d at position (%d, %d) and color %d\n", i, id, x_pos, y_pos, color);
         Player_init(&p, id, color, x_pos, y_pos);
-        
+        print("---- Player %d initialized: id=%d, pos=(%d,%d), color=%d, radius=%.2f\n", i, p.id, p.x_pos, p.y_pos, p.color, p.radius);
         // Save
         gs->players[i] = p;
         
         // Set initial positions
+        print("---- Setting occupied position for player %d at (%d, %d)\n", i, x_pos, y_pos);
         coord_key = (p.x_pos << 16) | p.y_pos; // Combine x and y into a single key
         Dict_insert(&gs->occupied_coords_dict, coord_key, p.id); // Key: combined coord, Value: food index
         Dict_insert(&gs->id_type_dict, p.id, 0); // Key: food index, Value: entity type (1 for food)
     }
+    print("---- Player generation complete.\n");
 }
 
 /* Generate Food based on game mode and difficulty */ // TODO: Skapa Food_init().
 void GameState_generate_food(volatile GameState* gs, int gm, int diff) {
-    
+    print("---- Generating food based on game mode %d and difficulty %d...\n", gm, diff);
     // Calc numb of food based on difficulty (from the 7 diff levels) and gm (2 gm). 
     int base_food_n = 10; // TODO: Rewrite 
     int diff_food_mod = diff * 2; // TODO: Rewrite,,, Each diff level adds 2 food items
@@ -119,6 +133,7 @@ void GameState_generate_food(volatile GameState* gs, int gm, int diff) {
     if (total_food_n > MAXFOOD) {
         total_food_n = MAXFOOD; // Cap to MAXFOOD
     }
+    print("---- Total food to generate: %d\n", total_food_n);
     
     // Set food type probabilities based on difficulty
     int prob_banana = 50 + (diff * 5);     // Banana: increases with difficulty
@@ -135,6 +150,7 @@ void GameState_generate_food(volatile GameState* gs, int gm, int diff) {
     
     // Generate food items
     for(int i = 0; i<total_food_n; i++) {
+        print("---- Generating food item %d...\n", i);
         Food f;                             // Create food item
         
         // Generate pseudo-random number for food type
@@ -150,12 +166,13 @@ void GameState_generate_food(volatile GameState* gs, int gm, int diff) {
         } else {
             type = 3; // grape
         }
-        
+        print("---- Food item %d assigned type %d (r=%d)\n", i, type, r);
         // take id from available ids, then update available ids
         int id = GameState_get_free_id(gs);        
         int coord_key = GameState_get_random_position(gs);
         int x_pos = coord_key >> 16;                       // Unpack X
         int y_pos = coord_key & 0xFFFF;                    // Unpack Y
+        print("---- Initializing food %d with id %d at position (%d, %d) and type %d\n", i, id, x_pos, y_pos, type);
         Food_init(&f, id, type, x_pos, y_pos);
 
         // Store food item
@@ -165,16 +182,20 @@ void GameState_generate_food(volatile GameState* gs, int gm, int diff) {
         Dict_insert(&gs->id_type_dict, f.id, 2); // Key: food index, Value: entity type (1 for food)
         // To check, get the type and then check the id in the type entity list. 
     }
+    print("---- Food generation complete.\n");
 }
 
 /* Generate AI based on difficulty */
 void GameState_generate_ai(volatile GameState* gs, int diff) {
+    print("---- Generating AI based on difficulty %d...\n", diff);
     int total_ai_n = diff * 2; // Each diff level adds 2 AI
     if (total_ai_n > MAXAI) {
         total_ai_n = MAXAI; // Cap to MAXAI
     }
+    priint("---- Total AI to generate: %d\n", total_ai_n);
     volatile int colors[] = {120, 220, 170, 70, 255, 30};
     for(int i = 0; i<total_ai_n; i++) {
+        print("---- Generating AI %d...\n", i);
         Ai ai;
         ai.color = colors[i];
         int id = GameState_get_free_id(gs);
@@ -183,7 +204,7 @@ void GameState_generate_ai(volatile GameState* gs, int diff) {
         int coord_key = GameState_get_random_position(gs);
         int x_pos = coord_key >> 16;                       // Unpack X
         int y_pos = coord_key & 0xFFFF;                    // Unpack Y
-
+        print("---- Initializing AI %d with id %d at position (%d, %d) and color %d\n", i, id, x_pos, y_pos, ai.color);
         Ai_init(&ai, id, ai.color, x_pos, y_pos);
         
         // Save
@@ -192,6 +213,7 @@ void GameState_generate_ai(volatile GameState* gs, int diff) {
         Dict_insert(&gs->occupied_coords_dict, coord_key, ai.id); // Key:
         Dict_insert(&gs->id_type_dict, ai.id, 1); // Key: food index, Value: entity type (1 for food)
     }
+    print("---- AI generation complete.\n");
 }
 
 /* Update the Game State
