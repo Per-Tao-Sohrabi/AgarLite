@@ -7,11 +7,12 @@ LINKER ?= $(SRC_DIR)/dtekv-script.lds
 TOOLCHAIN ?= riscv32-unknown-elf-
 
 # ----------------------------------------------------------------------
-# THE FIX: Using -mno-hard-float
-# This flag forces soft-float code generation while using the correct 
-# -mabi=ilp32 (Integer ABI) for your hardware (rv32im_zicsr).
+# THE FIX: Using -mfloat-abi=soft
+# This instructs the compiler to generate code that uses soft-float 
+# conventions, which is necessary when linking the softfloat.a library.
+# The ABI is kept as -mabi=ilp32 to satisfy the rv32im_zicsr hardware check.
 # ----------------------------------------------------------------------
-CFLAGS ?= -Wall -nostartfiles -O3 -mabi=ilp32 -march=rv32im_zicsr -mno-hard-float 
+CFLAGS ?= -Wall -nostartfiles -O3 -mabi=ilp32 -march=rv32im_zicsr -mfloat-abi=soft 
 # ----------------------------------------------------------------------
 
 
@@ -22,7 +23,7 @@ main.elf:
 	$(TOOLCHAIN)gcc -c $(CFLAGS) $(SOURCES)
 
 # Linking Step (creates main.elf)
-# IMPORTANT: The linker line remains correct by explicitly linking softfloat.a
+# Crucial: The linker line still explicitly links softfloat.a
 	$(TOOLCHAIN)gcc $(CFLAGS) -T $(LINKER) -o $@ $(filter-out boot.o, $(OBJECTS)) softfloat.a -lgcc
 
 main.bin: main.elf
