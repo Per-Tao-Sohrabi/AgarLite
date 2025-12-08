@@ -21,23 +21,37 @@
 #define MSG_WIDTH 250
 #define MSG_HEIGHT 120
 
-#define VGA_BUFFER_SIZE SCREEN_WIDTH*SCREEN_HEIGHT
+// #define VGA_BUFFER_SIZE SCREEN_WIDTH*SCREEN_HEIGHT
+#define BUFFER_SIZE (SCREEN_WIDTH*SCREEN_HEIGHT)
 extern volatile char *VGA;
-extern char back_buffer[VGA_BUFFER_SIZE];
+extern char back_buffer[BUFFER_SIZE];
+
+char frame_buffer1[SCREEN_HEIGHT*SCREEN_WIDTH];
+char frame_buffer2[SCREEN_WIDTH*SCREEN_HEIGHT];
+
+char *current_draw_buffer;
+char *current_display_buffer;
 
 extern const uint8_t font_5x7[96][7];
 
-// void vga_int();
-
-void clear_backbuffer();
-
-void swap_buffers();
 
 void clear_screen();
 
+void init_buffers();
+
+void copy_to_vga(char *src);
+
+void swap_buffers();
+
+void clear_current_buffer();
+
 void draw_circle (int cx, int cy, int radius, int color);
 
+void draw_circle_to_buffer(char *buffer, int cx, int cy, int radius, int color);
+
 void draw_filled_rect(int x, int y, int width, int height, int color);
+
+void draw_pixel_to_buffer(char *buffer, int x, int y, int color);
 
 void draw_pixel(int x, int y, int color);
 
@@ -45,9 +59,9 @@ void draw_char(int x, int y, char ch, int color);
 
 void draw_string(int x, int y, const char *str, int color);
 
-void draw_string_wrapped(int x, int y, const char *str, int color, int max_width);
-
 void draw_string_centered(int y, const char *str, int color);
+
+void draw_string_wrapped(int x, int y, const char *str, int color, int max_width);
 
 void render_game(GameState *game);
 
