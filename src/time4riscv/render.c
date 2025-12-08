@@ -566,6 +566,7 @@ void render_game(GameState *game) {
 }
 
 void draw_msg(char* ch){
+    clear_current_buffer();
     // räkna msg_box postion, att vara inner i skärmen
     int msg_x = 35;
     int msg_y = 60;
