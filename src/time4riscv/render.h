@@ -1,3 +1,4 @@
+// render.h
 #ifndef RENDER_H
 #define RENDER_H
 
@@ -8,67 +9,35 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 240
+// ========== 降低分辨率 ==========
+#define SCREEN_WIDTH 160      // 从320减半
+#define SCREEN_HEIGHT 120     // 从240减半
 #define VGA_BASE 0x08000000
-#define MAGRIN 10
-#define TOTAL_WIDTH 300
+
+// 字体和UI常量（相应调整）
+#define MARGIN 5
+#define TOTAL_WIDTH 150
 #define FONT_HEIGHT 7
 #define FONT_WIDTH 5
 #define LINE_SPACING 1
 #define CHAR_SPACING 1
 #define WHITE 255
-#define MSG_WIDTH 250
-#define MSG_HEIGHT 120
+#define MSG_WIDTH 125         // 减半
+#define MSG_HEIGHT 60         // 减半
 
-// #define VGA_BUFFER_SIZE SCREEN_WIDTH*SCREEN_HEIGHT
-#define BUFFER_SIZE (SCREEN_WIDTH*SCREEN_HEIGHT)
+// ========== 伪双缓冲 ==========
+// 只使用一个小的后缓冲区，存储最近变化的区域
+#define BACK_BUFFER_SIZE (SCREEN_WIDTH * 32)  // 只缓冲32行
+#define BUFFER_SIZE (SCREEN_WIDTH * SCREEN_HEIGHT)
+
 extern volatile char *VGA;
-// extern char back_buffer[BUFFER_SIZE];
+extern char back_buffer[BACK_BUFFER_SIZE];  // 小后缓冲区
 
-extern char frame_buffer1[SCREEN_HEIGHT*SCREEN_WIDTH];
-extern char frame_buffer2[SCREEN_WIDTH*SCREEN_HEIGHT];
-
-extern char *current_draw_buffer;
-extern char *current_display_buffer;
-
-extern const uint8_t font_5x7[96][7];
-
-
+// 函数声明
 void clear_screen(void);
+void init_buffers_small(void);
+void render_game_pseudo(GameState *game);
+void draw_circle_pseudo(int cx, int cy, int radius, int color);
+void update_partial_screen(void);
 
-void init_buffers(void);
-
-void copy_to_vga(char *src);
-
-void swap_buffers(void);
-
-void clear_current_buffer(void);
-
-void draw_circle (int cx, int cy, int radius, int color);
-
-void draw_circle_to_buffer(char *buffer, int cx, int cy, int radius, int color);
-
-void draw_filled_rect(int x, int y, int width, int height, int color);
-
-void draw_pixel_to_buffer(char *buffer, int x, int y, int color);
-
-void draw_pixel(int x, int y, int color);
-
-void draw_char(int x, int y, char ch, int color);
-
-void draw_string(int x, int y, const char *str, int color);
-
-// void draw_string_centered(int y, const char *str, int color);
-
-void draw_string_wrapped(int x, int y, const char *str, int color, int max_width);
-
-void render_game(GameState *game);
-
-void render_game_simple(GameState *game);
-
-void draw_msg(char* ch);
-
-void reset_screen(void);
-
-#endif
+#endif // RENDER_H

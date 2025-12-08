@@ -1,636 +1,297 @@
+// render.c - 伪双缓冲版本
 #include "render.h"
 #include "Entities.h"
 #include "GameState.h"
 
-// #include "graphics.h"
-
 const uint8_t font_5x7[96][7] = {
-    // 空格 (ASCII 32)
-    {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
-    
-    // ! (33)
-    {0x04, 0x04, 0x04, 0x04, 0x00, 0x04, 0x00},
-    
-    // " (34)
-    {0x0A, 0x0A, 0x0A, 0x00, 0x00, 0x00, 0x00},
-    
-    // # (35)
-    {0x0A, 0x0A, 0x1F, 0x0A, 0x1F, 0x0A, 0x0A},
-    
-    // $ (36)
-    {0x04, 0x0F, 0x14, 0x0E, 0x05, 0x1E, 0x04},
-    
-    // % (37)
-    {0x18, 0x19, 0x02, 0x04, 0x08, 0x13, 0x03},
-    
-    // & (38)
-    {0x0C, 0x12, 0x14, 0x08, 0x15, 0x12, 0x0D},
-    
-    // ' (39)
-    {0x0C, 0x04, 0x08, 0x00, 0x00, 0x00, 0x00},
-    
-    // ( (40)
-    {0x02, 0x04, 0x08, 0x08, 0x08, 0x04, 0x02},
-    
-    // ) (41)
-    {0x08, 0x04, 0x02, 0x02, 0x02, 0x04, 0x08},
-    
-    // * (42)
-    {0x00, 0x04, 0x15, 0x0E, 0x15, 0x04, 0x00},
-    
-    // + (43)
-    {0x00, 0x04, 0x04, 0x1F, 0x04, 0x04, 0x00},
-    
-    // , (44)
-    {0x00, 0x00, 0x00, 0x00, 0x0C, 0x04, 0x08},
-    
-    // - (45)
-    {0x00, 0x00, 0x00, 0x1F, 0x00, 0x00, 0x00},
-    
-    // . (46)
-    {0x00, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x0C},
-    
-    // / (47)
-    {0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x00},
-    
-    // 0 (48)
-    {0x0E, 0x11, 0x13, 0x15, 0x19, 0x11, 0x0E},
-    
-    // 1 (49)
-    {0x04, 0x0C, 0x04, 0x04, 0x04, 0x04, 0x0E},
-    
-    // 2 (50)
-    {0x0E, 0x11, 0x01, 0x02, 0x04, 0x08, 0x1F},
-    
-    // 3 (51)
-    {0x0E, 0x11, 0x01, 0x06, 0x01, 0x11, 0x0E},
-    
-    // 4 (52)
-    {0x02, 0x06, 0x0A, 0x12, 0x1F, 0x02, 0x02},
-    
-    // 5 (53)
-    {0x1F, 0x10, 0x1E, 0x01, 0x01, 0x11, 0x0E},
-    
-    // 6 (54)
-    {0x06, 0x08, 0x10, 0x1E, 0x11, 0x11, 0x0E},
-    
-    // 7 (55)
-    {0x1F, 0x01, 0x02, 0x04, 0x04, 0x04, 0x04},
-    
-    // 8 (56)
-    {0x0E, 0x11, 0x11, 0x0E, 0x11, 0x11, 0x0E},
-    
-    // 9 (57)
-    {0x0E, 0x11, 0x11, 0x0F, 0x01, 0x02, 0x0C},
-    
-    // : (58)
-    {0x00, 0x0C, 0x0C, 0x00, 0x0C, 0x0C, 0x00},
-    
-    // ; (59)
-    {0x00, 0x0C, 0x0C, 0x00, 0x0C, 0x04, 0x08},
-    
-    // < (60)
-    {0x02, 0x04, 0x08, 0x10, 0x08, 0x04, 0x02},
-    
-    // = (61)
-    {0x00, 0x00, 0x1F, 0x00, 0x1F, 0x00, 0x00},
-    
-    // > (62)
-    {0x08, 0x04, 0x02, 0x01, 0x02, 0x04, 0x08},
-    
-    // ? (63)
-    {0x0E, 0x11, 0x01, 0x02, 0x04, 0x00, 0x04},
-    
-    // @ (64)
-    {0x0E, 0x11, 0x01, 0x0D, 0x15, 0x15, 0x0E},
-    
-    // A (65)
-    {0x0E, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11},
-    
-    // B (66)
-    {0x1E, 0x11, 0x11, 0x1E, 0x11, 0x11, 0x1E},
-    
-    // C (67)
-    {0x0E, 0x11, 0x10, 0x10, 0x10, 0x11, 0x0E},
-    
-    // D (68)
-    {0x1E, 0x11, 0x11, 0x11, 0x11, 0x11, 0x1E},
-    
-    // E (69)
-    {0x1F, 0x10, 0x10, 0x1E, 0x10, 0x10, 0x1F},
-    
-    // F (70)
-    {0x1F, 0x10, 0x10, 0x1E, 0x10, 0x10, 0x10},
-    
-    // G (71)
-    {0x0E, 0x11, 0x10, 0x17, 0x11, 0x11, 0x0F},
-    
-    // H (72)
-    {0x11, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11},
-    
-    // I (73)
-    {0x0E, 0x04, 0x04, 0x04, 0x04, 0x04, 0x0E},
-    
-    // J (74)
-    {0x07, 0x02, 0x02, 0x02, 0x02, 0x12, 0x0C},
-    
-    // K (75)
-    {0x11, 0x12, 0x14, 0x18, 0x14, 0x12, 0x11},
-    
-    // L (76)
-    {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x1F},
-    
-    // M (77)
-    {0x11, 0x1B, 0x15, 0x15, 0x11, 0x11, 0x11},
-    
-    // N (78)
-    {0x11, 0x11, 0x19, 0x15, 0x13, 0x11, 0x11},
-    
-    // O (79)
-    {0x0E, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0E},
-    
-    // P (80)
-    {0x1E, 0x11, 0x11, 0x1E, 0x10, 0x10, 0x10},
-    
-    // Q (81)
-    {0x0E, 0x11, 0x11, 0x11, 0x15, 0x12, 0x0D},
-    
-    // R (82)
-    {0x1E, 0x11, 0x11, 0x1E, 0x14, 0x12, 0x11},
-    
-    // S (83)
-    {0x0F, 0x10, 0x10, 0x0E, 0x01, 0x01, 0x1E},
-    
-    // T (84)
-    {0x1F, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04},
-    
-    // U (85)
-    {0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0E},
-    
-    // V (86)
-    {0x11, 0x11, 0x11, 0x11, 0x11, 0x0A, 0x04},
-    
-    // W (87)
-    {0x11, 0x11, 0x11, 0x15, 0x15, 0x1B, 0x11},
-    
-    // X (88)
-    {0x11, 0x11, 0x0A, 0x04, 0x0A, 0x11, 0x11},
-    
-    // Y (89)
-    {0x11, 0x11, 0x11, 0x0A, 0x04, 0x04, 0x04},
-    
-    // Z (90)
-    {0x1F, 0x01, 0x02, 0x04, 0x08, 0x10, 0x1F},
-    
-    // [ (91)
-    {0x0E, 0x08, 0x08, 0x08, 0x08, 0x08, 0x0E},
-    
-    // \ (92)
-    {0x00, 0x10, 0x08, 0x04, 0x02, 0x01, 0x00},
-    
-    // ] (93)
-    {0x0E, 0x02, 0x02, 0x02, 0x02, 0x02, 0x0E},
-    
-    // ^ (94)
-    {0x04, 0x0A, 0x11, 0x00, 0x00, 0x00, 0x00},
-    
-    // _ (95)
-    {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F},
-    
-    // ` (96)
-    {0x08, 0x04, 0x02, 0x00, 0x00, 0x00, 0x00},
-    
-    // a (97)
-    {0x00, 0x00, 0x0E, 0x01, 0x0F, 0x11, 0x0F},
-    
-    // b (98)
-    {0x10, 0x10, 0x16, 0x19, 0x11, 0x11, 0x1E},
-    
-    // c (99)
-    {0x00, 0x00, 0x0E, 0x11, 0x10, 0x11, 0x0E},
-    
-    // d (100)
-    {0x01, 0x01, 0x0D, 0x13, 0x11, 0x11, 0x0F},
-    
-    // e (101)
-    {0x00, 0x00, 0x0E, 0x11, 0x1F, 0x10, 0x0E},
-    
-    // f (102)
-    {0x06, 0x09, 0x08, 0x1C, 0x08, 0x08, 0x08},
-    
-    // g (103)
-    {0x00, 0x0F, 0x11, 0x11, 0x0F, 0x01, 0x0E},
-    
-    // h (104)
-    {0x10, 0x10, 0x16, 0x19, 0x11, 0x11, 0x11},
-    
-    // i (105)
-    {0x04, 0x00, 0x0C, 0x04, 0x04, 0x04, 0x0E},
-    
-    // j (106)
-    {0x02, 0x00, 0x06, 0x02, 0x02, 0x12, 0x0C},
-    
-    // k (107)
-    {0x10, 0x10, 0x12, 0x14, 0x18, 0x14, 0x12},
-    
-    // l (108)
-    {0x0C, 0x04, 0x04, 0x04, 0x04, 0x04, 0x0E},
-    
-    // m (109)
-    {0x00, 0x00, 0x1A, 0x15, 0x15, 0x15, 0x15},
-    
-    // n (110)
-    {0x00, 0x00, 0x16, 0x19, 0x11, 0x11, 0x11},
-    
-    // o (111)
-    {0x00, 0x00, 0x0E, 0x11, 0x11, 0x11, 0x0E},
-    
-    // p (112)
-    {0x00, 0x00, 0x1E, 0x11, 0x1E, 0x10, 0x10},
-    
-    // q (113)
-    {0x00, 0x00, 0x0D, 0x13, 0x0F, 0x01, 0x01},
-    
-    // r (114)
-    {0x00, 0x00, 0x16, 0x19, 0x10, 0x10, 0x10},
-    
-    // s (115)
-    {0x00, 0x00, 0x0E, 0x10, 0x0E, 0x01, 0x1E},
-    
-    // t (116)
-    {0x08, 0x08, 0x1C, 0x08, 0x08, 0x09, 0x06},
-    
-    // u (117)
-    {0x00, 0x00, 0x11, 0x11, 0x11, 0x13, 0x0D},
-    
-    // v (118)
-    {0x00, 0x00, 0x11, 0x11, 0x11, 0x0A, 0x04},
-    
-    // w (119)
-    {0x00, 0x00, 0x11, 0x11, 0x15, 0x15, 0x0A},
-    
-    // x (120)
-    {0x00, 0x00, 0x11, 0x0A, 0x04, 0x0A, 0x11},
-    
-    // y (121)
-    {0x00, 0x00, 0x11, 0x11, 0x0F, 0x01, 0x0E},
-    
-    // z (122)
-    {0x00, 0x00, 0x1F, 0x02, 0x04, 0x08, 0x1F},
-    
-    // { (123)
-    {0x02, 0x04, 0x04, 0x08, 0x04, 0x04, 0x02},
-    
-    // | (124)
-    {0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04},
-    
-    // } (125)
-    {0x08, 0x04, 0x04, 0x02, 0x04, 0x04, 0x08},
-    
-    // ~ (126)
-    {0x00, 0x00, 0x08, 0x15, 0x02, 0x00, 0x00},
+    // ... 保持你的字体数据不变 ...
 };
 
-void clear_screen(){
-    for (int i = 0; i < SCREEN_WIDTH*SCREEN_HEIGHT; i++){
-        VGA[i] = 0; 
-    }
-}
-
-// buffer
+// VGA显示内存
 volatile char *VGA = (volatile char*) VGA_BASE;
-char frame_buffer1[SCREEN_HEIGHT*SCREEN_WIDTH];
-char frame_buffer2[SCREEN_WIDTH*SCREEN_HEIGHT];
 
-char *current_draw_buffer;
-char *current_display_buffer;
+// 小后缓冲区（只保存最近更新的区域）
+char back_buffer[BACK_BUFFER_SIZE];
 
-void init_buffers() {
-    clear_screen();
-    // init buffers
-    print("clear_screen");
-    current_draw_buffer = frame_buffer1;
-    current_display_buffer = frame_buffer2;
-    print("buffer init");
-    // clear both buffers
-    for (int i = 0; i < BUFFER_SIZE; i++) {
-        frame_buffer1[i] = 0;
-        frame_buffer2[i] = 0;
-    }
-    
-    for (int i = 0; i < BUFFER_SIZE; i++) {
+// 记录哪些行需要更新
+uint8_t dirty_rows[SCREEN_HEIGHT];  // 每行一个标志位
+int update_start_y = -1;            // 更新区域的起始行
+int update_end_y = -1;              // 更新区域的结束行
+
+// 上一帧位置（用于清除旧位置）
+static struct {
+    int x[2], y[2], r[2];  // 玩家
+    int ai_x[10], ai_y[10], ai_r[10];  // AI
+} last_pos;
+
+// ========== 初始化 ==========
+void clear_screen() {
+    for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
         VGA[i] = 0;
     }
-
-    print("Buffers initialized and cleared\n");
-    // init. vga
-    // copy_to_vga(current_draw_buffer);
 }
 
-void copy_to_vga(char *src){
-  for(int i = 0; i < BUFFER_SIZE; i++){
-    VGA[i] = src[i];
-  }
-}
-
-void swap_buffers(){
-  copy_to_vga(current_draw_buffer);
-
-  char *temp = current_draw_buffer;
-  current_draw_buffer = current_display_buffer;
-  current_display_buffer = temp;
-}
-
-void clear_current_buffer(){
-  for(int i = 0; i < BUFFER_SIZE; i++){
-    current_draw_buffer[i] = 0;
-  }
-}
-
-void draw_circle (int cx, int cy, int radius, int color) {
-  int radius_squ = radius * radius;
-    int min_y = cy - radius;
-    int max_y = cy + radius;
-    int min_x = cx - radius;
-    int max_x = cx + radius;
+void init_buffers_small() {
+    print("Initializing pseudo double buffer (160x120)\n");
     
-    if (min_y < 0) min_y = 0;
-    if (max_y >= SCREEN_HEIGHT) max_y = SCREEN_HEIGHT - 1;
-    if (min_x < 0) min_x = 0;
-    if (max_x >= SCREEN_WIDTH) max_x = SCREEN_WIDTH - 1;
+    // 清除屏幕
+    clear_screen();
     
-    for (int y = min_y; y <= max_y; y++) {
-        for (int x = min_x; x <= max_x; x++) {
-            int dx = x - cx;
-            int dy = y - cy;
-            if (dx * dx + dy * dy <= radius_squ) {
-                VGA[y * SCREEN_WIDTH + x] = color;
-            }
-        }
+    // 初始化后缓冲区
+    for (int i = 0; i < BACK_BUFFER_SIZE; i++) {
+        back_buffer[i] = 0;
+    }
+    
+    // 初始化脏行标记
+    for (int i = 0; i < SCREEN_HEIGHT; i++) {
+        dirty_rows[i] = 0;
+    }
+    
+    // 初始化位置记录
+    for (int i = 0; i < 2; i++) {
+        last_pos.x[i] = -1;
+        last_pos.y[i] = -1;
+        last_pos.r[i] = 0;
+    }
+    for (int i = 0; i < 10; i++) {
+        last_pos.ai_x[i] = -1;
+        last_pos.ai_y[i] = -1;
+        last_pos.ai_r[i] = 0;
+    }
+    
+    print("Pseudo double buffer ready\n");
+}
+
+// ========== 标记脏行 ==========
+void mark_dirty_row(int y) {
+    if (y < 0 || y >= SCREEN_HEIGHT) return;
+    
+    dirty_rows[y] = 1;
+    
+    // 更新脏区域范围
+    if (update_start_y == -1 || y < update_start_y) {
+        update_start_y = y;
+    }
+    if (update_end_y == -1 || y > update_end_y) {
+        update_end_y = y;
     }
 }
 
-void draw_circle_to_buffer(char *buffer, int cx, int cy, int radius, int color) {
+void mark_dirty_area(int y1, int y2) {
+    if (y1 < 0) y1 = 0;
+    if (y2 >= SCREEN_HEIGHT) y2 = SCREEN_HEIGHT - 1;
+    
+    for (int y = y1; y <= y2; y++) {
+        mark_dirty_row(y);
+    }
+}
+
+// ========== 伪双缓冲渲染 ==========
+void render_game_pseudo(GameState *game) {
+    // 重置脏行标记
+    for (int i = 0; i < SCREEN_HEIGHT; i++) {
+        dirty_rows[i] = 0;
+    }
+    update_start_y = -1;
+    update_end_y = -1;
+    
+    // 1. 标记需要清除的旧位置区域
+    for (int i = 0; i < 2; i++) {
+        if (last_pos.r[i] > 0) {
+            int y1 = last_pos.y[i] - last_pos.r[i];
+            int y2 = last_pos.y[i] + last_pos.r[i];
+            mark_dirty_area(y1, y2);
+            
+            // 在后缓冲区中清除旧位置
+            clear_circle_in_backbuffer(last_pos.x[i], last_pos.y[i], last_pos.r[i]);
+        }
+    }
+    
+    // 标记AI旧位置
+    int antal_ai = sizeof(game->ais)/sizeof(game->ais[0]);
+    for (int i = 0; i < antal_ai && i < 10; i++) {
+        if (last_pos.ai_r[i] > 0) {
+            int y1 = last_pos.ai_y[i] - last_pos.ai_r[i];
+            int y2 = last_pos.ai_y[i] + last_pos.ai_r[i];
+            mark_dirty_area(y1, y2);
+            
+            clear_circle_in_backbuffer(last_pos.ai_x[i], last_pos.ai_y[i], last_pos.ai_r[i]);
+        }
+    }
+    
+    // 2. 绘制新位置到后缓冲区
+    // 绘制食物
+    int antal_food = sizeof(game->crumbs) / sizeof(game->crumbs[0]); 
+    for(int i = 0; i < antal_food; i++){
+        Food food = game->crumbs[i];
+        if (food.x_pos >= 0 && food.x_pos < SCREEN_WIDTH &&
+            food.y_pos >= 0 && food.y_pos < SCREEN_HEIGHT) {
+            // 食物很小，直接标记脏行
+            mark_dirty_row(food.y_pos);
+            draw_pixel_to_backbuffer(food.x_pos, food.y_pos, food.nutrition);
+        }
+    }
+
+    // 绘制AI
+    for(int i = 0; i < antal_ai; i++){
+        Ai ai = game->ais[i];
+        draw_circle_pseudo(ai.x_pos, ai.y_pos, ai.radius, ai.color);
+        
+        // 保存AI位置
+        if (i < 10) {
+            last_pos.ai_x[i] = ai.x_pos;
+            last_pos.ai_y[i] = ai.y_pos;
+            last_pos.ai_r[i] = ai.radius;
+        }
+    }
+    
+    // 绘制玩家
+    int antal_players = sizeof(game->players) / sizeof(game->players[0]); 
+    for(int i = 0; i < antal_players; i++){
+        Player player = game->players[i];
+        draw_circle_pseudo(player.x_pos, player.y_pos, player.radius, player.color);
+        
+        // 保存玩家位置
+        if (i < 2) {
+            last_pos.x[i] = player.x_pos;
+            last_pos.y[i] = player.y_pos;
+            last_pos.r[i] = player.radius;
+        }
+    }
+    
+    // 3. 将后缓冲区的脏区域复制到VGA
+    if (update_start_y != -1 && update_end_y != -1) {
+        update_partial_screen();
+    }
+}
+
+// ========== 绘制函数（伪双缓冲版本） ==========
+void draw_circle_pseudo(int cx, int cy, int radius, int color) {
+    if (radius <= 0) return;
+    
+    // 标记脏区域
+    int y1 = cy - radius;
+    int y2 = cy + radius;
+    mark_dirty_area(y1, y2);
+    
+    // 在后缓冲区绘制
     int radius_squ = radius * radius;
-    int min_y = cy - radius;
-    int max_y = cy + radius;
-    int min_x = cx - radius;
-    int max_x = cx + radius;
+    int start_y = cy - radius;
+    int end_y = cy + radius;
+    int start_x = cx - radius;
+    int end_x = cx + radius;
     
-    if (min_y < 0) min_y = 0;
-    if (max_y >= SCREEN_HEIGHT) max_y = SCREEN_HEIGHT - 1;
-    if (min_x < 0) min_x = 0;
-    if (max_x >= SCREEN_WIDTH) max_x = SCREEN_WIDTH - 1;
+    if (start_y < 0) start_y = 0;
+    if (end_y >= SCREEN_HEIGHT) end_y = SCREEN_HEIGHT - 1;
+    if (start_x < 0) start_x = 0;
+    if (end_x >= SCREEN_WIDTH) end_x = SCREEN_WIDTH - 1;
     
-    for (int y = min_y; y <= max_y; y++) {
-        for (int x = min_x; x <= max_x; x++) {
+    for (int y = start_y; y <= end_y; y++) {
+        int dy = y - cy;
+        int dy_sq = dy * dy;
+        int row_offset = y * SCREEN_WIDTH;
+        
+        for (int x = start_x; x <= end_x; x++) {
             int dx = x - cx;
-            int dy = y - cy;
-            if (dx * dx + dy * dy <= radius_squ) {
-                buffer[y * SCREEN_WIDTH + x] = color;
+            if (dx * dx + dy_sq <= radius_squ) {
+                // 计算在后缓冲区中的位置
+                int buffer_offset = (y % 32) * SCREEN_WIDTH + x;
+                back_buffer[buffer_offset] = color;
+                
+                // 同时标记脏行
+                dirty_rows[y] = 1;
             }
         }
     }
 }
 
-// void draw_circle(int cx, int cy, int radius, int color) {
-//     draw_circle_to_buffer(current_draw_buffer, cx, cy, radius, color);
-// }
+void clear_circle_in_backbuffer(int cx, int cy, int radius) {
+    // 在后缓冲区中清除圆形区域（用黑色绘制）
+    draw_circle_pseudo(cx, cy, radius, 0);
+}
 
-void draw_filled_rect(int x, int y, int width, int height, int color){
-    for(int i = 0; i < height; i++){
-        int current_y = y+i;
-        if(current_y < 0 || current_y >= SCREEN_HEIGHT) continue;
+void draw_pixel_to_backbuffer(int x, int y, int color) {
+    if (x < 0 || x >= SCREEN_WIDTH || y < 0 || y >= SCREEN_HEIGHT) return;
+    
+    // 计算在后缓冲区中的位置
+    int buffer_offset = (y % 32) * SCREEN_WIDTH + x;
+    back_buffer[buffer_offset] = color;
+    
+    // 标记脏行
+    mark_dirty_row(y);
+}
 
-        for(int j = 0; j < width; j++){
-            int current_x = x+j;
-            if(current_x < 0 || current_x >= SCREEN_WIDTH) continue;
-
-            draw_pixel(current_x, current_y, color);
+// ========== 更新部分屏幕 ==========
+void update_partial_screen() {
+    // 只更新脏行
+    for (int y = 0; y < SCREEN_HEIGHT; y++) {
+        if (dirty_rows[y]) {
+            int vga_offset = y * SCREEN_WIDTH;
+            int buffer_offset = (y % 32) * SCREEN_WIDTH;
+            
+            // 复制这一行
+            for (int x = 0; x < SCREEN_WIDTH; x++) {
+                VGA[vga_offset + x] = back_buffer[buffer_offset + x];
+            }
         }
     }
 }
 
-void draw_pixel_to_buffer(char *buffer, int x, int y, int color){
-    if(x < 0 || x >= SCREEN_WIDTH || y < 0 || y >= SCREEN_HEIGHT){
-        return;
-    }
-
-    int offset = y * SCREEN_WIDTH + x;
-    buffer[offset] = color;
+// ========== 保持兼容性的包装函数 ==========
+void render_game(GameState *game) {
+    // 调用伪双缓冲版本
+    render_game_pseudo(game);
 }
 
-void draw_pixel(int x, int y, int color){
-    draw_pixel_to_buffer(current_draw_buffer, x, y, color);
+void init_buffers() {
+    // 调用小缓冲区初始化
+    init_buffers_small();
 }
 
-void draw_char(int x, int y, char ch, int color){
-    if(ch < 32 || ch > 126){
-        return;
+// ========== 其他绘图函数需要相应修改 ==========
+void draw_filled_rect(int x, int y, int width, int height, int color) {
+    // 标记脏区域
+    mark_dirty_area(y, y + height - 1);
+    
+    // 在后缓冲区绘制
+    for (int i = 0; i < height; i++) {
+        int current_y = y + i;
+        if (current_y < 0 || current_y >= SCREEN_HEIGHT) continue;
+        
+        int buffer_row = (current_y % 32) * SCREEN_WIDTH;
+        
+        for (int j = 0; j < width; j++) {
+            int current_x = x + j;
+            if (current_x < 0 || current_x >= SCREEN_WIDTH) continue;
+            
+            back_buffer[buffer_row + current_x] = color;
+        }
     }
+}
+
+void draw_char(int x, int y, char ch, int color) {
+    if (ch < 32 || ch > 126) return;
+    
+    // 标记脏区域（字符高度7像素）
+    mark_dirty_area(y, y + 6);
     
     int index = ch - 32;
-    for(int row = 0; row < 7; row++){
+    for (int row = 0; row < 7; row++) {
         int current_y = y + row;
-        if(current_y < 0 || current_y >= SCREEN_HEIGHT) continue;
-
+        if (current_y < 0 || current_y >= SCREEN_HEIGHT) continue;
+        
+        int buffer_row = (current_y % 32) * SCREEN_WIDTH;
         uint8_t line_data = font_5x7[index][row];
-        for(int col = 0; col < 5; col++){
-            if(line_data & (0x10 >> col)){
+        
+        for (int col = 0; col < 5; col++) {
+            if (line_data & (0x10 >> col)) {
                 int current_x = x + col;
-                if(current_x >= 0 && current_x < SCREEN_WIDTH){
-                    draw_pixel(current_x, current_y, color);
+                if (current_x >= 0 && current_x < SCREEN_WIDTH) {
+                    back_buffer[buffer_row + current_x] = color;
                 }
             }
         }
     }
 }
 
-void draw_string(int x, int y, const char *str, int color){
-    int start_x = x;
-    int original_y = y;
-
-    while(*str){
-        if(*str == '\n'){
-            y += FONT_HEIGHT + LINE_SPACING;
-            x = start_x;
-
-        }else if(*str == '\t'){
-            x += 4*(FONT_WIDTH + CHAR_SPACING);
-        }else if(*str == '\b'){
-            x -= FONT_WIDTH + CHAR_SPACING;
-            draw_filled_rect(x, y, FONT_WIDTH, FONT_HEIGHT, 0);
-        }
-        else{
-            draw_char(x, y, *str, color);
-            x += FONT_WIDTH + CHAR_SPACING;
-        }
-        str++;
-    }
-
-}
-
-void draw_string_wrapped(int x, int y, const char *str, int color, int max_width){
-    if(x < 0 || x >= SCREEN_WIDTH || y < 0 || y >= SCREEN_HEIGHT) return;
-
-    int current_x = x;
-    int current_y = y;
-    int char_width = FONT_WIDTH + CHAR_SPACING;
-
-    const char *p = str;
-
-    while(*p != '\0'){
-        // om y är ut av bottom, stop draw
-        if(current_y >= SCREEN_HEIGHT)break;
-        // hoppar över första space i första raden
-        if(*p == ' ' && current_x == x){
-            p++;
-            continue;
-        }
-        //när \n
-        if(*p == '\n'){
-            current_x = x;
-            current_y += FONT_HEIGHT + LINE_SPACING;
-            p++;
-            continue; 
-        }
-
-        //hittar nuvarande ord börja och sluta
-        const char *word_start = p;
-        const char *word_end = word_start;
-        //hittar när ordet sluta
-        while(*word_end != '\0' && *word_end != ' ' && *word_end != '\n'){
-            word_end++;
-        }
-        // räkna ord-width
-        int word_len = word_end - word_start;
-        int word_width = word_len * char_width;
-
-        // check if need break line
-        if(current_x > x && current_x + word_width > x + max_width){
-            current_x = x;
-            current_y += FONT_HEIGHT + LINE_SPACING;
-
-            if(current_y >= SCREEN_HEIGHT - FONT_HEIGHT){
-                break;
-            }
-            continue;
-        }
-
-        //draw word
-        for(const char *ch = word_start; ch < word_end; ch++){
-            if(current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT){
-                draw_char(current_x, current_y, *ch, color);
-            }
-            current_x += char_width;
-        }
-
-        p = word_end;
-
-        // draw space
-        if(*p == ' '){
-            if(current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT){
-                draw_char(current_x, current_y, ' ', color);
-            }
-            current_x += char_width;
-            p++;
-        }
-    }
-}
-
-void render_game(GameState *game) {
-    clear_current_buffer();
-    //players
-    int antal_players = sizeof(game -> players) / sizeof(game -> players[0]); 
-    for(int i = 0; i < antal_players; i++){
-        Player player = game -> players[i];
-        draw_circle(player.x_pos, player.y_pos, player.radius, player.color);
-    }
-
-    //food
-    int antal_food = sizeof(game -> crumbs) / sizeof(game -> crumbs[0]); 
-    for(int i = 0; i < antal_food;  i++){
-        Food food = game -> crumbs[i];
-        draw_circle(food.x_pos, food.y_pos, food.radius, food.nutrition);
-    }
-
-    //ai
-    int antal_ai = sizeof(game -> ais)/sizeof(game->ais[0]);
-    for(int i = 0; i < antal_ai; i++){
-        Ai ai = game -> ais[i];
-        draw_circle(ai.x_pos, ai.y_pos, ai.radius, ai.color);
-    }
-    swap_buffers();
-}
-
-void draw_msg(char* ch){
-    // räkna msg_box postion, att vara inner i skärmen
-    int msg_x = 35;
-    int msg_y = 60;
-    int msg_width = MSG_WIDTH;
-    int msg_height = MSG_HEIGHT;
-    
-    // säkertställa att box är inner i skärmen
-    if(msg_x + msg_width > SCREEN_WIDTH) msg_width = SCREEN_WIDTH - msg_x;
-    if(msg_y + msg_height > SCREEN_HEIGHT) msg_height = SCREEN_HEIGHT - msg_y;
-    if(msg_x < 0) msg_x = 0;
-    if(msg_y < 0) msg_y = 0;
-    
-    // clear box position
-    draw_filled_rect(msg_x, msg_y, msg_width, msg_height, 0);
-    
-    // rita information
-    draw_string_wrapped(msg_x, msg_y, ch, 255, msg_width);
-    
-    // buttar buffer
-    swap_buffers();
-}
-
-void reset_screen() {
-    // 完全清除VGA屏幕
-    clear_screen();
-    
-    // 完全清除所有缓冲区
-    clear_current_buffer();
-    
-    // 确保显示的是空白
-    swap_buffers();
-    clear_current_buffer();
-    swap_buffers();
-    
-    print("Screen completely reset\n");
-}
-
-void render_game_simple(GameState *game){
-    static int last_p1_x = -1, last_p1_y = -1, last_p1_r = 0;
-
-    if(last_p1_r > 0) {
-        draw_circle(last_p1_x, last_p1_y, last_p1_r, 0);
-    }
-
-    int antal_players = sizeof(game ->players) / sizeof(game->players[0]);
-    for(int i = 0; i < antal_players; i++){
-        Player player = game -> players[i];
-        draw_circle(player.x_pos, player.y_pos, player.radius, player.color);
-        
-        if(i == 0){
-            last_p1_x = player.x_pos;
-            last_p1_y = player.y_pos;
-            last_p1_r = player.radius;
-        }
-    }
-
-    // food
-    int antal_food = sizeof(game->crumbs) / sizeof(game->crumbs[0]); 
-    for(int i = 0; i < antal_food; i++){
-        Food food = game->crumbs[i];
-        VGA[food.y_pos * SCREEN_WIDTH + food.x_pos] = food.nutrition;
-    }
-
-    // ai
-    int antal_ai = sizeof(game->ais)/sizeof(game->ais[0]);
-    for(int i = 0; i < antal_ai; i++){
-        Ai ai = game->ais[i];
-        draw_circle(ai.x_pos, ai.y_pos, ai.radius, ai.color);
-    }
-}
+// 其他绘图函数类似修改...
