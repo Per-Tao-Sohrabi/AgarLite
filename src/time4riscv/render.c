@@ -4,8 +4,6 @@
 
 // #include "graphics.h"
 
-volatile char *VGA = (volatile char*) VGA_BASE;
-
 const uint8_t font_5x7[96][7] = {
     // 空格 (ASCII 32)
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
@@ -294,55 +292,141 @@ const uint8_t font_5x7[96][7] = {
 };
 
 void clear_screen(){
-    for (int i = 0; i < SCREEN_WIDTH*SCREEN_HEIGHT; i++)
+    for (int i = 0; i < SCREEN_WIDTH*SCREEN_HEIGHT; i++){
         VGA[i] = 0; 
+    }
 }
 
-void draw_circle (int cx, int cy, int radius, int color) {
-  int radius_squ = radius * radius;
-  for(int y = cy - radius; y <= cy+radius; y++){
-    for(int x = cx -radius; x <= cx+radius; x++){
-      if(x >= 0 && x < SCREEN_WIDTH && y >= 0 && y < SCREEN_HEIGHT){
-        int dx = x-cx;
-        int dy = y-cy;
-        if(dx*dx+dy*dy <= radius_squ){
-            int offset = y * SCREEN_WIDTH + x; 
-            VGA[offset] = color; 
-        }   
-      }
+// buffer
+volatile char *VGA = (volatile char*) VGA_BASE;
+char frame_buffer1[SCREEN_HEIGHT*SCREEN_WIDTH];
+char frame_buffer2[SCREEN_WIDTH*SCREEN_HEIGHT];
+
+char *current_draw_buffer;
+char *current_display_buffer;
+
+void init_buffers() {
+    // init buffers
+    current_draw_buffer = frame_buffer1;
+    current_display_buffer = frame_buffer2;
+    
+    // clear both buffers
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        frame_buffer1[i] = 0;
+        frame_buffer2[i] = 0;
     }
+    
+    // init. vga
+    copy_to_vga(current_draw_buffer);
+}
+
+void copy_to_vga(char *src){
+  for(int i = 0; i < BUFFER_SIZE; i++){
+    VGA[i] = src[i];
   }
 }
 
-void draw_filled_rect(int x, int y, int width, int height, int color){
-    for(int i = 0; i < height; i++){
-        for(int j = 0; j < width; j++){
-            draw_pixel(x+j, y+i, color);
+void swap_buffers(){
+  copy_to_vga(current_draw_buffer);
+
+  char *temp = current_draw_buffer;
+  current_draw_buffer = current_display_buffer;
+  current_display_buffer = temp;
+}
+
+void clear_current_buffer(){
+  for(int i = 0; i < BUFFER_SIZE; i++){
+    current_draw_buffer[i] = 0;
+  }
+}
+
+// void draw_circle (int cx, int cy, int radius, int color) {
+//   int radius_squ = radius * radius;
+//   for(int y = cy - radius; y <= cy+radius; y++){
+//     for(int x = cx -radius; x <= cx+radius; x++){
+//       if(x >= 0 && x < SCREEN_WIDTH && y >= 0 && y < SCREEN_HEIGHT){
+//         int dx = x-cx;
+//         int dy = y-cy;
+//         if(dx*dx+dy*dy <= radius_squ){
+//             int offset = y * SCREEN_WIDTH + x; 
+//             back_buffer[offset] = color; 
+//         }   
+//       }
+//     }
+//   }
+// }
+
+void draw_circle_to_buffer(char *buffer, int cx, int cy, int radius, int color) {
+    int radius_squ = radius * radius;
+    int min_y = cy - radius;
+    int max_y = cy + radius;
+    int min_x = cx - radius;
+    int max_x = cx + radius;
+    
+    if (min_y < 0) min_y = 0;
+    if (max_y >= SCREEN_HEIGHT) max_y = SCREEN_HEIGHT - 1;
+    if (min_x < 0) min_x = 0;
+    if (max_x >= SCREEN_WIDTH) max_x = SCREEN_WIDTH - 1;
+    
+    for (int y = min_y; y <= max_y; y++) {
+        for (int x = min_x; x <= max_x; x++) {
+            int dx = x - cx;
+            int dy = y - cy;
+            if (dx * dx + dy * dy <= radius_squ) {
+                buffer[y * SCREEN_WIDTH + x] = color;
+            }
         }
     }
 }
 
-void draw_pixel(int x, int y, int color){
-    if(x < 0 || x > SCREEN_WIDTH || y < 0 || y > SCREEN_HEIGHT){
+void draw_circle(int cx, int cy, int radius, int color) {
+    draw_circle_to_buffer(current_draw_buffer, cx, cy, radius, color);
+}
+
+void draw_filled_rect(int x, int y, int width, int height, int color){
+    for(int i = 0; i < height; i++){
+        int current_y = y+i;
+        if(current_y < 0 || current_y >= SCREEN_HEIGHT) continue;
+
+        for(int j = 0; j < width; j++){
+            int current_x = x+j;
+            if(current_x < 0 || current_x >= SCREEN_WIDTH) continue;
+
+            draw_pixel(current_x, current_y, color);
+        }
+    }
+}
+
+void draw_pixel_to_buffer(char *buffer, int x, int y, int color){
+    if(x < 0 || x >= SCREEN_WIDTH || y < 0 || y >= SCREEN_HEIGHT){
         return;
     }
 
     int offset = y * SCREEN_WIDTH + x;
-    VGA[offset] = color;
+    buffer[offset] = color;
 }
 
-void draw_chars(int x, int y, char ch, int color){
+void draw_pixel(int x, int y, int color){
+    draw_pixel_to_buffer(current_draw_buffer, x, y, color);
+}
+
+void draw_char(int x, int y, char ch, int color){
     if(ch < 32 || ch > 126){
         return;
     }
     
     int index = ch - 32;
     for(int row = 0; row < 7; row++){
-        uint8_t line_data = font_5x7[index][row];
+        int current_y = y + row;
+        if(current_y < 0 || current_y >= SCREEN_HEIGHT) continue;
 
+        uint8_t line_data = font_5x7[index][row];
         for(int col = 0; col < 5; col++){
             if(line_data & (0x10 >> col)){
-                draw_pixel(x+col, y+row, color);
+                int current_x = x + col;
+                if(current_x >= 0 && current_x < SCREEN_WIDTH){
+                    draw_pixel(current_x, current_y, color);
+                }
             }
         }
     }
@@ -350,22 +434,22 @@ void draw_chars(int x, int y, char ch, int color){
 
 void draw_string(int x, int y, const char *str, int color){
     int start_x = x;
+    int original_y = y;
 
     while(*str){
         if(*str == '\n'){
-            y += 8;
+            y += FONT_HEIGHT + LINE_SPACING;
             x = start_x;
 
         }else if(*str == '\t'){
-            x += 4*6;
-
+            x += 4*(FONT_WIDTH + CHAR_SPACING);
         }else if(*str == '\b'){
-            x -= 6;
-            draw_filled_rect(x, y, 5, 7, color);
+            x -= FONT_WIDTH + CHAR_SPACING;
+            draw_filled_rect(x, y, FONT_WIDTH, FONT_HEIGHT, 0);
         }
         else{
-            draw_chars(x, y, *str, color);
-            x += 6;
+            draw_char(x, y, *str, color);
+            x += FONT_WIDTH + CHAR_SPACING;
         }
         str++;
     }
@@ -373,6 +457,8 @@ void draw_string(int x, int y, const char *str, int color){
 }
 
 void draw_string_centered(int y, const char *str, int color){
+    if(y < 0 || y >= SCREEN_HEIGHT) return;
+
     int len = 0;
     const char* temp = str;
 
@@ -382,7 +468,7 @@ void draw_string_centered(int y, const char *str, int color){
     }
 
     int total_width = len*(FONT_WIDTH + CHAR_SPACING);
-    int x = (SCREEN_HEIGHT-total_width)/2;
+    int x = (SCREEN_WIDTH-total_width)/2;
     draw_string(x, y, str, color);
 }
 
@@ -390,7 +476,6 @@ void draw_string_centered(int y, const char *str, int color){
 //     int start_x = x;
 //     int word_start_x = x;
 //     const char* word_start = str;
-
 //     while(*str){
 //         if(*str == '\n'){
 //             y += FONT_HEIGHT + LINE_SPACING;
@@ -399,7 +484,7 @@ void draw_string_centered(int y, const char *str, int color){
 //             str++;
 //             word_start = str;
 //         }else if(*str == ' '){
-//             draw_chars(x, y, ' ', color);
+//             draw_char(x, y, ' ', color);
 //             x += FONT_WIDTH + CHAR_SPACING;
 //             str++;
 //             word_start_x = x;
@@ -410,106 +495,208 @@ void draw_string_centered(int y, const char *str, int color){
 //             while((*temp) && (*temp != ' ') && (*temp != '\n')){
 //                 word_length++;
 //                 temp++;
-//             }
-            
+//             }          
 //             int word_pixels = word_length * (FONT_WIDTH + CHAR_SPACING);
 //             if(x + word_pixels - word_start_x > max_width){
 //                 y += FONT_HEIGHT + LINE_SPACING;
 //                 x = start_x;
 //                 word_start_x = x;
 //             }
-
-//             draw_chars(x, y, *str, color);
+//             draw_char(x, y, *str, color);
 //             x += FONT_WIDTH + CHAR_SPACING;
 //             str++;
 //         }
 //     }
 // }
 
-void draw_string_wrapped(int x, int y, const char *str, int color, int max_width) {
+// void draw_string_wrapped(int x, int y, const char *str, int color, int max_width) {
+//     int current_x = x;
+//     int current_y = y;
+//     int line_start = 0;
+//     int i = 0;
+//     int actual_char_width = FONT_WIDTH + CHAR_SPACING;
+//     if (max_width <= 0) {
+//         max_width = SCREEN_WIDTH - x;
+//     }
+//     if (x + max_width > SCREEN_WIDTH) {
+//         max_width = SCREEN_WIDTH - x;
+//     } 
+//     if (y >= SCREEN_HEIGHT) {
+//         return;  
+//     }
+//     while (str[i] != '\0') {
+//         if (current_y >= SCREEN_HEIGHT - FONT_HEIGHT) {  
+//             break;
+//         }
+//         if (str[i] == '\n') {
+//             current_x = x;
+//             current_y += FONT_HEIGHT + LINE_SPACING;
+//             line_start = i + 1;
+//             i++;
+//             continue;
+//         }
+//         if (current_x + actual_char_width > x + max_width) {   
+//             int last_space = i - 1;
+//             while (last_space > line_start && str[last_space] != ' ') {
+//                 last_space--;
+//             } 
+//             if (last_space > line_start && str[last_space] == ' ') { 
+//                 i = last_space + 1;
+//                 current_x = x;
+//                 current_y += FONT_HEIGHT + LINE_SPACING;
+//                 line_start = i;
+//                 if (current_y >= SCREEN_HEIGHT - FONT_HEIGHT) {
+//                     break;
+//                 }
+//                 continue;
+//             } else {
+//                 current_x = x;
+//                 current_y += FONT_HEIGHT + LINE_SPACING;
+//                 line_start = i;
+//                 if (current_y >= SCREEN_HEIGHT - FONT_HEIGHT) {
+//                     break;
+//                 }
+//                 if (current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT) {
+//                     draw_char(current_x, current_y, str[i], color);
+//                 }
+//                 current_x += FONT_WIDTH;
+//                 i++;
+//                 continue;
+//             }
+//         }
+//         if (current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT) {
+//             draw_char(current_x, current_y, str[i], color);
+//         }
+//         current_x += actual_char_width;
+//         i++;
+//     }
+// }
+
+// void draw_string_wrapped(int x, int y, const char *str, int color, int max_width){
+//     int current_x = x;
+//     int current_y = y;
+//     int word_start_index = 0;
+//     int i = 0;
+//     int char_width = FONT_WIDTH + CHAR_SPACING;
+//     while(str[i] != '\0'){
+//         int word_end_index = i;
+//         while(str[word_end_index] != '\0' &&
+//               str[word_end_index] != ' ' &&
+//               str[word_end_index] != '\n'){
+//                 word_end_index++;
+//         }
+//         int word_len = word_end_index - word_start_index;
+//         int word_width = word_len * char_width;
+//         //check if current row have space for the word
+//         if(current_x + word_width > x + max_width && current_x > x){
+//             // if not, dont draw and break line
+//             current_x = x;
+//             current_y += FONT_HEIGHT + LINE_SPACING;
+//             //check boundries
+//             if(current_y >= SCREEN_HEIGHT - FONT_HEIGHT){
+//                 break;
+//             }
+//             //re-do this word
+//             continue;
+//         }
+//         // break line
+//         if(str[i] == '\n'){
+//             current_x = x;
+//             current_y += FONT_HEIGHT + LINE_SPACING;
+//             word_start_index = i + 1;
+//             i++;
+//             continue;
+//         }
+//         //draw current char
+//         if(current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT){
+//             draw_char(current_x, current_y, str[i], color);
+//         }
+//         current_x += char_width;
+//         i++;
+//         //if end of the word, space
+//         if(i == word_end_index){
+//             if(str[i] == ' '){
+//                 if(current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT){
+//                     draw_char(current_x, current_y, ' ', color);
+//                 }
+//                 current_x += char_width;
+//                 i++;
+//             }
+//             word_start_index = i;
+//         }
+//     }
+// }
+
+void draw_string_wrapped(int x, int y, const char *str, int color, int max_width){
+    if(x < 0 || x >= SCREEN_WIDTH || y < 0 || y >= SCREEN_HEIGHT) return;
+
     int current_x = x;
     int current_y = y;
-    int line_start = 0;
-    int i = 0;
-    
-    if (max_width <= 0) {
-        max_width = SCREEN_WIDTH - x;
-    }
-    
-    
-    if (x + max_width > SCREEN_WIDTH) {
-        max_width = SCREEN_WIDTH - x;
-    }
-    
-    
-    if (y >= SCREEN_HEIGHT) {
-        return;  
-    }
-    
-    while (str[i] != '\0') {
-        
-        if (current_y >= SCREEN_HEIGHT - FONT_HEIGHT) {
-           
-            break;
-        }
-        
-        if (str[i] == '\n') {
-            current_x = x;
-            current_y += FONT_HEIGHT + LINE_SPACING;
-            line_start = i + 1;
-            i++;
+    int char_width = FONT_WIDTH + CHAR_SPACING;
+
+    const char *p = str;
+
+    while(*p != '\0'){
+        // om y är ut av bottom, stop draw
+        if(current_y >= SCREEN_HEIGHT)break;
+        // hoppar över första space i första raden
+        if(*p == ' ' && current_x == x){
+            p++;
             continue;
         }
-        
-        if (current_x + FONT_HEIGHT > x + max_width) {
-            
-            
-            int last_space = i - 1;
-            while (last_space > line_start && str[last_space] != ' ') {
-                last_space--;
-            }
-            
-            if (last_space > line_start && str[last_space] == ' ') {
-            
-                i = last_space + 1;
-                current_x = x;
-                current_y += FONT_HEIGHT + LINE_SPACING;
-                line_start = i;
-                
-                
-                if (current_y >= SCREEN_HEIGHT - FONT_HEIGHT) {
-                    break;
-                }
-                continue;
-            } else {
-                
-                current_x = x;
-                current_y += FONT_HEIGHT + LINE_SPACING;
-                line_start = i;
-                
-                if (current_y >= SCREEN_HEIGHT - FONT_HEIGHT) {
-                    break;
-                }
-                
-                if (current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT) {
-                    draw_chars(current_x, current_y, str[i], color);
-                }
-                current_x += FONT_WIDTH;
-                i++;
-                continue;
-            }
+        //när \n
+        if(*p == '\n'){
+            current_x = x;
+            current_y += FONT_HEIGHT + LINE_SPACING;
+            p++;
+            continue; 
         }
-        
-        if (current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT) {
-            draw_chars(current_x, current_y, str[i], color);
+
+        //hittar nuvarande ord börja och sluta
+        const char *word_start = p;
+        const char *word_end = word_start;
+        //hittar när ordet sluta
+        while(*word_end != '\0' && *word_end != ' ' && *word_end != '\n'){
+            word_end++;
         }
-        current_x += FONT_WIDTH;
-        i++;
+        // räkna ord-width
+        int word_len = word_end - word_start;
+        int word_width = word_len * char_width;
+
+        // check if need break line
+        if(current_x > x && current_x + word_width > x + max_width){
+            current_x = x;
+            current_y += FONT_HEIGHT + LINE_SPACING;
+
+            if(current_y >= SCREEN_HEIGHT - FONT_HEIGHT){
+                break;
+            }
+            continue;
+        }
+
+        //draw word
+        for(const char *ch = word_start; ch < word_end; ch++){
+            if(current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT){
+                draw_char(current_x, current_y, *ch, color);
+            }
+            current_x += char_width;
+        }
+
+        p = word_end;
+
+        // draw space
+        if(*p == ' '){
+            if(current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT){
+                draw_char(current_x, current_y, ' ', color);
+            }
+            current_x += char_width;
+            p++;
+        }
     }
 }
 
 void render_game(GameState *game) {
-    clear_screen();
+    clear_current_buffer();
     //players
     int antal_players = sizeof(game -> players) / sizeof(game -> players[0]); 
     for(int i = 0; i < antal_players; i++){
@@ -530,9 +717,28 @@ void render_game(GameState *game) {
         Ai ai = game -> ais[i];
         draw_circle(ai.x_pos, ai.y_pos, ai.radius, ai.color);
     }
+    swap_buffers();
 }
 
 void draw_msg(char* ch){
-    draw_filled_rect(80, 60, 160, 120, 0);
-    draw_string_wrapped(80, 60, &ch, 255, MSG_WIDTH);
+    // räkna msg_box postion, att vara inner i skärmen
+    int msg_x = 35;
+    int msg_y = 60;
+    int msg_width = MSG_WIDTH;
+    int msg_height = MSG_HEIGHT;
+    
+    // säkertställa att box är inner i skärmen
+    if(msg_x + msg_width > SCREEN_WIDTH) msg_width = SCREEN_WIDTH - msg_x;
+    if(msg_y + msg_height > SCREEN_HEIGHT) msg_height = SCREEN_HEIGHT - msg_y;
+    if(msg_x < 0) msg_x = 0;
+    if(msg_y < 0) msg_y = 0;
+    
+    // clear box position
+    draw_filled_rect(msg_x, msg_y, msg_width, msg_height, 0);
+    
+    // rita information
+    draw_string_wrapped(msg_x, msg_y, ch, 255, msg_width);
+    
+    // buttar buffer
+    swap_buffers();
 }

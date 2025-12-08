@@ -9,7 +9,7 @@ void Player_init(volatile Player* p, int id, int color, int x_pos, int y_pos) {
     p->y_pos = y_pos; //TODO: Random start position
     p->area = 100;
     p->color = color;
-    p->velocity = 5; // Inital velocity
+    p->velocity = 1; // Inital velocity
     p->dx = 0;
     p->dy = 0;
     p->radius = sqrt(p->area/3.14f);
@@ -22,7 +22,7 @@ void Ai_init(volatile Ai* ai, int id, int color, int x_pos, int y_pos) {
     ai->y_pos = y_pos; //TODO: Random start position
     ai->area = 100.0f;
     ai->color = color;
-    ai->velocity = 5; // Inital velocity
+    ai->velocity = 1; // Inital velocity
     ai->dx = 0;
     ai->dy = 0;
     ai->radius = sqrt(ai->area/3.14f);
@@ -118,7 +118,7 @@ void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ct
 }
 
 void Player_update_velocity(volatile Player* p) {
-    int base_velocity = 5;
+    int base_velocity = 1;
     p->velocity = base_velocity - ((int)p->area / 100);
     if (p->velocity < 1) {
         p->velocity = 1;
@@ -180,7 +180,7 @@ void AI_update_position(volatile Ai* ai, volatile GameState* gs, int x_ctrl, int
 }
 
 void AI_update_velocity(volatile Ai* ai) {
-    int base_velocity = 5;
+    int base_velocity = 1;
     ai->velocity = base_velocity - ((int)ai->area / 100);
     if (ai->velocity < 1) {
         ai->velocity = 1;

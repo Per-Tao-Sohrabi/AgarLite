@@ -33,7 +33,7 @@ void GameState_init(volatile GameState* gs, int gm, int diff){
     gs->min_x = 0;
     gs->max_x = 320;
     gs->min_y = 0;
-    gs->max_y = 480;
+    gs->max_y = 240;
     
     // Prepare entity lists
     print("-- Initializing players lists...\n");
@@ -275,8 +275,9 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
             continue; // Skip if Player does not exist
         }
         // Read player input
-        int x_ctrl = input_vector[i]; // X control
-        int y_ctrl = input_vector[i+1]; // Y control
+        int offset = i * 2;
+        int x_ctrl = input_vector[offset + 0]; // X control
+        int y_ctrl = input_vector[offset + 1]; // Y control
         Player_update_position(p_i, gs, x_ctrl, y_ctrl);
     }
 
