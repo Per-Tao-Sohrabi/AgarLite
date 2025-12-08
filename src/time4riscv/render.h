@@ -26,11 +26,8 @@
 extern volatile char *VGA;
 // extern char back_buffer[BUFFER_SIZE];
 
-// extern char frame_buffer1[SCREEN_HEIGHT*SCREEN_WIDTH];
-// extern char frame_buffer2[SCREEN_WIDTH*SCREEN_HEIGHT];
-
-extern char frame_buffer1;
-extern char frame_buffer2;
+extern char frame_buffer1[SCREEN_HEIGHT*SCREEN_WIDTH];
+extern char frame_buffer2[SCREEN_WIDTH*SCREEN_HEIGHT];
 
 extern char *current_draw_buffer;
 extern char *current_display_buffer;
@@ -47,7 +44,6 @@ void copy_to_vga(char *src);
 void swap_buffers(void);
 
 void clear_current_buffer(void);
-void cleanup_buffers(void);
 
 void draw_circle (int cx, int cy, int radius, int color);
 
