@@ -41,7 +41,7 @@ void draw_filled_rect(int x, int y, int width, int height, int color);
 
 void draw_pixel(int x, int y, int color);
 
-void draw_chars(int x, int y, char ch, int color);
+void draw_char(int x, int y, char ch, int color);
 
 void draw_string(int x, int y, const char *str, int color);
 
