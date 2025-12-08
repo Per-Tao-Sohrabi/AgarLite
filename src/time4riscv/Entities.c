@@ -27,8 +27,8 @@ void Ai_init(volatile Ai* ai, int id, int color, int x_pos, int y_pos) {
     ai->dy = 0;
     ai->radius = sqrt(ai->area/3.14f);
     ai->id = id;
-    print("-------- Calculating radius for AI with area %.2f\n");
-    print("-------- AI initialized: id=%d, pos=(%d,%d), color=%d, radius=%.2f\n");
+    print("-------- Calculating radius for AI with area ....2f\n");
+    print("-------- AI initialized: id=...d, pos=(...d,...d), color=...d, radius=....2f\n");
 }
 
 void Food_init(volatile Food* f, int id, int type, int x_pos, int y_pos) {
@@ -36,7 +36,7 @@ void Food_init(volatile Food* f, int id, int type, int x_pos, int y_pos) {
     f->x_pos = x_pos; //TODO: Random start position
     f->y_pos = y_pos; //TODO: Random start position
     f->type = type;
-    print("------- Setting nutrition for food type %d\n");
+    print("------- Setting nutrition for food type ...d\n");
     switch (type)
     {
     case 0: // Banana
@@ -56,7 +56,7 @@ void Food_init(volatile Food* f, int id, int type, int x_pos, int y_pos) {
         break;
     }
     f->id = id;
-    print("------ Food initialized: id=%d, type=%d, nutrition=%d, pos=(%d,%d), radius=%.2f\n");
+    print("------ Food initialized: id=...d, type=...d, nutrition=...d, pos=(...d,...d), radius=....2f\n");
 }
 
 void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ctrl, int y_ctrl) {
