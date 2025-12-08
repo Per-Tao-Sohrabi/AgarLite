@@ -6,61 +6,56 @@
 #include "GameState.h"
 #include "Entities.h"
 #include "math_tools.h"
-#include "render.h"
 
 
 extern int rand_range(int, int);
 
 #define MAXPLAYERS 2
-#define MAXAI 6
-#define MAXFOOD 20
-
-extern void clear_screen();
-extern void draw_string_wrapped(int x, int y, const char *str, int color, int max_width);
-
+#define MAXAI 0
+#define MAXFOOD 5
 
 /* Initializes the game state */
 void GameState_init(volatile GameState* gs, int gm, int diff){
-    print("---- Initializing GameState...\n");
+    print("-- Initializing GameState...\n");
     // Populate ID pool
     for(int i = 0; i< MAXPLAYERS + MAXAI + MAXFOOD; i++) {
-        print("---- Setting available_ids[%d] to true\n", i);
+        //print("---- Setting available_ids[%d] to true\n", i);
         gs->available_ids[i] = true; // All IDs are available at start
     }
     
     // Set game mode and difficulty
-    print("---- Setting game mode to %d and difficulty to %d\n", gm, diff);
+    print("-- Setting game mode to %d and difficulty to %d\n", gm, diff);
     gs->game_mode = gm;
     gs->difficulty = diff;
 
     // Set boundaries
-    print("---- Setting game boundaries...\n");
+    print("-- Setting game boundaries...\n");
     gs->min_x = 0;
     gs->max_x = 320;
     gs->min_y = 0;
-    gs->max_y = 480;
+    gs->max_y = 240;
     
     // Prepare entity lists
-    print("---- Initializing players lists...\n");
+    print("-- Initializing players lists...\n");
     for(int i = 0; i< MAXPLAYERS; i++) {
         Player p;
         Player_init(&p, -1, -1, -1, -1); // Initialize with invalid values
         gs->players[i] = p;
     }
-    print("---- Initializing food list...\n");
+    print("-- Initializing food list...\n");
     for(int i = 0; i< MAXFOOD; i++) {
         Food f;
         Food_init(&f, -1, -1, -1, -1); // Initialize with invalid values
         gs->crumbs[i] = f;
     }
-    print("---- Initializing AI list...\n");
+    print("-- Initializing AI list...\n");
     for(int i = 0; i< MAXAI; i++) {
         Ai ai;
         Ai_init(&ai, -1, -1, -1, -1); // Initialize with invalid values
         gs->ais[i] = ai;
     }
     // Generate entities
-    print("---- Generating entities based on game mode and difficulty...\n");
+    print("-- Generating entities based on game mode and difficulty...\n");
     GameState_generate_players(gs, gm);
     GameState_generate_food(gs, gm, diff);
     GameState_generate_ai(gs, diff);
@@ -68,26 +63,70 @@ void GameState_init(volatile GameState* gs, int gm, int diff){
 
 // Check for occupied positions, if occupied, regenerate
 int GameState_get_random_position(volatile GameState* gs) {
-    print("---- Generating random position...\n");
+    print("------ Generating random position...\n");
     // Set random position
     int x_pos = rand_range(gs->min_x, gs->max_x);
     int y_pos = rand_range(gs->min_y, gs->max_y);
-    while (Dict_get_key(&gs->occupied_coords_dict, (x_pos << 16) | y_pos) != -1) {
-        x_pos = rand_range(gs->min_x, gs->max_x);
-        y_pos = rand_range(gs->min_y, gs->max_y);
-    }
-    print("---- Random position = (%d, %d)\n", x_pos, y_pos);
     int coord_key = (x_pos << 16) | y_pos;
+    // Check with all players
+    for (int p = 0; p < MAXPLAYERS; p++) {
+        // Compare with player i's position
+        volatile Player* pi = &gs->players[p];
+        int p_coord_key = (pi->x_pos << 16) |pi->y_pos;
+        while(p_coord_key == coord_key) {
+            // Redefine
+            x_pos = rand_range(gs->min_x, gs->max_x);
+            y_pos = rand_range(gs->min_y, gs->max_y);
+            coord_key = (x_pos << 16) | y_pos;
+        }  
+    }
+    // Check with all ai
+    for (int ai = 0; ai < MAXAI; ai++) {
+                // Compare with player i's position
+        Ai* aii = &gs->ais[ai];
+        int ai_coord_key = (aii->x_pos << 16) |aii->y_pos;
+        while(ai_coord_key == coord_key) {
+            // Redefine
+            x_pos = rand_range(gs->min_x, gs->max_x);
+            y_pos = rand_range(gs->min_y, gs->max_y);
+            coord_key = (x_pos << 16) | y_pos;
+        }  
+    }
+    // Check with all food
+    for (int f = 0; f < MAXFOOD; f++) {
+                // Compare with player i's position
+        Ai* fi = &gs->crumbs[f];
+        int f_coord_key = (fi->x_pos << 16) |fi->y_pos;
+        while(f_coord_key == coord_key) {
+            // Redefine
+            x_pos = rand_range(gs->min_x, gs->max_x);
+            y_pos = rand_range(gs->min_y, gs->max_y);
+            coord_key = (x_pos << 16) | y_pos;
+        }  
+    }
+
+    // while (Dict_get_key(&gs->occupied_coords_dict, (x_pos << 16) | y_pos) != -1) {
+    //     x_pos = rand_range(gs->min_x, gs->max_x);
+    //     y_pos = rand_range(gs->min_y, gs->max_y);
+    // }
+
+    print("------ Random position = (");
+    print_dec(x_pos); // Use your print_dec function
+    print(", ");
+    print_dec(y_pos); // Use your print_dec function
+    print(")\n");
+
+    //coord_key = (x_pos << 16) | y_pos;
     return coord_key;
 }
 
 /* Helper function to get free ids*/
 int GameState_get_free_id(volatile GameState* gs) {
-    print("---- Searching for free entity ID...\n");
+    print("------ Searching for free entity ID...\n");
     for (int i = 0; i < MAXPLAYERS + MAXAI + MAXFOOD; i++) {
         if (gs->available_ids[i] == true) {
             gs->available_ids[i] = false; // Mark as used
-            print("---- Found free ID: %d\n", i);
+            //print("---- Found free ID: %d\n", i);
             return i;
         }
     }
@@ -109,20 +148,20 @@ void GameState_generate_players(volatile GameState* gs, int game_mode) {
         Player p;
         int color = colors[i];
         int id = GameState_get_free_id(gs);
-        int coord_key = GameState_get_random_position(gs);
-        int x_pos = coord_key >> 16;                       // Unpack X
-        int y_pos = coord_key & 0xFFFF;                    // Unpack Y
-        print("---- Initializing player %d with id %d at position (%d, %d) and color %d\n", i, id, x_pos, y_pos, color);
+        //int coord_key = GameState_get_random_position(gs);
+        int x_pos = i*10 + 50;//coord_key >> 16;                       // Unpack X
+        int y_pos = i*10 + 50;// coord_key & 0xFFFF;                    // Unpack Y
+        //print("---- Initializing player %d with id %d at position (%d, %d) and color %d\n", i, id, x_pos, y_pos, color);
         Player_init(&p, id, color, x_pos, y_pos);
-        print("---- Player %d initialized: id=%d, pos=(%d,%d), color=%d, radius=%.2f\n", i, p.id, p.x_pos, p.y_pos, p.color, p.radius);
+        //print("---- Player %d initialized: id=%d, pos=(%d,%d), color=%d, radius=%.2f\n", i, p.id, p.x_pos, p.y_pos, p.color, p.radius);
         // Save
-        gs->players[i] = p;
+        //gs->players[i] = p;
         
         // Set initial positions
-        print("---- Setting occupied position for player %d at (%d, %d)\n", i, x_pos, y_pos);
-        coord_key = (p.x_pos << 16) | p.y_pos; // Combine x and y into a single key
-        Dict_insert(&gs->occupied_coords_dict, coord_key, p.id); // Key: combined coord, Value: food index
-        Dict_insert(&gs->id_type_dict, p.id, 0); // Key: food index, Value: entity type (1 for food)
+        //print("---- Setting occupied position for player %d at (%d, %d)\n", i, x_pos, y_pos);
+        int coord_key = (x_pos << 16) | y_pos; // Combine x and y into a single key
+        Dict_insert(&gs->occupied_coords_dict, coord_key, id); // Key: combined coord, Value: food index
+        Dict_insert(&gs->id_type_dict, id, 0); // Key: food index, Value: entity type (1 for food)
     }
     print("---- Player generation complete.\n");
 }
@@ -152,10 +191,10 @@ void GameState_generate_food(volatile GameState* gs, int gm, int diff) {
     prob_apple = prob_apple * 100 / total;
     prob_pear = prob_pear * 100 / total;
     prob_grape = 100 - prob_banana - prob_apple - prob_pear;
-    
+    print("---- Generate food items ...");
     // Generate food items
     for(int i = 0; i<total_food_n; i++) {
-        print("---- Generating food item %d...\n", i);
+        //print("---- Generating food item %d...\n", i);
         Food f;                             // Create food item
         
         // Generate pseudo-random number for food type
@@ -171,13 +210,13 @@ void GameState_generate_food(volatile GameState* gs, int gm, int diff) {
         } else {
             type = 3; // grape
         }
-        print("---- Food item %d assigned type %d (r=%d)\n", i, type, r);
+        // print("---- Food item %d assigned type %d (r=%d)\n", i, type, r);
         // take id from available ids, then update available ids
         int id = GameState_get_free_id(gs);        
         int coord_key = GameState_get_random_position(gs);
         int x_pos = coord_key >> 16;                       // Unpack X
         int y_pos = coord_key & 0xFFFF;                    // Unpack Y
-        print("---- Initializing food %d with id %d at position (%d, %d) and type %d\n", i, id, x_pos, y_pos, type);
+        // print("---- Initializing food %d with id %d at position (%d, %d) and type %d\n", i, id, x_pos, y_pos, type);
         Food_init(&f, id, type, x_pos, y_pos);
 
         // Store food item
@@ -200,7 +239,7 @@ void GameState_generate_ai(volatile GameState* gs, int diff) {
     print("---- Total AI to generate: %d\n", total_ai_n);
     volatile int colors[] = {120, 220, 170, 70, 255, 30};
     for(int i = 0; i<total_ai_n; i++) {
-        print("---- Generating AI %d...\n", i);
+        // print("---- Generating AI %d...\n", i);
         Ai ai;
         ai.color = colors[i];
         int id = GameState_get_free_id(gs);
@@ -209,7 +248,7 @@ void GameState_generate_ai(volatile GameState* gs, int diff) {
         int coord_key = GameState_get_random_position(gs);
         int x_pos = coord_key >> 16;                       // Unpack X
         int y_pos = coord_key & 0xFFFF;                    // Unpack Y
-        print("---- Initializing AI %d with id %d at position (%d, %d) and color %d\n", i, id, x_pos, y_pos, ai.color);
+        // print("---- Initializing AI %d with id %d at position (%d, %d) and color %d\n", i, id, x_pos, y_pos, ai.color);
         Ai_init(&ai, id, ai.color, x_pos, y_pos);
         
         // Save
@@ -228,23 +267,24 @@ void GameState_generate_ai(volatile GameState* gs, int diff) {
 bool GameState_update(volatile GameState* gs, int input_vector[]) {
     
     // UPDATE PLAYER POSITION
-    print("--- Updating player positions...\n");
+    print("---- Updating player positions...\n");
     for(int i = 0; i< gs->game_mode + 1; i++) {
-        print("---- Updating player %d position...\n", i);
+        // print("---- Updating player %d position...\n", i);
         volatile Player* p_i = &gs->players[i];
         if(p_i->id == -1) {
             continue; // Skip if Player does not exist
         }
         // Read player input
-        int x_ctrl = input_vector[i]; // X control
-        int y_ctrl = input_vector[i+1]; // Y control
+        int offset = i * 2;
+        int x_ctrl = input_vector[offset + 0]; // X control
+        int y_ctrl = input_vector[offset + 1]; // Y control
         Player_update_position(p_i, gs, x_ctrl, y_ctrl);
     }
 
     // UPDATE AI POSITION
-    print("--- Updating AI positions...\n");
+    print("---- Updating AI positions...\n");
     for(int i = 0; i< MAXAI; i++) {
-        print("---- Updating AI %d position...\n", i);
+        // print("---- Updating AI %d position...\n", i);
         volatile Ai* ai_i = &gs->ais[i];
         if(ai_i->id == -1) {
             continue; // Skip if AI does not exist
@@ -256,9 +296,9 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
     }
 
     // HANDLE COLLISIONS BETWEEN PLAYER AND OTHER TODO...
-    print("--- Checking collisions between players and other entities...\n");
+    print("---- Checking collisions between players and other entities...\n");
     for(int i = 0; i <= gs->game_mode; i++) { // For every player
-        print("---- Checking collisions for player %d with...\n", i);
+        // print("---- Checking collisions for player %d with...\n", i);
         // Fix a player
         volatile Player* p_ptr = &gs->players[i];
         if(p_ptr->id == -1) {
@@ -270,19 +310,20 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
                 continue; // Skip if AI does not exist
             }
             volatile Ai* ai_ptr = &gs->ais[j];
-            print("------ AI %d\n", j);
+            // print("------ AI %d\n", j);
             bool col = check_player_ai_collision(p_ptr, ai_ptr);
             if (col == false) { // If no collision, continue to next player. 
-                print("-------- No collision detected.\n");
+                // print("-------- No collision detected.\n");
                 continue;
             } else {
-                print("-------- Collision detected at \n x: %d, y: %d\n", p_ptr->x_pos, p_ptr->y_pos);
+                print("------ Collision detected at \n x: %d, y: %d\n", p_ptr->x_pos, p_ptr->y_pos);
                 GameState_handle_player_ai_collision(gs, p_ptr, ai_ptr);
             }
             // Collision Logic
         }
 
         // Check collision with other players
+        print("---- Check collision with other players");
         for(int j = i+1; j <= gs->game_mode; j++) {
             volatile Player* p2_ptr = &gs->players[j];
             if(p2_ptr->id == -1) {
@@ -292,11 +333,13 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
             if (col == false) { // If no collision, continue to next player. 
                 continue;
             } else {
+                print("------ Collision detected");
                 GameState_handle_player_player_collision(gs, p_ptr, p2_ptr);
             }
         }
 
         // Check collision with food
+        print("---- Checking collision with food");
         for(int j = 0; j < MAXFOOD; j++) {
             volatile Food* f_ptr = &gs->crumbs[j];
             if(f_ptr->id == -1) {
@@ -306,6 +349,7 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
             if (col == false) { // If no collision, continue to next player. 
                 continue;
             } else {
+                print("------ Collision detected");
                 GameState_handle_player_food_collision(gs, p_ptr, f_ptr);
             }
             // Collision Logic
@@ -355,6 +399,7 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
         }
     
     // Check game over conditions TODO...
+    print("---- Checking Game Over conditions");
     for(int i = 0; i <= gs->game_mode; i++) {
         volatile Player* p_i = &gs->players[i];
         if(p_i->id == -1) {
@@ -414,7 +459,7 @@ bool check_ai_food_collision(volatile Ai* ai, volatile Food* f) {
 /* Handle player ai collisions*/
 void GameState_handle_player_ai_collision(volatile GameState* gs, volatile Player* p, volatile Ai* ai) {
     if (p->area > ai->area) {
-        print("Player %d eats AI %d\n", p->id, ai->id);
+        print("-------- Player eats AI \n", p->id, ai->id);
         // p eats ai
         float old_area_ai = ai->area;
         float new_area_ai = (ai->area * (1.0f - 0.5f)); // Reduce ai area by 50%
@@ -426,9 +471,9 @@ void GameState_handle_player_ai_collision(volatile GameState* gs, volatile Playe
         ai->radius = sqrtf(ai->area / 3.14f); // Update AI radius
         p->radius = sqrtf(p->area / 3.14f); // Update player radius
         Player_update_velocity(p);
-        print("Updated Player %d velocity to %d\n", p->id, p->velocity);
+        // print("Updated Player %d velocity to %d\n", p->id, p->velocity);
         AI_update_velocity(ai);
-        print("Updated AI %d velocity to %d\n", ai->id, ai->velocity);
+        // print("Updated AI %d velocity to %d\n", ai->id, ai->velocity);
         
         // Update occupied coords dictionary in GameState
         int coord_key_ai = (ai->x_pos << 16) | ai->y_pos;  // Combine x and y into a single key
@@ -437,6 +482,7 @@ void GameState_handle_player_ai_collision(volatile GameState* gs, volatile Playe
         int coord_key_p = (p->x_pos << 16) | p->y_pos;  // Combine x and y into a single key
         Dict_set_value(&gs->occupied_coords_dict, coord_key_p, p->id);
     } else if (ai->area > p->area) {
+        print("-------- Ai eats Player \n", p->id, ai->id);
         // AI eats Player
         float a_ratio = ai->area / p->area;
         
@@ -459,6 +505,7 @@ void GameState_handle_player_ai_collision(volatile GameState* gs, volatile Playe
         int coord_key_ai = (ai->x_pos << 16) | ai->y_pos;  // Combine x and y into a single key
         Dict_set_value(&gs->occupied_coords_dict, coord_key_ai, ai->id);
     } else {
+        print("--------  Equal size");
         // Equal area, no one eats
         int coord_key_ai = (ai->x_pos << 16) | ai->y_pos;  // Combine x and y into a single key
         Dict_set_value(&gs->occupied_coords_dict, coord_key_ai, ai->id);   
@@ -473,12 +520,15 @@ void GameState_handle_player_player_collision(volatile GameState* gs, volatile P
     volatile Player* pi; // Player with larger area, holds address
     volatile Player* pj; // Player with smaller area, holds address
     if (p1->area > p2->area) {
+        print("-------- P1 eats P2");
         pi = p1;
         pj = p2;
     } else if (p2->area > p1->area) {
+        print("-------- P2 eats P1");
         pi = p2;
         pj = p1;
     }   else {
+        print("-------- No conflict");
         // Equal area, no one eats
             // Update occupied coords dictionary in GameState
             int coord_key_pj = (pj->x_pos << 16) | pj->y_pos;  // Combine x and y into a single key
@@ -513,6 +563,7 @@ void GameState_handle_player_player_collision(volatile GameState* gs, volatile P
 void GameState_handle_player_food_collision(volatile GameState* gs, volatile Player* p, volatile Food* f) {
     // Update player area based on nutrient
     // Compute current area:
+    print("-------- Player eats");
     float area = p->radius * p->radius * 3.14f; 
     float new_area = area + f->nutrition;
     float new_r = sqrtf(new_area/3.14f);

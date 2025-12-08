@@ -17,21 +17,10 @@
 #include <math.h>
 
 extern void enable_interrupts(void);
-// extern void clear_screen(void);
-// extern void init_buffers(void);
-
-//#include "render.c"
 extern void print(const char*);
-//extern void print_dec(unsigned int);
-//extern void display_string(char*);
-//extern void time2string(char*,int);
-//extern void tick(int*);
-//extern void delay(int);
-//extern int nextprime( int );
-// extern void render_game(volatile GameState* gs);
-//extern GameState run_start_up(void);
-//extern void run_pause(void);
-//extern void run_game_over(void);
+extern void init_buffers(void);
+extern void render_game(GameState *game);
+
 
 // Timer buffer
 volatile int* timer = (volatile int*) 0x04000020;
@@ -86,12 +75,12 @@ void read_inputs(int* input_vector) {
 
 /* Your code goes into main as well as any needed functions. */
 int main() {
-  init_buffers();
-
   // Enable timer
   labinit();
-
+  init_buffers();
+  
   print("- Timer enabled.\n");
+
   print("- Starting Time4RiscV...\n");
 
   // Display a welcome message.
@@ -101,6 +90,7 @@ int main() {
   // Start game query ...
   
     // Enable interrupts
+  enable_interrupts();
   print("- Interrupts enabled.\n");
 
   // MAIN GAME LOOP
