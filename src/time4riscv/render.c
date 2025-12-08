@@ -396,3 +396,145 @@ void render_game(const GameState *game) {
     // 3. SWAP: Copy the complete, new frame from the back buffer to the screen.
     swap_buffers();
 }
+
+// In render.c
+
+void draw_string_wrapped(int x, int y, const char *str, uint8_t color, int max_width){
+    int current_x = x;
+    int current_y = y;
+    int word_start_index = 0;
+    int i = 0;
+
+    // The total pixel width of one character (e.g., 5 + 1 = 6)
+    int char_width = FONT_WIDTH + CHAR_SPACING;
+    int line_height = FONT_HEIGHT + LINE_SPACING;
+
+    // Calculate maximum right boundary
+    int max_right_bound = x + max_width;
+
+    while(str[i] != '\0'){
+        int word_end_index = i;
+        
+        // 1. Find the end of the current word
+        while(str[word_end_index] != '\0' &&
+              str[word_end_index] != ' ' &&
+              str[word_end_index] != '\n'){
+                word_end_index++;
+        }
+
+        int word_len = word_end_index - word_start_index;
+        int word_width = word_len * char_width;
+
+        // 2. Check for word wrap: Does the word fit on the current line?
+        if(current_x + word_width > max_right_bound && current_x > x){
+            // If it doesn't fit and we're not at the very start of the line,
+            // break the line and repeat the check for this word.
+            current_x = x;
+            current_y += line_height;
+            
+            // Check vertical boundary before redrawing word
+            if(current_y >= SCREEN_HEIGHT - FONT_HEIGHT){
+                break;
+            }
+            // Continue forces the loop to restart the word check
+            continue; 
+        }
+
+        // 3. Handle explicit newline character
+        if(str[i] == '\n'){
+            current_x = x;
+            current_y += line_height;
+            word_start_index = i + 1;
+            i++;
+            
+            // Check vertical boundary after newline
+            if(current_y >= SCREEN_HEIGHT - FONT_HEIGHT){
+                break;
+            }
+            continue;
+        }
+
+        // 4. Draw current character
+        // Only draw if within horizontal and vertical bounds
+        if(current_x + FONT_WIDTH <= SCREEN_WIDTH && current_y + FONT_HEIGHT <= SCREEN_HEIGHT){
+            draw_char(current_x, current_y, str[i], color);
+        }
+
+        current_x += char_width;
+        i++;
+
+        // 5. Check if we've reached the end of the word
+        if(i == word_end_index){
+            // If the next character is a space, draw it
+            if(str[i] == ' '){
+                // Draw the space character (optional, often a blank space is sufficient)
+                // If you want to explicitly draw it (e.g., for background clearing):
+                // draw_char(current_x, current_y, ' ', color); 
+                
+                current_x += char_width; // Advance past the space
+                i++;
+            }
+
+            // Set the start index for the next word
+            word_start_index = i;
+        }
+        
+        // 6. Final vertical boundary check for game screen
+        if(current_y >= SCREEN_HEIGHT - FONT_HEIGHT){
+             break;
+        }
+    }
+}
+
+// In render.c
+
+void draw_msg(char* ch){
+    int box_x = 80;
+    int box_y = 60;
+    int box_width = 160;
+    int box_height = 120;
+    int padding = 5; // Small padding inside the box
+
+    draw_filled_rect(box_x, box_y, box_width, box_height, BLACK); // Draw the box
+
+    // Calculate max_width for the text to fit inside the box with padding
+    int text_max_width = box_width - (2 * padding);
+    int text_x = box_x + padding;
+    int text_y = box_y + padding;
+
+    // Draw the text inside the padded box
+    draw_string_wrapped(text_x, text_y, ch, WHITE, text_max_width);
+
+    // CRITICAL: Call swap_buffers() after drawing the message
+    swap_buffers();
+}
+
+// In render.c (Place before draw_string_wrapped)
+
+void draw_char(int x, int y, char ch, uint8_t color) {
+    // Check if the character is in the supported ASCII range (32 to 127)
+    // If not, default to the space character (index 0)
+    if (ch < 32 || ch > 127) {
+        ch = 32; 
+    }
+    
+    // Calculate the index in the font array (ASCII 32 (' ') is index 0)
+    int font_index = ch - 32; 
+    
+    // FONT_HEIGHT is 7
+    for (int row = 0; row < FONT_HEIGHT; row++) {
+        // Get the 5-bit column data for this row
+        uint8_t row_data = font_5x7[font_index][row]; 
+
+        // FONT_WIDTH is 5
+        for (int col = 0; col < FONT_WIDTH; col++) {
+            // Check if the bit is set (if the pixel should be drawn)
+            // 0x10 is 10000 binary. Shifting it right checks columns 4, 3, 2, 1, 0.
+            if (row_data & (0x10 >> col)) { 
+                // Draw the pixel at the correct screen coordinate
+                // draw_pixel handles boundary checking and writes to the back_buffer
+                draw_pixel(x + col, y + row, color);
+            }
+        }
+    }
+}
