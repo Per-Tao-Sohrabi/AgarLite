@@ -5,8 +5,15 @@ OBJECTS ?= $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 LINKER ?= $(SRC_DIR)/dtekv-script.lds
 
 TOOLCHAIN ?= riscv32-unknown-elf-
-# CFLAGS are reverted to the original, compilation-successful state
-CFLAGS ?= -Wall -nostartfiles -O3 -mabi=ilp32 -march=rv32im_zicsr
+
+# ----------------------------------------------------------------------
+# FINAL FIX: Environment Control
+# -nostdlib: Completely disables standard libraries, eliminating hard-float dependencies.
+# -ffreestanding: Declares this as a bare-metal environment.
+# -O1: Reduces optimization aggression to prevent substitution of C code with hard-float assembly.
+# ----------------------------------------------------------------------
+CFLAGS ?= -Wall -nostdlib -ffreestanding -O1 -mabi=ilp32 -march=rv32im_zicsr
+# ----------------------------------------------------------------------
 
 
 build: clean main.bin
@@ -16,8 +23,7 @@ main.elf:
 	$(TOOLCHAIN)gcc -c $(CFLAGS) $(SOURCES)
 
 # Linking Step (creates main.elf)
-# FIX: REMOVED the conflicting '-lm' flag.
-# We now only link softfloat.a and the required -lgcc library.
+# We rely solely on softfloat.a and -lgcc to provide necessary math routines.
 	$(TOOLCHAIN)gcc $(CFLAGS) -T $(LINKER) -o $@ $(filter-out boot.o, $(OBJECTS)) softfloat.a -lgcc
 
 main.bin: main.elf
