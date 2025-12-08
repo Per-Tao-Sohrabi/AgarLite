@@ -26,11 +26,11 @@
 extern volatile char *VGA;
 extern char back_buffer[BUFFER_SIZE];
 
-char frame_buffer1[SCREEN_HEIGHT*SCREEN_WIDTH];
-char frame_buffer2[SCREEN_WIDTH*SCREEN_HEIGHT];
+extern char frame_buffer1[SCREEN_HEIGHT*SCREEN_WIDTH];
+extern char frame_buffer2[SCREEN_WIDTH*SCREEN_HEIGHT];
 
-char *current_draw_buffer;
-char *current_display_buffer;
+extern char *current_draw_buffer;
+extern char *current_display_buffer;
 
 extern const uint8_t font_5x7[96][7];
 
