@@ -1,10 +1,28 @@
 
 #include "math_tools.h"
+#include <stdint.h> 
+
+// For fast rand
+extern volatile int* timer; 
+
+// State for our Xorshift PRNG (initialized to a non-zero value)
+static uint32_t xorshift_state = 1; 
+
+// Define the correct index for the current count register
+#define TIMER_COUNT_REG 1
 
 int rand() {
-        static unsigned long next = 1;
-        next = next * 1103515245 + 12345;
-        return (unsigned int)(next/65536) % 32768;
+    uint32_t x = xorshift_state;
+    
+    // Pure Xorshift operations (only fast XOR and Shift)
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    
+    xorshift_state = x;
+
+    // Mask to the required range [0, 32767]
+    return (int)(x & 0x7FFF); 
 }
 
 int rand_range(int min, int max) {

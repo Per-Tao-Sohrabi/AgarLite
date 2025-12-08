@@ -61,20 +61,64 @@ void GameState_init(volatile GameState* gs, int gm, int diff){
     GameState_generate_ai(gs, diff);
 }
 
-// Check for occupied positions, if occupied, regenerate
 int GameState_get_random_position(volatile GameState* gs) {
-    //print("------ Generating random position...\n");
+    print("------ Generating random position...\n");
     // Set random position
     int x_pos = rand_range(gs->min_x, gs->max_x);
     int y_pos = rand_range(gs->min_y, gs->max_y);
-    while (Dict_get_key(&gs->occupied_coords_dict, (x_pos << 16) | y_pos) != -1) {
-        x_pos = rand_range(gs->min_x, gs->max_x);
-        y_pos = rand_range(gs->min_y, gs->max_y);
-    }
-    //print("------ Random position = \n");
     int coord_key = (x_pos << 16) | y_pos;
+    // Check with all players
+    for (int p = 0; p < MAXPLAYERS; p++) {
+        // Compare with player i's position
+        volatile Player* pi = &gs->players[p];
+        int p_coord_key = (pi->x_pos << 16) |pi->y_pos;
+        while(p_coord_key == coord_key) {
+            // Redefine
+            x_pos = rand_range(gs->min_x, gs->max_x);
+            y_pos = rand_range(gs->min_y, gs->max_y);
+            coord_key = (x_pos << 16) | y_pos;
+        }  
+    }
+    // Check with all ai
+    for (int ai = 0; ai < MAXAI; ai++) {
+                // Compare with player i's position
+        Ai* aii = &gs->ais[ai];
+        int ai_coord_key = (aii->x_pos << 16) |aii->y_pos;
+        while(ai_coord_key == coord_key) {
+            // Redefine
+            x_pos = rand_range(gs->min_x, gs->max_x);
+            y_pos = rand_range(gs->min_y, gs->max_y);
+            coord_key = (x_pos << 16) | y_pos;
+        }  
+    }
+    // Check with all food
+    for (int f = 0; f < MAXFOOD; f++) {
+                // Compare with player i's position
+        Ai* fi = &gs->crumbs[f];
+        int f_coord_key = (fi->x_pos << 16) |fi->y_pos;
+        while(f_coord_key == coord_key) {
+            // Redefine
+            x_pos = rand_range(gs->min_x, gs->max_x);
+            y_pos = rand_range(gs->min_y, gs->max_y);
+            coord_key = (x_pos << 16) | y_pos;
+        }  
+    }
+
+    // while (Dict_get_key(&gs->occupied_coords_dict, (x_pos << 16) | y_pos) != -1) {
+    //     x_pos = rand_range(gs->min_x, gs->max_x);
+    //     y_pos = rand_range(gs->min_y, gs->max_y);
+    // }
+
+    print("------ Random position = (");
+    print_dec(x_pos); // Use your print_dec function
+    print(", ");
+    print_dec(y_pos); // Use your print_dec function
+    print(")\n");
+
+    //coord_key = (x_pos << 16) | y_pos;
     return coord_key;
 }
+
 
 /* Helper function to get free ids*/
 int GameState_get_free_id(volatile GameState* gs) {
