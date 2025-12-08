@@ -71,8 +71,10 @@ void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ct
         {
         case 0:
             x_sign = -1;
+            print("x_sign = -1");
             break;
         case 1:
+        print("x_sign = +1");
             x_sign = 1;
         default:
             break;
@@ -81,9 +83,11 @@ void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ct
         switch (y_ctrl)
         {
         case 0:
+            print("y_sign = -1");
             y_sign = -1;
             break;
         case 1:
+            print("y_sign = +1");
             y_sign = 1;
             break;
         default:
