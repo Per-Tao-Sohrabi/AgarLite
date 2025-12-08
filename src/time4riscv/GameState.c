@@ -12,7 +12,7 @@ extern int rand_range(int, int);
 
 #define MAXPLAYERS 2
 #define MAXAI 0
-#define MAXFOOD 5
+#define MAXFOOD 3
 
 /* Initializes the game state */
 void GameState_init(volatile GameState* gs, int gm, int diff){
