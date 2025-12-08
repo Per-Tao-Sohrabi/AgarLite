@@ -424,8 +424,8 @@ void GameState_handle_player_ai_collision(volatile GameState* gs, volatile Playe
         // Update areas and radii
         ai->area = new_area_ai;
         p->area += delta_area_ai; // Increase p area
-        ai->radius = sqrt(ai->area * 100 / 314); // Update AI radius
-        p->radius = sqrt(p->area *100/ 314); // Update player radius
+        ai->radius = int_sqrt(ai->area * 100 / 314); // Update AI radius
+        p->radius = int_sqrt(p->area *100/ 314); // Update player radius
         Player_update_velocity(p);
         // //print("Updated Player %d velocity to %d\n", p->id, p->velocity);
         AI_update_velocity(ai);
@@ -450,8 +450,8 @@ void GameState_handle_player_ai_collision(volatile GameState* gs, volatile Playe
         // Update areas and radii
         ai->area = new_area_p;
         ai->area += delta_area_p; // Increase p1 area
-        p->radius =  sqrt(p->area*100/314); // Update player radius
-        ai->radius =  sqrt(ai->area*100/314); // Update player radius
+        p->radius =  int_sqrt(p->area*100/314); // Update player radius
+        ai->radius =  int_sqrt(ai->area*100/314); // Update player radius
         Player_update_velocity(p);
         AI_update_velocity(ai);
         // Update occupied coords dictionary in GameState
@@ -504,8 +504,8 @@ void GameState_handle_player_player_collision(volatile GameState* gs, volatile P
     // Update areas, radii, and velocities
     pi->area = new_area_pj;
     pi->area += delta_area_pj; // Increase p1 area
-    pj->radius =  sqrt(pj->area*100/314); // Update player radius
-    pi->radius =  sqrt(pi->area*100/314); // Update player radius
+    pj->radius =  int_sqrt(pj->area*100/314); // Update player radius
+    pi->radius =  int_sqrt(pi->area*100/314); // Update player radius
     Player_update_velocity(pi);
     Player_update_velocity(pj);
 
@@ -522,7 +522,7 @@ void GameState_handle_player_food_collision(volatile GameState* gs, volatile Pla
     //print("-------- Player eats");
     int area = p->radius * p->radius * 3; 
     int new_area = area + f->nutrition;
-    int new_r = sqrt(new_area*100/314);
+    int new_r = int_sqrt(new_area*100/314);
 
     p->area = new_area; // Update player area
     p->radius =  new_r; // Update player radius
@@ -572,8 +572,8 @@ void GameState_handle_ai_ai_collision(volatile GameState* gs, volatile Ai* ai1, 
     // Update areas and radii
     ai->area = new_area_aj;
     ai->area += delta_area_aj; // Increase p1 area
-    aj->radius =  sqrt(aj->area*100/314); // Update player radius
-    ai->radius =  sqrt(ai->area*100/314); // Update player radius    
+    aj->radius =  int_sqrt(aj->area*100/314); // Update player radius
+    ai->radius =  int_sqrt(ai->area*100/314); // Update player radius    
     AI_update_velocity(aj);
     AI_update_velocity(ai);
 
@@ -590,7 +590,7 @@ void GameState_handle_ai_food_collision(volatile GameState* gs, volatile Ai* ai,
     // Update player area based on nutrient, radius, and velocity
     int area = ai->radius * ai->radius * 3; 
     int new_area = area + f-> nutrition;
-    int new_r = sqrt(new_area*100/314);
+    int new_r = int_sqrt(new_area*100/314);
     ai->radius = new_r; // Update AI radius
     AI_update_velocity(ai);
 

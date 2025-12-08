@@ -12,7 +12,7 @@ void Player_init(volatile Player* p, int id, int color, int x_pos, int y_pos) {
     p->velocity = 1; // Inital velocity
     p->dx = 0;
     p->dy = 0;
-    p->radius = sqrt(p->area*100/314);
+    p->radius = int_sqrt(p->area*100/314);
     p->id = id;
     //print("-------- Player initialized\n");
 }
@@ -25,7 +25,7 @@ void Ai_init(volatile Ai* ai, int id, int color, int x_pos, int y_pos) {
     ai->velocity = 1; // Inital velocity
     ai->dx = 0;
     ai->dy = 0;
-    ai->radius = sqrt(ai->area*100/314);
+    ai->radius = int_sqrt(ai->area*100/314);
     ai->id = id;
     //print("-------- Calculating radius for AI with area \n");
     //print("-------- AI initialized: id=...d, pos=(...d,...d), color=...d, radius=\n");

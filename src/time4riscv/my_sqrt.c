@@ -1,6 +1,6 @@
 // Integer square root using Newton's method
-// Returns sqrt(x) as an integer
-int sqrt(int x) {
+// Returns int_sqrt(x) as an integer
+int int_sqrt(int x) {
     if (x <= 0) return 0;
     if (x == 1) return 1;
     
@@ -18,10 +18,10 @@ int sqrt(int x) {
 }
 
 // If you need more precision, use fixed-point (scale by 100):
-// Returns sqrt(x) * 100 for x that's already scaled by 100
+// Returns int_sqrt(x) * 100 for x that's already scaled by 100
 int int_sqrt_scaled(int x_scaled) {
     if (x_scaled <= 0) return 0;
-    if (x_scaled == 100) return 10;  // sqrt(1.00) = 1.0 in scaled form
+    if (x_scaled == 100) return 10;  // int_sqrt(1.00) = 1.0 in scaled form
     
     int guess = x_scaled / 2;
     
