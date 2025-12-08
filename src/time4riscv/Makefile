@@ -5,10 +5,14 @@ OBJECTS ?= $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 LINKER ?= $(SRC_DIR)/dtekv-script.lds
 
 TOOLCHAIN ?= riscv32-unknown-elf-
+
 # ----------------------------------------------------------------------
-# THE FIX: Added -msoft-float to force software floating-point emulation
+# THE FIX: Changed -mabi=ilp32 to -mabi=ilp32f
+# This forces the compiler to use the software floating-point ABI,
+# resolving the "unrecognized command-line option" error and
+# the original "Illegal instruction" error.
 # ----------------------------------------------------------------------
-CFLAGS ?= -Wall -nostartfiles -O3 -mabi=ilp32 -march=rv32im_zicsr -msoft-float
+CFLAGS ?= -Wall -nostartfiles -O3 -mabi=ilp32f -march=rv32im_zicsr 
 # ----------------------------------------------------------------------
 
 
