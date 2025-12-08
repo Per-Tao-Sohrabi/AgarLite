@@ -30,9 +30,9 @@ void GameState_init(volatile GameState* gs, int gm, int diff) {
     // Set boundaries
     print("-- Setting game boundaries...\n");
     gs->min_x = 0;
-    gs->max_x = 320;
+    gs->max_x = 320/2;
     gs->min_y = 0;
-    gs->max_y = 240;
+    gs->max_y = 240/2;
 
     // Populate occupied_coord with empty slots
     // for(int x = 0; x < gs->max_x; x++) {
