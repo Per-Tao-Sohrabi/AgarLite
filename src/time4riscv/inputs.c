@@ -1,3 +1,5 @@
+#include "inputs.h"
+
 int get_btn() {
   volatile int *btn = (volatile int*) 0x040000d0;
   return *btn;
