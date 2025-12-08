@@ -71,7 +71,7 @@ int GameState_get_random_position(volatile GameState* gs) {
         x_pos = rand_range(gs->min_x, gs->max_x);
         y_pos = rand_range(gs->min_y, gs->max_y);
     }
-    print("------ Random position = (%d, %d)\n", x_pos, y_pos);
+    print("------ Random position = \n");
     int coord_key = (x_pos << 16) | y_pos;
     return coord_key;
 }
@@ -415,7 +415,7 @@ bool check_ai_food_collision(volatile Ai* ai, volatile Food* f) {
 /* Handle player ai collisions*/
 void GameState_handle_player_ai_collision(volatile GameState* gs, volatile Player* p, volatile Ai* ai) {
     if (p->area > ai->area) {
-        print("-------- Player eats AI \n", p->id, ai->id);
+        print("-------- Player eats AI \n");
         // p eats ai
         float old_area_ai = ai->area;
         float new_area_ai = (ai->area * (1.0f - 0.5f)); // Reduce ai area by 50%
