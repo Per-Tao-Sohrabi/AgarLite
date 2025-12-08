@@ -15,7 +15,7 @@ GameState run_start_up() {
     int gm = query_game_mode(); // Sets number of players and diffuculty in gm varibale. 
     int diff = query_game_difficulty();
     // Initiate the game state:
-    print("Starting GameState initalization Sequence with mode %d and difficulty %d\n", gm, diff);
+    print("Starting GameState initalization Sequence with mode %d and difficulty %d\n");
     GameState gs;
     GameState_init(&gs, gm, diff);
     return  gs;
@@ -53,7 +53,7 @@ int query_game_difficulty() {
         volatile int diff = sw1 + sw2 + sw3; // Binary to decimal conversion
         
         int btn = get_btn();
-        print("Selected difficulty: d%d\n", diff);
+        print("Selected difficulty: d%d\n");
         if (btn) {
             switch (diff)
             {

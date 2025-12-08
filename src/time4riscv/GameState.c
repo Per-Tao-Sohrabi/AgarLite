@@ -24,7 +24,7 @@ void GameState_init(volatile GameState* gs, int gm, int diff){
     }
     
     // Set game mode and difficulty
-    print("-- Setting game mode to %d and difficulty to %d\n", gm, diff);
+    print("-- Setting game mode to %d and difficulty to %d\n");
     gs->game_mode = gm;
     gs->difficulty = diff;
 
@@ -71,7 +71,7 @@ int GameState_get_random_position(volatile GameState* gs) {
         x_pos = rand_range(gs->min_x, gs->max_x);
         y_pos = rand_range(gs->min_y, gs->max_y);
     }
-    print("------ Random position = (%d, %d)\n", x_pos, y_pos);
+    print("------ Random position = (%d, %d)\n");
     int coord_key = (x_pos << 16) | y_pos;
     return coord_key;
 }
@@ -97,7 +97,7 @@ int GameState_get_free_id(volatile GameState* gs) {
 
 /* Generate Players, Food, and AI based on game mode and difficulty */
 void GameState_generate_players(volatile GameState* gs, int game_mode) {
-    print("---- Generating %d players...\n", game_mode + 1);
+    print("---- Generating %d players...\n");
     volatile int colors[] = {100, 250};
     for(int i = 0; i<=game_mode; i++) {
         // Create Player
@@ -124,7 +124,7 @@ void GameState_generate_players(volatile GameState* gs, int game_mode) {
 
 /* Generate Food based on game mode and difficulty */ // TODO: Skapa Food_init().
 void GameState_generate_food(volatile GameState* gs, int gm, int diff) {
-    print("---- Generating food based on game mode %d and difficulty %d...\n", gm, diff);
+    print("---- Generating food based on game mode %d and difficulty %d...\n");
     // Calc numb of food based on difficulty (from the 7 diff levels) and gm (2 gm). 
     int base_food_n = 10; // TODO: Rewrite 
     int diff_food_mod = diff * 2; // TODO: Rewrite,,, Each diff level adds 2 food items
@@ -133,7 +133,7 @@ void GameState_generate_food(volatile GameState* gs, int gm, int diff) {
     if (total_food_n > MAXFOOD) {
         total_food_n = MAXFOOD; // Cap to MAXFOOD
     }
-    print("---- Total food to generate: %d\n", total_food_n);
+    print("---- Total food to generate: %d\n");
     
     // Set food type probabilities based on difficulty
     int prob_banana = 50 + (diff * 5);     // Banana: increases with difficulty
@@ -187,12 +187,12 @@ void GameState_generate_food(volatile GameState* gs, int gm, int diff) {
 
 /* Generate AI based on difficulty */
 void GameState_generate_ai(volatile GameState* gs, int diff) {
-    print("---- Generating AI based on difficulty %d...\n", diff);
+    print("---- Generating AI based on difficulty %d...\n");
     int total_ai_n = diff * 2; // Each diff level adds 2 AI
     if (total_ai_n > MAXAI) {
         total_ai_n = MAXAI; // Cap to MAXAI
     }
-    print("---- Total AI to generate: %d\n", total_ai_n);
+    print("---- Total AI to generate: %d\n");
     volatile int colors[] = {120, 220, 170, 70, 255, 30};
     for(int i = 0; i<total_ai_n; i++) {
         // print("---- Generating AI %d...\n", i);
@@ -271,7 +271,7 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
                 // print("-------- No collision detected.\n");
                 continue;
             } else {
-                print("------ Collision detected at \n x: %d, y: %d\n", p_ptr->x_pos, p_ptr->y_pos);
+                print("------ Collision detected at \n x: %d, y: %d\n");
                 GameState_handle_player_ai_collision(gs, p_ptr, ai_ptr);
             }
             // Collision Logic
@@ -414,7 +414,7 @@ bool check_ai_food_collision(volatile Ai* ai, volatile Food* f) {
 /* Handle player ai collisions*/
 void GameState_handle_player_ai_collision(volatile GameState* gs, volatile Player* p, volatile Ai* ai) {
     if (p->area > ai->area) {
-        print("-------- Player eats AI \n", p->id, ai->id);
+        print("-------- Player eats AI \n");
         // p eats ai
         float old_area_ai = ai->area;
         float new_area_ai = (ai->area * (1.0f - 0.5f)); // Reduce ai area by 50%
@@ -437,7 +437,7 @@ void GameState_handle_player_ai_collision(volatile GameState* gs, volatile Playe
         int coord_key_p = (p->x_pos << 16) | p->y_pos;  // Combine x and y into a single key
         Dict_set_value(&gs->occupied_coords_dict, coord_key_p, p->id);
     } else if (ai->area > p->area) {
-        print("-------- Ai eats Player \n", p->id, ai->id);
+        print("-------- Ai eats Player \n");
         // AI eats Player
         float a_ratio = ai->area / p->area;
         
