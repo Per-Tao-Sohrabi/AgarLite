@@ -124,14 +124,3 @@ int nextprime( int inval )
    }
    return( perhapsprime );      /* When the loop ends, perhapsprime is a real prime. */
 } 
-
-static unsigned long next = 1;
-int rand(void) {
-  //线性同馀方法, Linear congruential generator
-  next = next * 1103515245 + 12345;  
-  return (unsigned int)(next/65536) % 32768;
-}
-
-void srand(unsigned int seed){
-  next=seed;
-}

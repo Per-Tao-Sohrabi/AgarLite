@@ -1,40 +1,62 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "GameState.h"
-#include "Entities.h"
-#include "render.h"
 
-// #define SCREEN_WIDTH 320
-// #define SCREEN_HEIGHT 240
-// #define MAX_RADIUS 50
-// #define MIN_RADIUS 2
-// #define Food_count 100
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 240
+#define MAX_RADIUS 50
+#define MIN_RADIUS 2
+#define Food_count 100
 
 extern void enable_interrupts(void);
 extern void print(const char*);
 
+typedef struct {
+    int x_pos;
+    int y_pos;
+    int radius;
+    int hp;
+    int dx;
+    int dy;
+    int velocity;
+    int color;
+} Player;
+
+typedef struct {
+    int x_pos;
+    int y_pos;
+    int radius;
+    int nutrition;
+} Food;
+
+typedef struct {
+    int var1;
+    int var2;
+    Player players[2]; // Can hold two players
+    Food crumbs[Food_count]; // Can hold five food pieces
+} GameState;
+
 GameState game;
 
-// volatile char *VGA = (volatile char*) 0x08000000;
+volatile char *VGA = (volatile char*) 0x08000000;
 
-// void clear_screen(){
-//     for (int i = 0; i < SCREEN_WIDTH*SCREEN_HEIGHT; i++)
-//         VGA[i] = 0; 
-// }
+void clear_screen(){
+    for (int i = 0; i < SCREEN_WIDTH*SCREEN_HEIGHT; i++)
+        VGA[i] = 0; 
+}
 
-// void draw_circle (int cx, int cy, int radius, int color) {
-//   int radius_squ = radius * radius;
-//   for(int y = cy - radius; y <= cy+radius; y++){
-//     for(int x = cx -radius; x <= cx+radius; x++){
-//       if(x >= 0 && x < SCREEN_WIDTH && y >= 0 && y < SCREEN_HEIGHT){
-//         int dx = x-cx;
-//         int dy = y-cy;
-//         if(dx*dx+dy*dy <= radius_squ)
-//           VGA[y * SCREEN_WIDTH + x] = color;    
-//       }
-//     }
-//   }
-// }
+void draw_circle (int cx, int cy, int radius, int color) {
+  int radius_squ = radius * radius;
+  for(int y = cy - radius; y <= cy+radius; y++){
+    for(int x = cx -radius; x <= cx+radius; x++){
+      if(x >= 0 && x < SCREEN_WIDTH && y >= 0 && y < SCREEN_HEIGHT){
+        int dx = x-cx;
+        int dy = y-cy;
+        if(dx*dx+dy*dy <= radius_squ)
+          VGA[y * SCREEN_WIDTH + x] = color;    
+      }
+    }
+  }
+}
 
 int check_collision_player(Player a, Player b){
     int dx = a.x_pos - b.x_pos;
@@ -104,51 +126,51 @@ void update_game(){
     }
 }
 
-// void render_game() {
-//     clear_screen();
+void render_game() {
+    clear_screen();
 
-//     //player
-//     int antal_player = sizeof(game.players) / sizeof(game.players[0]); 
-//     for(int i = 0; i < antal_player; i++){
-//         Player player = game.players[i];
-//         draw_circle(player.x_pos, player.y_pos, player.radius, 255);
-//     }
+    //player
+    int antal_player = sizeof(game.players) / sizeof(game.players[0]); 
+    for(int i = 0; i < antal_player; i++){
+        Player player = game.players[i];
+        draw_circle(player.x_pos, player.y_pos, player.radius, 255);
+    }
 
-//     //food
-//     int antal_food = sizeof(game.crumbs) / sizeof(game.crumbs[0]); 
-//     for(int i = 0; i < antal_food;  i++){
-//         Food food = game.crumbs[i];
-//         draw_circle(food.x_pos, food.y_pos, food.radius, 46);
-//     }
+    //food
+    int antal_food = sizeof(game.crumbs) / sizeof(game.crumbs[0]); 
+    for(int i = 0; i < antal_food;  i++){
+        Food food = game.crumbs[i];
+        draw_circle(food.x_pos, food.y_pos, food.radius, 46);
+    }
    
-//     //time
-// }
+    //time
+}
 
 void handle_interrupt (unsigned _irq)
 { }
 
 
-// void init_game(){
-//     game.players[0].x_pos = 50;
-//     game.players[0].y_pos = 50;
-//     game.players[0].radius = MIN_RADIUS;
-//     game.players[0].dx = 2;
-//     game.players[0].dy = 2;
+void init_game(){
+    game.players[0].x_pos = 50;
+    game.players[0].y_pos = 50;
+    game.players[0].radius = MIN_RADIUS;
+    game.players[0].dx = 2;
+    game.players[0].dy = 2;
 
-//     game.players[1].x_pos = 3;
-//     game.players[1].y_pos = 3;
-//     game.players[1].radius = MIN_RADIUS;
-//     game.players[1].dx = -2;
-//     game.players[1].dy = 2;
+    game.players[1].x_pos = 3;
+    game.players[1].y_pos = 3;
+    game.players[1].radius = MIN_RADIUS;
+    game.players[1].dx = -2;
+    game.players[1].dy = 2;
 
     
-//     for(int i = 0; i < Food_count; i++){
-//         game.crumbs[i].x_pos = rand() % SCREEN_WIDTH;
-//         game.crumbs[i].y_pos = rand() % SCREEN_HEIGHT;
-//         game.crumbs[i].radius = 1;
-//         game.crumbs[i].nutrition = 1;
-//     }
-// }
+    for(int i = 0; i < Food_count; i++){
+        game.crumbs[i].x_pos = rand() % SCREEN_WIDTH;
+        game.crumbs[i].y_pos = rand() % SCREEN_HEIGHT;
+        game.crumbs[i].radius = 1;
+        game.crumbs[i].nutrition = 1;
+    }
+}
 
 volatile int* timer = (volatile int*) 0x04000020;
 
@@ -185,7 +207,6 @@ int main()
             update_game();
             render_game(&game);
 
-            while((timer[0] & 0b1) == 0 ) {}
-                timer[0] = 0b1;
+            delay(1000000);
         }
 }
