@@ -10,6 +10,8 @@
 extern void enable_interrupts(void);
 extern void print(const char*);
 
+#define BUFFER_SIZE (SCREEN_WIDTH*SCREEN_HEIGHT)
+
 typedef struct {
     int x_pos;
     int y_pos;
@@ -39,24 +41,67 @@ GameState game;
 
 volatile char *VGA = (volatile char*) 0x08000000;
 
+char frame_buffer1[SCREEN_HEIGHT*SCREEN_WIDTH];
+char frame_buffer2[SCREEN_WIDTH*SCREEN_HEIGHT];
+
+char *current_draw_buffer;
+char *current_display_buffer;
+
+void copy_to_vga(char *src){
+  for(int i = 0; i < BUFFER_SIZE; i++){
+    VGA[i] = src[i];
+  }
+}
+
+void swap_buffer(){
+  copy_to_vga(current_draw_buffer);
+
+  char *temp = current_draw_buffer;
+  current_draw_buffer = current_display_buffer;
+  current_display_buffer = temp;
+}
+
+void clear_current_buffer(){
+  for(int i = 0; i < BUFFER_SIZE; i++){
+    current_draw_buffer[i] = 0;
+  }
+}
+
+
+
 void clear_screen(){
     for (int i = 0; i < SCREEN_WIDTH*SCREEN_HEIGHT; i++)
         VGA[i] = 0; 
 }
 
-void draw_circle (int cx, int cy, int radius, int color) {
-  int radius_squ = radius * radius;
-  for(int y = cy - radius; y <= cy+radius; y++){
-    for(int x = cx -radius; x <= cx+radius; x++){
-      if(x >= 0 && x < SCREEN_WIDTH && y >= 0 && y < SCREEN_HEIGHT){
-        int dx = x-cx;
-        int dy = y-cy;
-        if(dx*dx+dy*dy <= radius_squ)
-          VGA[y * SCREEN_WIDTH + x] = color;    
-      }
+void draw_circle_to_buffer(char *buffer, int cx, int cy, int radius, int color) {
+    int radius_squ = radius * radius;
+    int min_y = cy - radius;
+    int max_y = cy + radius;
+    int min_x = cx - radius;
+    int max_x = cx + radius;
+    
+    // 边界检查
+    if (min_y < 0) min_y = 0;
+    if (max_y >= SCREEN_HEIGHT) max_y = SCREEN_HEIGHT - 1;
+    if (min_x < 0) min_x = 0;
+    if (max_x >= SCREEN_WIDTH) max_x = SCREEN_WIDTH - 1;
+    
+    for (int y = min_y; y <= max_y; y++) {
+        for (int x = min_x; x <= max_x; x++) {
+            int dx = x - cx;
+            int dy = y - cy;
+            if (dx * dx + dy * dy <= radius_squ) {
+                buffer[y * SCREEN_WIDTH + x] = color;
+            }
+        }
     }
-  }
 }
+
+void draw_circle(int cx, int cy, int radius, int color) {
+    draw_circle_to_buffer(current_draw_buffer, cx, cy, radius, color);
+}
+
 
 int check_collision_player(Player a, Player b){
     int dx = a.x_pos - b.x_pos;
@@ -127,23 +172,23 @@ void update_game(){
 }
 
 void render_game() {
-    clear_screen();
+    // 清除当前绘制缓冲区
+    clear_current_buffer();
 
-    //player
-    int antal_player = sizeof(game.players) / sizeof(game.players[0]); 
-    for(int i = 0; i < antal_player; i++){
+    // 绘制玩家
+    for (int i = 0; i < 2; i++) {
         Player player = game.players[i];
-        draw_circle(player.x_pos, player.y_pos, player.radius, 255);
+        draw_circle(player.x_pos, player.y_pos, player.radius, 255); // 白色
     }
 
-    //food
-    int antal_food = sizeof(game.crumbs) / sizeof(game.crumbs[0]); 
-    for(int i = 0; i < antal_food;  i++){
+    // 绘制食物
+    for (int i = 0; i < Food_count; i++) {
         Food food = game.crumbs[i];
-        draw_circle(food.x_pos, food.y_pos, food.radius, 46);
+        draw_circle(food.x_pos, food.y_pos, food.radius, 46); // 绿色
     }
-   
-    //time
+    
+    // 交换缓冲区（将绘制好的帧复制到VGA）
+    swap_buffers();
 }
 
 void handle_interrupt (unsigned _irq)
@@ -172,6 +217,21 @@ void init_game(){
     }
 }
 
+void init_buffers() {
+    // 初始化双缓冲
+    current_draw_buffer = frame_buffer1;
+    current_display_buffer = frame_buffer2;
+    
+    // 清除两个缓冲区
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        frame_buffer1[i] = 0;
+        frame_buffer2[i] = 0;
+    }
+    
+    // 初始化VGA显示
+    copy_to_vga(current_draw_buffer);
+}
+
 volatile int* timer = (volatile int*) 0x04000020;
 
 void labinit(void) {
@@ -190,23 +250,23 @@ void delay(int cycles){
     for(int i = 0; i < cycles; i++);
 }
 
-int main()
-{ 
+int main() { 
     enable_interrupts();
-    init_game(&game);
-    char* msg = "Select Game Mode: 1 or 2 Players by toggling the first switch up for single player. Switch up down for multiplayer. Press button to confirm.\n";
-    draw_string(10, 180, msg, 255);
-
-    while((timer[0] & 0b1) == 0 ) {
+    
+    // 初始化双缓冲系统
+    init_buffers();
+    
+    // 初始化游戏状态
+    init_game();
+    
+    // 主游戏循环
+    while (1) {
+        update_game();
+        render_game();
+        
+        // 控制帧率
+        delay(800000);
     }
-    timer[0] = 0b1;
-  
-  // Enter a forever loop
-    while (1)
-        {
-            update_game();
-            render_game(&game);
-
-            delay(1000000);
-        }
+    
+    return 0;
 }
