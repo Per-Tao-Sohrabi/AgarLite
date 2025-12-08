@@ -8,6 +8,7 @@
 #define SCREEN_WIDTH        320
 #define SCREEN_HEIGHT       240
 #define VGA_BUFFER_SIZE     (SCREEN_WIDTH * SCREEN_HEIGHT)
+#define MSG_WIDTH           250
 
 // Base address of the VGA memory-mapped I/O (this is system-specific)
 // Assuming VGA_BASE is 0x04000000 or similar, based on your previous code
