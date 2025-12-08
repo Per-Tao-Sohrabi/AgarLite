@@ -7,12 +7,11 @@ LINKER ?= $(SRC_DIR)/dtekv-script.lds
 TOOLCHAIN ?= riscv32-unknown-elf-
 
 # ----------------------------------------------------------------------
-# THE FIX: Changed -mabi=ilp32 to -mabi=ilp32f
-# This forces the compiler to use the software floating-point ABI,
-# resolving the "unrecognized command-line option" error and
-# the original "Illegal instruction" error.
+# THE FIX: Using -mno-hard-float
+# This flag forces soft-float code generation while using the correct 
+# -mabi=ilp32 (Integer ABI) for your hardware (rv32im_zicsr).
 # ----------------------------------------------------------------------
-CFLAGS ?= -Wall -nostartfiles -O3 -mabi=ilp32f -march=rv32im_zicsr 
+CFLAGS ?= -Wall -nostartfiles -O3 -mabi=ilp32 -march=rv32im_zicsr -mno-hard-float 
 # ----------------------------------------------------------------------
 
 
@@ -23,6 +22,7 @@ main.elf:
 	$(TOOLCHAIN)gcc -c $(CFLAGS) $(SOURCES)
 
 # Linking Step (creates main.elf)
+# IMPORTANT: The linker line remains correct by explicitly linking softfloat.a
 	$(TOOLCHAIN)gcc $(CFLAGS) -T $(LINKER) -o $@ $(filter-out boot.o, $(OBJECTS)) softfloat.a -lgcc
 
 main.bin: main.elf
