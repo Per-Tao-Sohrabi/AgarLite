@@ -5,8 +5,7 @@
 #include "render.h"
 
 extern void clear_screen();
-extern void draw_string_wrapped(int x, int y, const char *str, int color, int max_width);
-
+extern void draw_string_wrapped(int x, int y, const char *str, uint8_t color, int max_width);
 
 
 // Initalize a game state

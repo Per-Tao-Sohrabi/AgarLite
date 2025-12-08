@@ -40,4 +40,5 @@ void draw_char(int x, int y, char ch, uint8_t color);
 void draw_string_wrapped(int x, int y, const char *str, uint8_t color, int max_width);
 
 // The main rendering loop function
-void render_game(const GameState *game);
+struct GameState;
+void render_game(const struct GameState *game);
