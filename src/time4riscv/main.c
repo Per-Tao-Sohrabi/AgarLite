@@ -110,7 +110,7 @@ int main() {
       // Keep waiting
     //}
     //game_tick = false;
-    print("tock\n");
+    print("\ntock\n");
 
     // READ PLAYER INPUT
     read_inputs(input_vector);
