@@ -100,7 +100,7 @@ void run_pause() {
         clear_screen();
         draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
 
-        if(status = 0) {
+        if(status = 1) {
             clear_screen();
             break;
         }

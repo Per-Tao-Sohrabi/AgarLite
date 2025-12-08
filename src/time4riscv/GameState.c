@@ -79,7 +79,7 @@ int GameState_get_random_position(volatile GameState* gs) {
     // Check with all players
     for (int p = 0; p < MAXPLAYERS; p++) {
         // Compare with player i's position
-        Player* pi = &gs->players[p];
+        volatile Player* pi = &gs->players[p];
         int p_coord_key = (pi->x_pos << 16) |pi->y_pos;
         while(p_coord_key == coord_key) {
             // Redefine
@@ -399,7 +399,7 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
         if(p_i->id == -1) {
             continue; // Skip if Player does not exist
         }
-        if (p_i->area <= 0) {
+        if (p_i->area <= 1) {
             // Handle game over for player i
             return true;
         }
