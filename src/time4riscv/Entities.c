@@ -122,7 +122,7 @@ void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ct
                 }
         }
         // Update occupied coords dictionary in GameState
-        int coord_key = (p->x_pos << 16) | p->y_pos;
+        coord_key = (p->x_pos << 16) | p->y_pos;
 }
 
 void Player_update_velocity(volatile Player* p) {
