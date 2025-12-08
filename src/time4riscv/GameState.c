@@ -113,7 +113,7 @@ int GameState_get_random_position(volatile GameState* gs) {
             coord_key = (x_pos << 16) | y_pos;
         }  
     }
-    
+
     // while (Dict_get_key(&gs->occupied_coords_dict, (x_pos << 16) | y_pos) != -1) {
     //     x_pos = rand_range(gs->min_x, gs->max_x);
     //     y_pos = rand_range(gs->min_y, gs->max_y);
@@ -125,7 +125,7 @@ int GameState_get_random_position(volatile GameState* gs) {
     print_dec(y_pos); // Use your print_dec function
     print(")\n");
 
-    int coord_key = (x_pos << 16) | y_pos;
+    //coord_key = (x_pos << 16) | y_pos;
     return coord_key;
 }
 
