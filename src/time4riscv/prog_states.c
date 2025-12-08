@@ -22,17 +22,14 @@ GameState run_start_up() {
     print("Starting GameState initalization Sequence with mode %d and difficulty %d\n", gm, diff);
     GameState gs;
     GameState_init(&gs, gm, diff);
-    init_buffers();
     return  gs;
 } 
 
 /* Query the player about the game mode they want to play at*/
 int query_game_mode() {
-    clear_current_buffer();  
-    init_buffers();
-
+    // clear_current_buffer(); 
     char* msg = "Select Game Mode: 1 or 2 Players by toggling the first switch up for single player. \nSwitch up down for multiplayer. Press button to confirm.\n";
-    draw_msg(msg);
+    // draw_msg(msg);
     
     print(msg); // render function
     // Wait for user input and return selected mode
@@ -49,10 +46,10 @@ int query_game_mode() {
 
 /* Query the player about the difficulty they want to play at*/
 int query_game_difficulty() {
-    clear_current_buffer();
+    // clear_current_buffer();
     char* msg = "Use the three first switches to set your difficulty. \nNote binary numbers! Press button to confirm.\n";
     // draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
-    draw_msg(msg);
+    // draw_msg(msg);
     print(msg); // render function
     
     // Wait for user input and return selected mode
@@ -65,8 +62,8 @@ int query_game_difficulty() {
         int btn = get_btn();
         print("Selected difficulty: d%d\n", diff);
         if (btn) {
-            clear_current_buffer();
-            swap_buffers();
+            // clear_current_buffer();
+            // swap_buffers();
             switch (diff)
             {
             case 0:
@@ -103,16 +100,16 @@ int query_game_difficulty() {
  
 /* Pause logic*/
 void run_pause() {
-    clear_current_buffer();
+    // clear_current_buffer();
     print("Toggle switch 4 down to exit pause");
     char* msg = "Toggle switch 4 down to exit pause";
     // draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
-    draw_msg(msg);
+    // draw_msg(msg);
     while(1) {
         int status = get_switch_state(4);
         if(status == 0) {
-            clear_current_buffer();
-            swap_buffers();
+            // clear_current_buffer();
+            // swap_buffers();
             break;
         }
     }
@@ -120,16 +117,16 @@ void run_pause() {
 
 /* Game Over*/
 void run_game_over() {
-    clear_current_buffer();
+    // clear_current_buffer();
     print("Game Over! Press button to restart.");
     char* msg = "Game Over! \nPress button to restart.";
     // draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
-    draw_msg(msg);
-    
+    // draw_msg(msg);
+
     while(1) {
         if(get_btn() == 1) {
-            clear_current_buffer();
-            swap_buffers();
+            // clear_current_buffer();
+            // swap_buffers();
             break;
         }
     }
