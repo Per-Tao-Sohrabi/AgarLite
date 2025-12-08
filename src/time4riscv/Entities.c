@@ -62,7 +62,7 @@ void Food_init(volatile Food* f, int id, int type, int x_pos, int y_pos) {
 void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ctrl, int y_ctrl) {
     // Reset occupied_coords_dict entry for old position
     int coord_key = (p->x_pos << 16) | p->y_pos;
-    Dict_set_value(&gs->occupied_coords_dict, coord_key, p->id);
+    Dict_set_value(&gs->occupied_coords_dict, coord_key, -1);
 
 
 
@@ -123,7 +123,9 @@ void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ct
         }
         // Update occupied coords dictionary in GameState
         coord_key = (p->x_pos << 16) | p->y_pos;
-}
+        // 2. Set new position as occupied by this player's ID
+        Dict_set_value(&gs->occupied_coords_dict, coord_key, p->id);
+        }
 
 void Player_update_velocity(volatile Player* p) {
     int base_velocity = 1;
