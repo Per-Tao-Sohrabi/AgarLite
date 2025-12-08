@@ -17,6 +17,8 @@
 #include <math.h>
 
 extern void enable_interrupts(void);
+extern void clear_screen(void);
+extern void init_buffers(void);
 
 //#include "render.c"
 extern void print(const char*);
@@ -84,6 +86,9 @@ void read_inputs(int* input_vector) {
 
 /* Your code goes into main as well as any needed functions. */
 int main() {
+  init_buffers();
+  clear_screen();
+
   // Enable timer
   labinit();
   
