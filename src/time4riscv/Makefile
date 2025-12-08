@@ -5,13 +5,20 @@ OBJECTS ?= $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 LINKER ?= $(SRC_DIR)/dtekv-script.lds
 
 TOOLCHAIN ?= riscv32-unknown-elf-
-CFLAGS ?= -Wall -nostartfiles -O3 -mabi=ilp32 -march=rv32im_zicsr
+# ----------------------------------------------------------------------
+# THE FIX: Added -msoft-float to force software floating-point emulation
+# ----------------------------------------------------------------------
+CFLAGS ?= -Wall -nostartfiles -O3 -mabi=ilp32 -march=rv32im_zicsr -msoft-float
+# ----------------------------------------------------------------------
 
 
 build: clean main.bin
 
+# Compilation Step (creates .o files)
 main.elf: 
 	$(TOOLCHAIN)gcc -c $(CFLAGS) $(SOURCES)
+
+# Linking Step (creates main.elf)
 	$(TOOLCHAIN)gcc $(CFLAGS) -T $(LINKER) -o $@ $(filter-out boot.o, $(OBJECTS)) softfloat.a -lgcc
 
 main.bin: main.elf
