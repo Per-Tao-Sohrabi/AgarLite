@@ -9,14 +9,16 @@
 #include "Entities.h"
 #include "inputs.h"
 #include "prog_states.h"
+#include "render.h"
 
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <math.h>
-#include "render.h"
 
 extern void enable_interrupts(void);
+// extern void clear_screen(void);
+// extern void init_buffers(void);
 
 //#include "render.c"
 extern void print(const char*);
@@ -44,8 +46,8 @@ void labinit(void) {
   timer[2] = period_val & 0xFFFF; //  Lower 16 bits
   timer[3] = (period_val >> 16) & 0xFFFF;
 
-  // Set start status
-  timer[0] = 0b110; // Enable timer, sets ito = off, cont = on, start = on, stop. = off. 
+  // Set start statuss
+  timer[0] = 0b1110; // Enable timer, sets ito = off, cont = on, start = on, stop. = off. 
   print("---- Timer start status set.\n");
 }
 
@@ -83,12 +85,13 @@ void read_inputs(int* input_vector) {
 }
 
 /* Your code goes into main as well as any needed functions. */
-int main() {  
+int main() {
+  init_buffers();
+
   // Enable timer
   labinit();
-  
-  print("- Timer enabled.\n");
 
+  print("- Timer enabled.\n");
   print("- Starting Time4RiscV...\n");
 
   // Display a welcome message.
@@ -98,27 +101,19 @@ int main() {
   // Start game query ...
   
     // Enable interrupts
-  enable_interrupts();
   print("- Interrupts enabled.\n");
 
   // MAIN GAME LOOP
+  
   int input_vector[5] = {0}; // Input vector to hold switch states
   while (1) {
-    bool tick_occurred = false;
+    //print("tick\n");
+    //while (game_tick == false){
+      // Keep waiting
+    //}
+    //game_tick = false;
+    print("tock\n");
 
-    while (!tick_occurred) {
-      if (game_tick) {
-        tick_occurred = true;
-        game_tick = false;
-      }
-    }
-
-    // while (game_tick == false){
-    //   // Keep waiting
-    // }
-
-    // game_tick = false;
-    
     // READ PLAYER INPUT
     read_inputs(input_vector);
     
@@ -135,7 +130,7 @@ int main() {
     
     // RENDER GAME STATE
     render_game(gs_ptr);
+
   }
 }
-
 

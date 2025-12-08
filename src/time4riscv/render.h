@@ -35,15 +35,15 @@ extern char *current_display_buffer;
 extern const uint8_t font_5x7[96][7];
 
 
-void clear_screen();
+void clear_screen(void);
 
-void init_buffers();
+void init_buffers(void);
 
 void copy_to_vga(char *src);
 
-void swap_buffers();
+void swap_buffers(void);
 
-void clear_current_buffer();
+void clear_current_buffer(void);
 
 void draw_circle (int cx, int cy, int radius, int color);
 
@@ -66,5 +66,7 @@ void draw_string_wrapped(int x, int y, const char *str, int color, int max_width
 void render_game(GameState *game);
 
 void draw_msg(char* ch);
+
+void reset_screen(void);
 
 #endif

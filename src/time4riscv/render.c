@@ -306,6 +306,7 @@ char *current_draw_buffer;
 char *current_display_buffer;
 
 void init_buffers() {
+    clear_screen();
     // init buffers
     current_draw_buffer = frame_buffer1;
     current_display_buffer = frame_buffer2;
@@ -316,8 +317,13 @@ void init_buffers() {
         frame_buffer2[i] = 0;
     }
     
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        VGA[i] = 0;
+    }
+
+    print("Buffers initialized and cleared\n");
     // init. vga
-    copy_to_vga(current_draw_buffer);
+    // copy_to_vga(current_draw_buffer);
 }
 
 void copy_to_vga(char *src){
@@ -741,4 +747,19 @@ void draw_msg(char* ch){
     
     // buttar buffer
     swap_buffers();
+}
+
+void reset_screen() {
+    // 完全清除VGA屏幕
+    clear_screen();
+    
+    // 完全清除所有缓冲区
+    clear_current_buffer();
+    
+    // 确保显示的是空白
+    swap_buffers();
+    clear_current_buffer();
+    swap_buffers();
+    
+    print("Screen completely reset\n");
 }
