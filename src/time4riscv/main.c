@@ -87,7 +87,6 @@ void read_inputs(int* input_vector) {
 /* Your code goes into main as well as any needed functions. */
 int main() {
   init_buffers();
-  clear_screen();
 
   // Enable timer
   labinit();
@@ -119,6 +118,7 @@ int main() {
 
     // READ PLAYER INPUT
     read_inputs(input_vector);
+    print("read_inputs");
     
     // CHECK FOR PAUSE
     if (get_pause_swtch() == 1) {
