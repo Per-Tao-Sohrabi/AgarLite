@@ -631,6 +631,6 @@ void render_game_simple(GameState *game){
     int antal_ai = sizeof(game->ais)/sizeof(game->ais[0]);
     for(int i = 0; i < antal_ai; i++){
         Ai ai = game->ais[i];
-        draw_circle_direct(ai.x_pos, ai.y_pos, ai.radius, ai.color);
+        draw_circle(ai.x_pos, ai.y_pos, ai.radius, ai.color);
     }
 }
