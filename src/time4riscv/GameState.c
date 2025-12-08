@@ -6,6 +6,7 @@
 #include "GameState.h"
 #include "Entities.h"
 #include "math_tools.h"
+#include "inputs.h"
 
 
 extern int rand_range(int, int);
@@ -400,7 +401,7 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
         if(p_i->id == -1) {
             continue; // Skip if Player does not exist
         }
-        if ((int) p_i->area <= 1) {
+        if (get_switch_state(6) == 1) {
             // Handle game over for player i
             return true;
         }
