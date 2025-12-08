@@ -268,7 +268,7 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
     
     // UPDATE PLAYER POSITION
     print("---- Updating player positions...\n");
-    for(int i = 0; i< gs->game_mode + 1; i++) {
+    for(int i = 0; i< gs->game_mode + 1; i+=1) {
         volatile Player* p_i = &gs->players[i];
         if(p_i->id == -1) {
             continue; // Skip if Player does not exist
