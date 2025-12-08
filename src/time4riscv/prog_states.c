@@ -94,10 +94,11 @@ int query_game_difficulty() {
 /* Pause logic*/
 void run_pause() {
     int status = get_switch_state(4);
+    clear_screen();
     while(1) {
         print("Toggle switch 4 down to exit pause");
         char* msg = "Toggle switch 4 down to exit pause";
-        clear_screen();
+        
         draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
 
         if(status = 1) {
