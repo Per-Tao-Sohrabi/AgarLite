@@ -27,7 +27,7 @@ int query_game_mode() {
     //clear_backbuffer();   
     clear_screen();
     char* msg = "Select Game Mode: 1 or 2 Players by toggling the first switch up for single player. \nSwitch up down for multiplayer. Press button to confirm.\n";
-    draw_msg(msg);
+    draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
     
     print(msg); // render function
     // Wait for user input and return selected mode
@@ -40,6 +40,7 @@ int query_game_mode() {
             return mode;                     // Return set mode
         }
     }
+    clear_screen();
     return 1; // Placeholder return value
 }
 
@@ -48,8 +49,7 @@ int query_game_difficulty() {
     //clear_backbuffer();
     clear_screen();
     char* msg = "Use the three first switches to set your difficulty. \nNote binary numbers! Press button to confirm.\n";
-    // draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
-    draw_msg(msg);
+    draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
     print(msg); // render function
     
     // Wait for user input and return selected mode
@@ -103,8 +103,7 @@ int query_game_difficulty() {
 void run_pause() {
     print("Toggle switch 4 down to exit pause");
     char* msg = "Toggle switch 4 down to exit pause";
-    // draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
-    draw_msg(msg);
+    draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
     while(1) {
         int status = get_switch_state(4);
         if(status == 0) {
@@ -114,16 +113,16 @@ void run_pause() {
             break;
         }
     }
+    clear_screen();
+
 }
 
 /* Game Over*/
 void run_game_over() {
     print("Game Over! Press button to restart.");
-    //clear_backbuffer();
     clear_screen();
     char* msg = "Game Over! \nPress button to restart.";
-    // draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
-    draw_msg(msg);
+    draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
     while(1) {
         if(get_btn() == 1) {
             //clear_backbuffer();
