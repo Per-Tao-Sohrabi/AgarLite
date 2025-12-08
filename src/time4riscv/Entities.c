@@ -9,12 +9,12 @@ void Player_init(volatile Player* p, int id, int color, int x_pos, int y_pos) {
     p->y_pos = y_pos; //TODO: Random start position
     p->area = 100;
     p->color = color;
-    p->velocity = 5; // Inital velocity
+    p->velocity = 1; // Inital velocity
     p->dx = 0;
     p->dy = 0;
     p->radius = sqrt(p->area/3.14f);
     p->id = id;
-    print("-------- Player initialized\n");
+    //print("-------- Player initialized\n");
 }
 
 void Ai_init(volatile Ai* ai, int id, int color, int x_pos, int y_pos) {
@@ -22,13 +22,13 @@ void Ai_init(volatile Ai* ai, int id, int color, int x_pos, int y_pos) {
     ai->y_pos = y_pos; //TODO: Random start position
     ai->area = 100.0f;
     ai->color = color;
-    ai->velocity = 5; // Inital velocity
+    ai->velocity = 1; // Inital velocity
     ai->dx = 0;
     ai->dy = 0;
     ai->radius = sqrt(ai->area/3.14f);
     ai->id = id;
-    print("-------- Calculating radius for AI with area %.2f\n", ai->area);
-    print("-------- AI initialized: id=%d, pos=(%d,%d), color=%d, radius=%.2f\n", ai->id, ai->x_pos, ai->y_pos, ai->color, ai->radius);
+    //print("-------- Calculating radius for AI with area \n");
+    //print("-------- AI initialized: id=...d, pos=(...d,...d), color=...d, radius=\n");
 }
 
 void Food_init(volatile Food* f, int id, int type, int x_pos, int y_pos) {
@@ -36,7 +36,7 @@ void Food_init(volatile Food* f, int id, int type, int x_pos, int y_pos) {
     f->x_pos = x_pos; //TODO: Random start position
     f->y_pos = y_pos; //TODO: Random start position
     f->type = type;
-    print("------- Setting nutrition for food type %d\n", type);
+    //print("------- Setting nutrition for food type ...d\n");
     switch (type)
     {
     case 0: // Banana
@@ -56,7 +56,7 @@ void Food_init(volatile Food* f, int id, int type, int x_pos, int y_pos) {
         break;
     }
     f->id = id;
-    print("------ Food initialized: id=%d, type=%d, nutrition=%d, pos=(%d,%d), radius=%.2f\n", f->id, f->type, f->nutrition, f->x_pos, f->y_pos, f->radius);
+    //print("------ Food initialized: id=...d, type=...d, nutrition=...d, pos=(...d,...d), radius=\n");
 }
 
 void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ctrl, int y_ctrl) {
@@ -118,7 +118,7 @@ void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ct
 }
 
 void Player_update_velocity(volatile Player* p) {
-    int base_velocity = 5;
+    int base_velocity = 1;
     p->velocity = base_velocity - ((int)p->area / 100);
     if (p->velocity < 1) {
         p->velocity = 1;
@@ -180,7 +180,7 @@ void AI_update_position(volatile Ai* ai, volatile GameState* gs, int x_ctrl, int
 }
 
 void AI_update_velocity(volatile Ai* ai) {
-    int base_velocity = 5;
+    int base_velocity = 1;
     ai->velocity = base_velocity - ((int)ai->area / 100);
     if (ai->velocity < 1) {
         ai->velocity = 1;
