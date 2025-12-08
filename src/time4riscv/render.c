@@ -321,7 +321,8 @@ void draw_circle (int cx, int cy, int radius, int color) {
         int dy = y-cy;
         if(dx*dx+dy*dy <= radius_squ){
             int offset = y * SCREEN_WIDTH + x; 
-            back_buffer[offset] = color; 
+            //back_buffer[offset] = color; 
+            VGA[offset] = color; 
         }   
       }
     }
@@ -342,7 +343,7 @@ void draw_pixel(int x, int y, int color){
     }
 
     int offset = y * SCREEN_WIDTH + x;
-    back_buffer[offset] = color;
+    VGA[offset] = color;
 }
 
 void draw_char(int x, int y, char ch, int color){
@@ -648,7 +649,8 @@ void draw_string_wrapped(int x, int y, const char *str, int color, int max_width
 
 
 void render_game(GameState *game) {
-    clear_backbuffer();
+    //clear_backbuffer();
+    clear_screen();
     //players
     int antal_players = sizeof(game -> players) / sizeof(game -> players[0]); 
     for(int i = 0; i < antal_players; i++){
@@ -669,13 +671,14 @@ void render_game(GameState *game) {
         Ai ai = game -> ais[i];
         draw_circle(ai.x_pos, ai.y_pos, ai.radius, ai.color);
     }
-    swap_buffers();
-    clear_backbuffer();
+    //swap_buffers();
+    //clear_backbuffer();
 }
 
 void draw_msg(char* ch){
-    clear_backbuffer();
+    //clear_backbuffer();
+    clear_screen();
     draw_filled_rect(35, 60, MSG_WIDTH, MSG_HEIGHT, 0);
     draw_string_wrapped(35, 60, ch, 255, MSG_WIDTH);
-    swap_buffers();
+    //swap_buffers();
 }
