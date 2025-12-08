@@ -27,8 +27,8 @@ void Ai_init(volatile Ai* ai, int id, int color, int x_pos, int y_pos) {
     ai->dy = 0;
     ai->radius = sqrt(ai->area/3.14f);
     ai->id = id;
-    print("-------- Calculating radius for AI with area ....2f\n");
-    print("-------- AI initialized: id=...d, pos=(...d,...d), color=...d, radius=....2f\n");
+    print("-------- Calculating radius for AI with area %.2f\n", ai->area);
+    print("-------- AI initialized: id=%d, pos=(%d,%d), color=%d, radius=%.2f\n", ai->id, ai->x_pos, ai->y_pos, ai->color, ai->radius);
 }
 
 void Food_init(volatile Food* f, int id, int type, int x_pos, int y_pos) {
@@ -36,7 +36,7 @@ void Food_init(volatile Food* f, int id, int type, int x_pos, int y_pos) {
     f->x_pos = x_pos; //TODO: Random start position
     f->y_pos = y_pos; //TODO: Random start position
     f->type = type;
-    print("------- Setting nutrition for food type ...d\n");
+    print("------- Setting nutrition for food type %d\n", type);
     switch (type)
     {
     case 0: // Banana
@@ -56,15 +56,12 @@ void Food_init(volatile Food* f, int id, int type, int x_pos, int y_pos) {
         break;
     }
     f->id = id;
-    print("------ Food initialized: id=...d, type=...d, nutrition=...d, pos=(...d,...d), radius=....2f\n");
+    print("------ Food initialized: id=%d, type=%d, nutrition=%d, pos=(%d,%d), radius=%.2f\n", f->id, f->type, f->nutrition, f->x_pos, f->y_pos, f->radius);
 }
 
 void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ctrl, int y_ctrl) {
     // Reset occupied_coords_dict entry for old position
-    int coord_key = (p->x_pos << 16) | p->y_pos;
-    Dict_set_value(&gs->occupied_coords_dict, coord_key, -1);
-
-
+    Dict_set_value(&gs->occupied_coords_dict, (p->x_pos << 16) | p->y_pos, -1);
 
     // Determine direction based on control input
     int x_sign;
@@ -74,12 +71,9 @@ void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ct
         {
         case 0:
             x_sign = -1;
-            print("x_sign = -1");
             break;
         case 1:
-            print("x_sign = +1");
             x_sign = 1;
-            break;
         default:
             break;
         }
@@ -87,11 +81,9 @@ void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ct
         switch (y_ctrl)
         {
         case 0:
-            print("y_sign = -1");
             y_sign = -1;
             break;
         case 1:
-            print("y_sign = +1");
             y_sign = 1;
             break;
         default:
@@ -122,13 +114,11 @@ void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ct
                 }
         }
         // Update occupied coords dictionary in GameState
-        coord_key = (p->x_pos << 16) | p->y_pos;
-        // 2. Set new position as occupied by this player's ID
-        Dict_set_value(&gs->occupied_coords_dict, coord_key, p->id);
-        }
+        int coord_key = (p->x_pos << 16) | p->y_pos;
+}
 
 void Player_update_velocity(volatile Player* p) {
-    int base_velocity = 1;
+    int base_velocity = 5;
     p->velocity = base_velocity - ((int)p->area / 100);
     if (p->velocity < 1) {
         p->velocity = 1;
@@ -148,7 +138,6 @@ void AI_update_position(volatile Ai* ai, volatile GameState* gs, int x_ctrl, int
             break;
         case 1:
             x_sign = 1;
-            break;
         default:
             break;
         }
