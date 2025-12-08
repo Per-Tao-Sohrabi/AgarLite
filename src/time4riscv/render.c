@@ -612,10 +612,6 @@ void render_game(GameState *game) {
 }
 
 void draw_msg(char* ch){
-    draw_filled_rect(80, 60, 160, 120, 0);
-    draw_string_wrapped(80, 60, &ch, 255, MSG_WIDTH);
-}
-void draw_msg(char* ch){
     // ...
     draw_string_wrapped(80, 60, &ch, 255, MSG_WIDTH); 
     // ...
