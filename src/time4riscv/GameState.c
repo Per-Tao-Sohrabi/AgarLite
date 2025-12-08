@@ -126,6 +126,7 @@ int GameState_get_random_position(volatile GameState* gs) {
     print(")\n");
 
     //coord_key = (x_pos << 16) | y_pos;
+    coord_key = (x_pos << 16) | y_pos;
     return coord_key;
 }
 
@@ -150,7 +151,7 @@ int GameState_get_free_id(volatile GameState* gs) {
 /* Generate Players, Food, and AI based on game mode and difficulty */
 void GameState_generate_players(volatile GameState* gs, int game_mode) {
     print("---- Generating ...d players...\n");
-    volatile int colors[] = {100, 250};
+    volatile int colors[] = {100, 200, 150, 50, 250};
     for(int i = 0; i<=game_mode; i++) {
         // Create Player
         Player p;
@@ -397,7 +398,7 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
     
     // Check game over conditions TODO...
     print("---- Checking Game Over conditions");
-    for(int i = 0; i <= gs->game_mode + 1; i++) {
+    for(int i = 0; i <= gs->game_mode; i++) {
         volatile Player* p_i = &gs->players[i];
         if(p_i->id == -1) {
             continue; // Skip if Player does not exist
