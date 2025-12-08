@@ -20,7 +20,7 @@ extern void enable_interrupts(void);
 
 //#include "render.c"
 extern void print(const char*);
-//extern void print_dec(unsigned int);
+extern void print_dec(unsigned int);
 //extern void display_string(char*);
 //extern void time2string(char*,int);
 //extern void tick(int*);
