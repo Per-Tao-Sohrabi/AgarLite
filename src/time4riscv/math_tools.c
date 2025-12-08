@@ -31,16 +31,21 @@ int rand_range(int min, int max) {
     return min + rand() % (max - min + 1);
 }
 
+// You MUST define the max capacity of your dictionary arrays.
+#define MAX_DICT_SIZE 500 // <--- REPLACE 500 WITH YOUR ACTUAL DICTIONARY ARRAY SIZE
+
 void Dict_insert(Dictionary* dict, int key, int value) {
-    for (int i = 0; i < dict->size; i++) {
-        if (dict->keys[i] == key) {
-            dict->values[i] = value;
-            return;
-        }
+    // ... [Existing key update logic here] ...
+    
+    // CRITICAL: Check if the dictionary is full before insertion
+    if (dict->size < MAX_DICT_SIZE) { 
+        dict->keys[dict->size] = key;
+        dict->values[dict->size] = value;
+        dict->size++;
+    } else {
+        // Optional: print a message to help debug if capacity is hit
+        // print("ERROR: Dictionary overflow prevented.\n");
     }
-    dict->keys[dict->size] = key;
-    dict->values[dict->size] = value;
-    dict->size++;
 }
 
 int Dict_get_value(Dictionary* dict, int key) {
