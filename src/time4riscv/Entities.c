@@ -61,7 +61,10 @@ void Food_init(volatile Food* f, int id, int type, int x_pos, int y_pos) {
 
 void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ctrl, int y_ctrl) {
     // Reset occupied_coords_dict entry for old position
-    Dict_set_value(&gs->occupied_coords_dict, (p->x_pos << 16) | p->y_pos, -1);
+    int coord_key = (p->x_pos << 16) | p->y_pos;
+    Dict_set_value(&gs->occupied_coords_dict, coord_key, p->id);
+
+
 
     // Determine direction based on control input
     int x_sign;
@@ -74,8 +77,9 @@ void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ct
             print("x_sign = -1");
             break;
         case 1:
-        print("x_sign = +1");
+            print("x_sign = +1");
             x_sign = 1;
+            break;
         default:
             break;
         }
@@ -142,6 +146,7 @@ void AI_update_position(volatile Ai* ai, volatile GameState* gs, int x_ctrl, int
             break;
         case 1:
             x_sign = 1;
+            break;
         default:
             break;
         }

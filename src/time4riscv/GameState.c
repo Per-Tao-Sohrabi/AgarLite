@@ -268,15 +268,16 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
     
     // UPDATE PLAYER POSITION
     print("---- Updating player positions...\n");
-    for(int i = 0; i< gs->game_mode + 1; i+=2) {
+    for(int i = 0; i< gs->game_mode + 1; i++) {
         volatile Player* p_i = &gs->players[i];
         if(p_i->id == -1) {
             continue; // Skip if Player does not exist
             print("continue...");
         }
         // Read player input
-        int x_ctrl = input_vector[i]; // X control
-        int y_ctrl = input_vector[i+1]; // Y control
+        int input_offset = i*2;
+        int x_ctrl = input_vector[input_offset + 0]; // X control
+        int y_ctrl = input_vector[input_offset+1]; // Y control
         Player_update_position(p_i, gs, x_ctrl, y_ctrl);
     }
 
