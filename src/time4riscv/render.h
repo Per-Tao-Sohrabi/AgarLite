@@ -59,11 +59,13 @@ void draw_char(int x, int y, char ch, int color);
 
 void draw_string(int x, int y, const char *str, int color);
 
-void draw_string_centered(int y, const char *str, int color);
+// void draw_string_centered(int y, const char *str, int color);
 
 void draw_string_wrapped(int x, int y, const char *str, int color, int max_width);
 
 void render_game(GameState *game);
+
+void render_game_simple(GameState *game);
 
 void draw_msg(char* ch);
 

@@ -10,8 +10,6 @@
 #include "inputs.h"
 #include "prog_states.h"
 #include "render.h"
-#include "dirty_rect.h"
-#include "GameState_dirty.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -22,6 +20,8 @@ extern void enable_interrupts(void);
 extern void print(const char*);
 extern void init_buffers(void);
 extern void render_game(GameState *game);
+extern void clear_screen(void);
+extern void render_game_simple(GameState *game);
 
 
 // Timer buffer
@@ -76,120 +76,53 @@ void read_inputs(int* input_vector) {
 }
 
 /* Your code goes into main as well as any needed functions. */
-// int main() {
-//   // Enable timer
-//   labinit();
-  
-//   print("- Timer enabled.\n");
-
-//   print("- Starting Time4RiscV...\n");
-
-//   // Display a welcome message.
-//   print("- Running startup sequence...\n");
-//   GameState gs = run_start_up(); // Set the game state and diffuculty mode.
-//   volatile GameState* gs_ptr = &gs;
-//   // Start game query ...
-  
-//     // Enable interrupts
-//   enable_interrupts();
-//   print("- Interrupts enabled.\n");
-
-//   // MAIN GAME LOOP
-//   init_buffers();
-//   int input_vector[5] = {0}; // Input vector to hold switch states
-//   while (1) {
-//     //print("tick\n");
-//     //while (game_tick == false){
-//       // Keep waiting
-//     //}
-//     //game_tick = false;
-//     print("tock\n");
-
-//     // READ PLAYER INPUT
-//     read_inputs(input_vector);
-    
-//     // CHECK FOR PAUSE
-//     if (get_pause_swtch() == 1) {
-//       run_pause();
-//     }  
-//     // UPDATE THE GAME STATE:
-//     bool game_over = GameState_update(gs_ptr, input_vector); 
-
-//     if (game_over) {
-//       run_game_over();
-//     }
-    
-//     // RENDER GAME STATE
-//     render_game(gs_ptr);
-
-//   }
-// }
-
 int main() {
-    print("=== Agar.io with Dirty Rectangle Optimization ===\n");
+  // Enable timer
+  clear_screen();
+  labinit();
+  
+  print("- Timer enabled.\n");
+
+  print("- Starting Time4RiscV...\n");
+
+  // Display a welcome message.
+  print("- Running startup sequence...\n");
+  GameState gs = run_start_up(); // Set the game state and diffuculty mode.
+  volatile GameState* gs_ptr = &gs;
+  // Start game query ...
+  
+    // Enable interrupts
+  enable_interrupts();
+  print("- Interrupts enabled.\n");
+
+  // MAIN GAME LOOP
+  int input_vector[5] = {0}; // Input vector to hold switch states
+  while (1) {
+    //print("tick\n");
+    //while (game_tick == false){
+      // Keep waiting
+    //}
+    //game_tick = false;
+    print("tock\n");
+
+    // READ PLAYER INPUT
+    read_inputs(input_vector);
     
-    // 1. 初始化脏矩形系统
-    DirtyRectManager dirty_mgr;
-    dirty_rect_init(&dirty_mgr);
-    
-    // 2. 启用中断
-    enable_interrupts();
-    
-    // 3. 初始化定时器
-    labinit();
-    
-    // 4. 启动游戏
-    GameState game = run_start_up();
-    volatile GameState* game_ptr = &game;
-    
-    print("Game started with dirty rectangle rendering\n");
-    
-    // 主游戏循环
-    int input_vector[5] = {0};
-    int frame_count = 0;
-    
-    while (1) {
-        frame_count++;
-        
-        // 读取输入
-        read_inputs(input_vector);
-        
-        // 检查暂停
-        if (get_switch_state(4) == 1) {
-            run_pause();
-            
-            // 暂停后需要重新标记整个屏幕
-            dirty_rect_mark(&dirty_mgr, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-        }
-        
-        // 更新游戏状态并标记脏矩形
-        bool game_over = GameState_update_with_dirty(game_ptr, input_vector, &dirty_mgr);
-        
-        if (game_over) {
-            run_game_over();
-            
-            // 游戏结束，重新开始
-            dirty_rect_clear_all(&dirty_mgr);
-            game = run_start_up();
-            game_ptr = &game;
-            frame_count = 0;
-            continue;
-        }
-        
-        // 渲染脏矩形区域（只在有变化时渲染）
-        if (dirty_mgr.count > 0) {
-            dirty_rect_render(game_ptr, &dirty_mgr);
-        }
-        
-        // 每隔一段时间强制重绘整个屏幕（防止累积误差）
-        if (frame_count % 60 == 0) {  // 每秒一次
-            dirty_rect_mark(&dirty_mgr, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-            print("Full screen refresh\n");
-        }
-        
-        // 控制帧率
-        for (volatile int i = 0; i < 20000; i++);
+    // CHECK FOR PAUSE
+    if (get_pause_swtch() == 1) {
+      run_pause();
+    }  
+    // UPDATE THE GAME STATE:
+    bool game_over = GameState_update(gs_ptr, input_vector); 
+
+    if (game_over) {
+      run_game_over();
     }
     
-    return 0;
+    // RENDER GAME STATE
+    // render_game(gs_ptr);
+    render_game_simple(gs_ptr);
+
+  }
 }
+
