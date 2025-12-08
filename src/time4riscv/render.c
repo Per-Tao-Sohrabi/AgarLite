@@ -342,7 +342,7 @@ void draw_pixel(int x, int y, int color){
     }
 
     int offset = y * SCREEN_WIDTH + x;
-    VGA[offset] = color;
+    back_buffer[offset] = color;
 }
 
 void draw_char(int x, int y, char ch, int color){
@@ -396,7 +396,7 @@ void draw_string_centered(int y, const char *str, int color){
     }
 
     int total_width = len*(FONT_WIDTH + CHAR_SPACING);
-    int x = (SCREEN_HEIGHT-total_width)/2;
+    int x = (SCREEN_WIDTH-total_width)/2;
     draw_string(x, y, str, color);
 }
 
@@ -521,68 +521,132 @@ void draw_string_centered(int y, const char *str, int color){
 //     }
 // }
 
+// void draw_string_wrapped(int x, int y, const char *str, int color, int max_width){
+//     int current_x = x;
+//     int current_y = y;
+//     int word_start_index = 0;
+//     int i = 0;
+
+//     int char_width = FONT_WIDTH + CHAR_SPACING;
+
+//     while(str[i] != '\0'){
+//         int word_end_index = i;
+//         while(str[word_end_index] != '\0' &&
+//               str[word_end_index] != ' ' &&
+//               str[word_end_index] != '\n'){
+//                 word_end_index++;
+//         }
+
+//         int word_len = word_end_index - word_start_index;
+//         int word_width = word_len * char_width;
+
+//         //check if current row have space for the word
+//         if(current_x + word_width > x + max_width && current_x > x){
+//             // if not, dont draw and break line
+//             current_x = x;
+//             current_y += FONT_HEIGHT + LINE_SPACING;
+//             //check boundries
+//             if(current_y >= SCREEN_HEIGHT - FONT_HEIGHT){
+//                 break;
+//             }
+//             //re-do this word
+//             continue;
+//         }
+
+//         // break line
+//         if(str[i] == '\n'){
+//             current_x = x;
+//             current_y += FONT_HEIGHT + LINE_SPACING;
+//             word_start_index = i + 1;
+//             i++;
+//             continue;
+//         }
+
+//         //draw current char
+//         if(current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT){
+//             draw_char(current_x, current_y, str[i], color);
+//         }
+
+//         current_x += char_width;
+//         i++;
+//         //if end of the word, space
+//         if(i == word_end_index){
+//             if(str[i] == ' '){
+//                 if(current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT){
+//                     draw_char(current_x, current_y, ' ', color);
+//                 }
+//                 current_x += char_width;
+//                 i++;
+//             }
+
+//             word_start_index = i;
+//         }
+//     }
+// }
+
+
 void draw_string_wrapped(int x, int y, const char *str, int color, int max_width){
     int current_x = x;
     int current_y = y;
-    int word_start_index = 0;
-    int i = 0;
-
     int char_width = FONT_WIDTH + CHAR_SPACING;
 
-    while(str[i] != '\0'){
-        int word_end_index = i;
-        while(str[word_end_index] != '\0' &&
-              str[word_end_index] != ' ' &&
-              str[word_end_index] != '\n'){
-                word_end_index++;
+    const char *p = str;
+
+    while(*p != '\0'){
+        // hoppar över första space i första raden
+        if(*p == ' ' && current_x == x){
+            p++;
+            continue;
         }
-
-        int word_len = word_end_index - word_start_index;
-        int word_width = word_len * char_width;
-
-        //check if current row have space for the word
-        if(current_x + word_width > x + max_width && current_x > x){
-            // if not, dont draw and break line
+        //när \n
+        if(*p == '\n'){
             current_x = x;
             current_y += FONT_HEIGHT + LINE_SPACING;
-            //check boundries
+            p++;
+            continue; 
+        }
+
+        //hittar nuvarande ord börja och sluta
+        const char *word_start = p;
+        const char *word_end = word_start;
+        //hittar när ordet sluta
+        while(*word_end != '\0' && *word_end != ' ' && *word_end != '\n'){
+            word_end++;
+        }
+        // räkna ord-width
+        int word_len = word_end - word_start;
+        int word_width = word_len * char_width;
+
+        if(current_x > x && current_x + word_width > x + max_width){
+            current_x = x;
+            current_y += FONT_HEIGHT + LINE_SPACING;
+
             if(current_y >= SCREEN_HEIGHT - FONT_HEIGHT){
                 break;
             }
-            //re-do this word
             continue;
         }
 
-        // break line
-        if(str[i] == '\n'){
-            current_x = x;
-            current_y += FONT_HEIGHT + LINE_SPACING;
-            word_start_index = i + 1;
-            i++;
-            continue;
-        }
-
-        //draw current char
-        if(current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT){
-            draw_char(current_x, current_y, str[i], color);
-        }
-
-        current_x += char_width;
-        i++;
-        //if end of the word, space
-        if(i == word_end_index){
-            if(str[i] == ' '){
-                if(current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT){
-                    draw_char(current_x, current_y, ' ', color);
-                }
-                current_x += char_width;
-                i++;
+        for(const char *ch = word_start; ch < word_end; ch++){
+            if(current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT){
+                draw_char(current_x, current_y, *ch, color);
             }
+            current_x += char_width;
+        }
 
-            word_start_index = i;
+        p = word_end;
+
+        if(*p == ' '){
+            if(current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT){
+                draw_char(current_x, current_y, ' ', color);
+            }
+            current_x += char_width;
+            p++;
         }
     }
 }
+
+
 void render_game(GameState *game) {
     clear_backbuffer();
     //players
@@ -610,5 +674,5 @@ void render_game(GameState *game) {
 
 void draw_msg(char* ch){
     draw_filled_rect(80, 60, 160, 120, 0);
-    draw_string_wrapped(80, 60, &ch, 255, MSG_WIDTH);
+    draw_string_wrapped(80, 60, ch, 255, MSG_WIDTH);
 }
