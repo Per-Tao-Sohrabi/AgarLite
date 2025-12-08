@@ -396,7 +396,7 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
     
     // Check game over conditions TODO...
     print("---- Checking Game Over conditions");
-    for(int i = 0; i <= gs->game_mode; i++) {
+    for(int i = 0; i <= gs->game_mode + 1; i++) {
         volatile Player* p_i = &gs->players[i];
         if(p_i->id == -1) {
             continue; // Skip if Player does not exist
