@@ -336,13 +336,16 @@ void draw_filled_rect(int x, int y, int width, int height, int color){
     }
 }
 
+// Change: Draw pixel to the back_buffer, not the visible VGA memory.
 void draw_pixel(int x, int y, int color){
-    if(x < 0 || x > SCREEN_WIDTH || y < 0 || y > SCREEN_HEIGHT){
+    // Bounds check corrected (SCREEN_WIDTH-1 and SCREEN_HEIGHT-1 for 0-indexed max)
+    if(x < 0 || x >= SCREEN_WIDTH || y < 0 || y >= SCREEN_HEIGHT){
         return;
     }
 
     int offset = y * SCREEN_WIDTH + x;
-    VGA[offset] = color;
+    // CRITICAL FIX: Write to back_buffer, not VGA.
+    back_buffer[offset] = color;
 }
 
 void draw_char(int x, int y, char ch, int color){
@@ -611,4 +614,9 @@ void render_game(GameState *game) {
 void draw_msg(char* ch){
     draw_filled_rect(80, 60, 160, 120, 0);
     draw_string_wrapped(80, 60, &ch, 255, MSG_WIDTH);
+}
+void draw_msg(char* ch){
+    // ...
+    draw_string_wrapped(80, 60, &ch, 255, MSG_WIDTH); 
+    // ...
 }
