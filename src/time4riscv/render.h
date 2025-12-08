@@ -26,7 +26,7 @@
 extern volatile char *VGA;
 extern char back_buffer[BUFFER_SIZE];
 
-extern char frame_buffer1[SCREEN_HEIGHT*SCREEN_WIDTH];
+extern char frame_buffer1[SCREEN_HEIGHT*SCREEN_WIDTH]; // Är detta inte bara buffer size?
 extern char frame_buffer2[SCREEN_WIDTH*SCREEN_HEIGHT];
 
 extern char *current_draw_buffer;

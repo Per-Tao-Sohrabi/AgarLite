@@ -64,8 +64,8 @@ void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ct
     Dict_set_value(&gs->occupied_coords_dict, (p->x_pos << 16) | p->y_pos, -1);
 
     // Determine direction based on control input
-    int x_sign;
-    int y_sign;
+    int x_sign = 0;
+    int y_sign = 0;
 
         switch (x_ctrl)
         {

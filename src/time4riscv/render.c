@@ -299,25 +299,25 @@ void clear_screen(){
 
 // buffer
 volatile char *VGA = (volatile char*) VGA_BASE;
-char frame_buffer1[SCREEN_HEIGHT*SCREEN_WIDTH];
+char frame_buffer1[SCREEN_HEIGHT*SCREEN_WIDTH]; // char list
 char frame_buffer2[SCREEN_WIDTH*SCREEN_HEIGHT];
 
-char *current_draw_buffer;
-char *current_display_buffer;
+char *current_draw_buffer; // Adress type
+char *current_display_buffer; // Adress type
 
 void init_buffers() {
     // init buffers
-    current_draw_buffer = frame_buffer1;
-    current_display_buffer = frame_buffer2;
+    current_draw_buffer = frame_buffer1; // There are multiple?
+    current_display_buffer = frame_buffer2; // 
     
     // clear both buffers
-    for (int i = 0; i < BUFFER_SIZE; i++) {
+    for (int i = 0; i < BUFFER_SIZE; i++) { // Itterate throguht the frame buffer.
         frame_buffer1[i] = 0;
         frame_buffer2[i] = 0;
     }
     
     // init. vga
-    copy_to_vga(current_draw_buffer);
+    copy_to_vga(current_draw_buffer); // Paste in VGA
 }
 
 void copy_to_vga(char *src){
