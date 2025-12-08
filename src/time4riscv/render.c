@@ -313,6 +313,7 @@ void init_buffers() {
     
     // clear both buffers
     for (int i = 0; i < BUFFER_SIZE; i++) {
+        printf("%d", i);
         frame_buffer1[i] = 0;
         frame_buffer2[i] = 0;
     }
