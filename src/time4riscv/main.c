@@ -53,7 +53,7 @@ void copy_to_vga(char *src){
   }
 }
 
-void swap_buffer(){
+void swap_buffers(){
   copy_to_vga(current_draw_buffer);
 
   char *temp = current_draw_buffer;
