@@ -5,7 +5,9 @@
 #include "render.h"
 
 extern void clear_screen();
-extern void draw_string_wrapped(int x, int y, const char *str, uint8_t color, int max_width);
+extern void draw_string_wrapped(int x, int y, const char *str, int color, int max_width);
+extern void draw_msg(char* ch);
+
 
 
 // Initalize a game state
@@ -14,7 +16,7 @@ GameState run_start_up() {
     int gm = query_game_mode(); // Sets number of players and diffuculty in gm varibale. 
     int diff = query_game_difficulty();
     // Initiate the game state:
-    print("Starting GameState initalization Sequence with mode ...d and difficulty ...d\n");
+    print("Starting GameState initalization Sequence with mode %d and difficulty %d\n", gm, diff);
     GameState gs;
     GameState_init(&gs, gm, diff);
     return  gs;
@@ -22,26 +24,29 @@ GameState run_start_up() {
 
 /* Query the player about the game mode they want to play at*/
 int query_game_mode() {
-    clear_screen();   
+    clear_backbuffer();   
     char* msg = "Select Game Mode: 1 or 2 Players by toggling the first switch up for single player. \nSwitch up down for multiplayer. Press button to confirm.\n";
-    draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
+    draw_msg(msg);
+    
     print(msg); // render function
     // Wait for user input and return selected mode
     while(1) {
         int mode = get_switch_state(0);      // Read the mode input
         if(get_btn() == 1) {                 // Poll the button
-            clear_screen();
+            clear_backbuffer();
+            swap_buffers();
             return mode;                     // Return set mode
         }
     }
-    clear_screen();
     return 1; // Placeholder return value
 }
 
 /* Query the player about the difficulty they want to play at*/
 int query_game_difficulty() {
+    clear_backbuffer();
     char* msg = "Use the three first switches to set your difficulty. \nNote binary numbers! Press button to confirm.\n";
-    draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
+    // draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
+    draw_msg(msg);
     print(msg); // render function
     
     // Wait for user input and return selected mode
@@ -52,8 +57,10 @@ int query_game_difficulty() {
         volatile int diff = sw1 + sw2 + sw3; // Binary to decimal conversion
         
         int btn = get_btn();
-        print("Selected difficulty: d...d\n");
+        print("Selected difficulty: d%d\n", diff);
         if (btn) {
+            clear_backbuffer();
+            swap_buffers();
             switch (diff)
             {
             case 0:
@@ -83,26 +90,22 @@ int query_game_difficulty() {
             default:
                 break;
             }
-            clear_screen();
         }
     }
-    clear_screen();
     return 1; // Placeholder return value
 }
  
 /* Pause logic*/
 void run_pause() {
-    int status = get_switch_state(4);
-    clear_screen();
+    print("Toggle switch 4 down to exit pause");
+    char* msg = "Toggle switch 4 down to exit pause";
+    // draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
+    draw_msg(msg);
     while(1) {
-        print("Toggle switch 4 down to exit pause");
-        char* msg = "Toggle switch 4 down to exit pause";
-        
-        
-        draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
-
-        if(status = 1) {
-            clear_screen();
+        int status = get_switch_state(4);
+        if(status == 0) {
+            clear_backbuffer();
+            swap_buffers();
             break;
         }
     }
@@ -111,11 +114,14 @@ void run_pause() {
 /* Game Over*/
 void run_game_over() {
     print("Game Over! Press button to restart.");
-    clear_screen();
+    clear_backbuffer();
     char* msg = "Game Over! \nPress button to restart.";
-    draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
+    // draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
+    draw_msg(msg);
     while(1) {
         if(get_btn() == 1) {
+            clear_backbuffer();
+            swap_buffers();
             break;
         }
     }
