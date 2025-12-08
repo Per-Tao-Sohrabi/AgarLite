@@ -375,11 +375,11 @@ void draw_string(int x, int y, const char *str, int color){
 
         }else if(*str == '\b'){
             x -= 6;
-            draw_filled_rect(x, y, 5, 7, color);
+            draw_filled_rect(x, y, 6, 7, 0);
         }
         else{
             draw_chars(x, y, *str, color);
-            x += 6;
+            x += FONT_WIDTH + CHAR_SPACING;
         }
         str++;
     }
@@ -446,6 +446,8 @@ void draw_string_wrapped(int x, int y, const char *str, int color, int max_width
     int line_start = 0;
     int i = 0;
     
+    int actual_char_width = FONT_WIDTH + CHAR_SPACING;
+
     if (max_width <= 0) {
         max_width = SCREEN_WIDTH - x;
     }
@@ -475,7 +477,7 @@ void draw_string_wrapped(int x, int y, const char *str, int color, int max_width
             continue;
         }
         
-        if (current_x + FONT_HEIGHT > x + max_width) {
+        if (current_x + actual_char_width > x + max_width) {
             
             
             int last_space = i - 1;
@@ -517,7 +519,7 @@ void draw_string_wrapped(int x, int y, const char *str, int color, int max_width
         if (current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT) {
             draw_chars(current_x, current_y, str[i], color);
         }
-        current_x += FONT_WIDTH;
+        current_x += actual_char_width;
         i++;
     }
 }
