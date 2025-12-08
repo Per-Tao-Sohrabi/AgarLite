@@ -5,12 +5,8 @@ OBJECTS ?= $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 LINKER ?= $(SRC_DIR)/dtekv-script.lds
 
 TOOLCHAIN ?= riscv32-unknown-elf-
-# ----------------------------------------------------------------------
-# FINAL FIX: CFLAGS reverted to original to avoid compiler errors.
-# The soft-float control is moved to the linking stage.
-# ----------------------------------------------------------------------
+# CFLAGS are reverted to the original, compilation-successful state
 CFLAGS ?= -Wall -nostartfiles -O3 -mabi=ilp32 -march=rv32im_zicsr
-# ----------------------------------------------------------------------
 
 
 build: clean main.bin
@@ -20,9 +16,9 @@ main.elf:
 	$(TOOLCHAIN)gcc -c $(CFLAGS) $(SOURCES)
 
 # Linking Step (creates main.elf)
-# FIX: Added -lm to ensure all math dependencies are resolved.
-# Order is important: Place libraries (softfloat.a, -lm, -lgcc) at the end.
-	$(TOOLCHAIN)gcc $(CFLAGS) -T $(LINKER) -o $@ $(filter-out boot.o, $(OBJECTS)) softfloat.a -lm -lgcc
+# FIX: REMOVED the conflicting '-lm' flag.
+# We now only link softfloat.a and the required -lgcc library.
+	$(TOOLCHAIN)gcc $(CFLAGS) -T $(LINKER) -o $@ $(filter-out boot.o, $(OBJECTS)) softfloat.a -lgcc
 
 main.bin: main.elf
 	$(TOOLCHAIN)objcopy --output-target binary $< $@
