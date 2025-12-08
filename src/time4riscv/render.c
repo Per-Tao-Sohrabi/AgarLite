@@ -1,11 +1,20 @@
-#include "render.h"
+// =========================================================
+// In render.c
+// =========================================================
+
+#include "render.h" 
+#include "GameState.h" 
 #include "Entities.h"
-#include "GameState.h"
+#include "inputs.h"
 
-// #include "graphics.h"
+// Pointer to the memory-mapped VGA device (the *visible* screen)
+volatile uint8_t *const VGA_DISPLAY = VGA;
 
-volatile char *VGA = (volatile char*) VGA_BASE;
-char back_buffer[VGA_BUFFER_SIZE];
+// The back buffer stored in fast RAM (the *hidden* screen)
+uint8_t back_buffer[VGA_BUFFER_SIZE];
+
+// [Insert font_5x7 definition here]...
+// ...
 
 const uint8_t font_5x7[96][7] = {
     // 空格 (ASCII 32)
@@ -294,385 +303,96 @@ const uint8_t font_5x7[96][7] = {
     {0x00, 0x00, 0x08, 0x15, 0x02, 0x00, 0x00},
 };
 
-void clear_screen(){
-    for (int i = 0; i < SCREEN_WIDTH*SCREEN_HEIGHT; i++){
-        VGA[i] = 0; 
-        back_buffer[i] = 0;
+// Clear the back buffer to a specific color
+void clear_buffer(uint8_t color){
+    for (int i = 0; i < VGA_BUFFER_SIZE; i++) {
+        back_buffer[i] = color; 
     }
 }
 
-void clear_backbuffer(){
-    for (int i = 0; i < VGA_BUFFER_SIZE; i++)
-        back_buffer[i] = 0; 
-}
-
+// Copy the back buffer to the visible VGA display memory
 void swap_buffers(){
+    // This is the simplest (but potentially slow) copy operation
     for(int i = 0; i < VGA_BUFFER_SIZE; i++){
-        VGA[i] = back_buffer[i];
+        VGA_DISPLAY[i] = back_buffer[i];
     }
 }
 
-void draw_circle (int cx, int cy, int radius, int color) {
+// CRITICAL FUNCTION: All drawing must flow through here.
+void draw_pixel(int x, int y, uint8_t color){
+    // Use x >= SCREEN_WIDTH or y >= SCREEN_HEIGHT for strict boundary check
+    if(x < 0 || x >= SCREEN_WIDTH || y < 0 || y >= SCREEN_HEIGHT){
+        return;
+    }
+
+    int offset = y * SCREEN_WIDTH + x;
+    
+    // 🔥 FIX: ALWAYS write to the back_buffer.
+    back_buffer[offset] = color; 
+}
+
+void draw_filled_rect(int x, int y, int width, int height, uint8_t color){
+    for(int i = 0; i < height; i++){
+        for(int j = 0; j < width; j++){
+            draw_pixel(x+j, y+i, color); // Writes to back_buffer via draw_pixel
+        }
+    }
+}
+
+void draw_circle (int cx, int cy, int radius, uint8_t color) {
   int radius_squ = radius * radius;
   for(int y = cy - radius; y <= cy+radius; y++){
     for(int x = cx -radius; x <= cx+radius; x++){
+      // Only draw if inside screen bounds
       if(x >= 0 && x < SCREEN_WIDTH && y >= 0 && y < SCREEN_HEIGHT){
         int dx = x-cx;
         int dy = y-cy;
-        if(dx*dx+dy*dy <= radius_squ){
-            int offset = y * SCREEN_WIDTH + x; 
-            back_buffer[offset] = color; 
+        // Check if inside the circle radius
+        if(dx*dx + dy*dy <= radius_squ){
+            draw_pixel(x, y, color); // Writes to back_buffer via draw_pixel
         }   
       }
     }
   }
 }
 
-void draw_filled_rect(int x, int y, int width, int height, int color){
-    for(int i = 0; i < height; i++){
-        for(int j = 0; j < width; j++){
-            draw_pixel(x+j, y+i, color);
-        }
+// You would also include your draw_char, draw_string, and draw_string_wrapped 
+// functions here, ensuring they all call the corrected draw_pixel.
+// ...
+
+void render_game(const GameState *game) {
+    // 1. CLEAR: Clear the hidden buffer for the new frame.
+    clear_buffer(BLACK); 
+
+    // 2. DRAW: Draw all game entities to the back buffer.
+
+    // A. Draw Players
+    // Note: Assuming you correctly calculate the size of dynamic arrays
+    // For fixed-size arrays (like MAXPLAYERS=2), use the constant:
+    for(int i = 0; i < MAXPLAYERS; i++){
+        const Player *player = &game->players[i];
+        draw_circle(player->x_pos, player->y_pos, (int)player->radius, player->color);
     }
-}
 
-void draw_pixel(int x, int y, int color){
-    if(x < 0 || x > SCREEN_WIDTH || y < 0 || y > SCREEN_HEIGHT){
-        return;
+    // B. Draw Food
+    for(int i = 0; i < MAXFOOD; i++){
+        const Food *food = &game->crumbs[i];
+        // Using Food->nutrition as a color is common in this type of game
+        draw_circle(food->x_pos, food->y_pos, food->radius, food->nutrition);
     }
 
-    int offset = y * SCREEN_WIDTH + x;
-    back_buffer[offset] = color;
-}
+    // C. Draw AI
+    for(int i = 0; i < MAXAI; i++){
+        const Ai *ai = &game->ais[i];
+        draw_circle(ai->x_pos, ai->y_pos, (int)ai->radius, ai->color);
+    }
 
-void draw_char(int x, int y, char ch, int color){
-    if(ch < 32 || ch > 126){
-        return;
+    // D. Draw UI/HUD (e.g., score, pause message)
+    if (get_switch_state(4) == 1) {
+        draw_filled_rect(100, 100, 120, 40, WHITE);
+        draw_string_wrapped(110, 110, "PAUSED", BLACK, 100);
     }
     
-    int index = ch - 32;
-    for(int row = 0; row < 7; row++){
-        uint8_t line_data = font_5x7[index][row];
-
-        for(int col = 0; col < 5; col++){
-            if(line_data & (0x10 >> col)){
-                draw_pixel(x+col, y+row, color);
-            }
-        }
-    }
-}
-
-void draw_string(int x, int y, const char *str, int color){
-    int start_x = x;
-
-    while(*str){
-        if(*str == '\n'){
-            y += 8;
-            x = start_x;
-
-        }else if(*str == '\t'){
-            x += 4*6;
-
-        }else if(*str == '\b'){
-            x -= 6;
-            draw_filled_rect(x, y, 6, 7, 0);
-        }
-        else{
-            draw_char(x, y, *str, color);
-            x += FONT_WIDTH + CHAR_SPACING;
-        }
-        str++;
-    }
-
-}
-
-void draw_string_centered(int y, const char *str, int color){
-    int len = 0;
-    const char* temp = str;
-
-    while(*temp && *temp != '\n'){
-        len++;
-        temp++;
-    }
-
-    int total_width = len*(FONT_WIDTH + CHAR_SPACING);
-    int x = (SCREEN_WIDTH-total_width)/2;
-    draw_string(x, y, str, color);
-}
-
-// void draw_string_wrapped(int x, int y, const char *str, int color, int max_width){
-//     int start_x = x;
-//     int word_start_x = x;
-//     const char* word_start = str;
-//     while(*str){
-//         if(*str == '\n'){
-//             y += FONT_HEIGHT + LINE_SPACING;
-//             x = start_x;
-//             word_start_x = x;
-//             str++;
-//             word_start = str;
-//         }else if(*str == ' '){
-//             draw_char(x, y, ' ', color);
-//             x += FONT_WIDTH + CHAR_SPACING;
-//             str++;
-//             word_start_x = x;
-//             word_start = str;
-//         }else{
-//             int word_length = 0;
-//             const char* temp = word_start;
-//             while((*temp) && (*temp != ' ') && (*temp != '\n')){
-//                 word_length++;
-//                 temp++;
-//             }          
-//             int word_pixels = word_length * (FONT_WIDTH + CHAR_SPACING);
-//             if(x + word_pixels - word_start_x > max_width){
-//                 y += FONT_HEIGHT + LINE_SPACING;
-//                 x = start_x;
-//                 word_start_x = x;
-//             }
-//             draw_char(x, y, *str, color);
-//             x += FONT_WIDTH + CHAR_SPACING;
-//             str++;
-//         }
-//     }
-// }
-
-// void draw_string_wrapped(int x, int y, const char *str, int color, int max_width) {
-//     int current_x = x;
-//     int current_y = y;
-//     int line_start = 0;
-//     int i = 0;
-    
-//     int actual_char_width = FONT_WIDTH + CHAR_SPACING;
-
-//     if (max_width <= 0) {
-//         max_width = SCREEN_WIDTH - x;
-//     }
-    
-    
-//     if (x + max_width > SCREEN_WIDTH) {
-//         max_width = SCREEN_WIDTH - x;
-//     }
-    
-    
-//     if (y >= SCREEN_HEIGHT) {
-//         return;  
-//     }
-    
-//     while (str[i] != '\0') {
-        
-//         if (current_y >= SCREEN_HEIGHT - FONT_HEIGHT) {
-           
-//             break;
-//         }
-        
-//         if (str[i] == '\n') {
-//             current_x = x;
-//             current_y += FONT_HEIGHT + LINE_SPACING;
-//             line_start = i + 1;
-//             i++;
-//             continue;
-//         }
-        
-//         if (current_x + actual_char_width > x + max_width) {
-            
-            
-//             int last_space = i - 1;
-//             while (last_space > line_start && str[last_space] != ' ') {
-//                 last_space--;
-//             }
-            
-//             if (last_space > line_start && str[last_space] == ' ') {
-            
-//                 i = last_space + 1;
-//                 current_x = x;
-//                 current_y += FONT_HEIGHT + LINE_SPACING;
-//                 line_start = i;
-                
-                
-//                 if (current_y >= SCREEN_HEIGHT - FONT_HEIGHT) {
-//                     break;
-//                 }
-//                 continue;
-//             } else {
-                
-//                 current_x = x;
-//                 current_y += FONT_HEIGHT + LINE_SPACING;
-//                 line_start = i;
-                
-//                 if (current_y >= SCREEN_HEIGHT - FONT_HEIGHT) {
-//                     break;
-//                 }
-                
-//                 if (current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT) {
-//                     draw_char(current_x, current_y, str[i], color);
-//                 }
-//                 current_x += FONT_WIDTH;
-//                 i++;
-//                 continue;
-//             }
-//         }
-        
-//         if (current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT) {
-//             draw_char(current_x, current_y, str[i], color);
-//         }
-//         current_x += actual_char_width;
-//         i++;
-//     }
-// }
-
-// void draw_string_wrapped(int x, int y, const char *str, int color, int max_width){
-//     int current_x = x;
-//     int current_y = y;
-//     int word_start_index = 0;
-//     int i = 0;
-
-//     int char_width = FONT_WIDTH + CHAR_SPACING;
-
-//     while(str[i] != '\0'){
-//         int word_end_index = i;
-//         while(str[word_end_index] != '\0' &&
-//               str[word_end_index] != ' ' &&
-//               str[word_end_index] != '\n'){
-//                 word_end_index++;
-//         }
-
-//         int word_len = word_end_index - word_start_index;
-//         int word_width = word_len * char_width;
-
-//         //check if current row have space for the word
-//         if(current_x + word_width > x + max_width && current_x > x){
-//             // if not, dont draw and break line
-//             current_x = x;
-//             current_y += FONT_HEIGHT + LINE_SPACING;
-//             //check boundries
-//             if(current_y >= SCREEN_HEIGHT - FONT_HEIGHT){
-//                 break;
-//             }
-//             //re-do this word
-//             continue;
-//         }
-
-//         // break line
-//         if(str[i] == '\n'){
-//             current_x = x;
-//             current_y += FONT_HEIGHT + LINE_SPACING;
-//             word_start_index = i + 1;
-//             i++;
-//             continue;
-//         }
-
-//         //draw current char
-//         if(current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT){
-//             draw_char(current_x, current_y, str[i], color);
-//         }
-
-//         current_x += char_width;
-//         i++;
-//         //if end of the word, space
-//         if(i == word_end_index){
-//             if(str[i] == ' '){
-//                 if(current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT){
-//                     draw_char(current_x, current_y, ' ', color);
-//                 }
-//                 current_x += char_width;
-//                 i++;
-//             }
-
-//             word_start_index = i;
-//         }
-//     }
-// }
-
-
-void draw_string_wrapped(int x, int y, const char *str, int color, int max_width){
-    int current_x = x;
-    int current_y = y;
-    int char_width = FONT_WIDTH + CHAR_SPACING;
-
-    const char *p = str;
-
-    while(*p != '\0'){
-        // hoppar över första space i första raden
-        if(*p == ' ' && current_x == x){
-            p++;
-            continue;
-        }
-        //när \n
-        if(*p == '\n'){
-            current_x = x;
-            current_y += FONT_HEIGHT + LINE_SPACING;
-            p++;
-            continue; 
-        }
-
-        //hittar nuvarande ord börja och sluta
-        const char *word_start = p;
-        const char *word_end = word_start;
-        //hittar när ordet sluta
-        while(*word_end != '\0' && *word_end != ' ' && *word_end != '\n'){
-            word_end++;
-        }
-        // räkna ord-width
-        int word_len = word_end - word_start;
-        int word_width = word_len * char_width;
-
-        if(current_x > x && current_x + word_width > x + max_width){
-            current_x = x;
-            current_y += FONT_HEIGHT + LINE_SPACING;
-
-            if(current_y >= SCREEN_HEIGHT - FONT_HEIGHT){
-                break;
-            }
-            continue;
-        }
-
-        for(const char *ch = word_start; ch < word_end; ch++){
-            if(current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT){
-                draw_char(current_x, current_y, *ch, color);
-            }
-            current_x += char_width;
-        }
-
-        p = word_end;
-
-        if(*p == ' '){
-            if(current_x < SCREEN_WIDTH && current_y < SCREEN_HEIGHT){
-                draw_char(current_x, current_y, ' ', color);
-            }
-            current_x += char_width;
-            p++;
-        }
-    }
-}
-
-
-void render_game(GameState *game) {
-    clear_backbuffer();
-    //players
-    int antal_players = sizeof(game -> players) / sizeof(game -> players[0]); 
-    for(int i = 0; i < antal_players; i++){
-        Player player = game -> players[i];
-        draw_circle(player.x_pos, player.y_pos, player.radius, player.color);
-    }
-
-    //food
-    int antal_food = sizeof(game -> crumbs) / sizeof(game -> crumbs[0]); 
-    for(int i = 0; i < antal_food;  i++){
-        Food food = game -> crumbs[i];
-        draw_circle(food.x_pos, food.y_pos, food.radius, food.nutrition);
-    }
-
-    //ai
-    int antal_ai = sizeof(game -> ais)/sizeof(game->ais[0]);
-    for(int i = 0; i < antal_ai; i++){
-        Ai ai = game -> ais[i];
-        draw_circle(ai.x_pos, ai.y_pos, ai.radius, ai.color);
-    }
+    // 3. SWAP: Copy the complete, new frame from the back buffer to the screen.
     swap_buffers();
-}
-
-void draw_msg(char* ch){
-    draw_filled_rect(80, 60, 160, 120, 0);
-    draw_string_wrapped(80, 60, ch, 255, MSG_WIDTH);
 }

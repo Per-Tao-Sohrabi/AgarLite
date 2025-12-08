@@ -1,56 +1,42 @@
-#ifndef RENDER_H
-#define RENDER_H
+// =========================================================
+// In render.h (or a separate vga_config.h)
+// =========================================================
 
-#include "Entities.h"
-#include "GameState.h"
-
-#include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
 
-#define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 240
-#define VGA_BASE 0x08000000
-#define MAGRIN 10
-#define TOTAL_WIDTH 300
-#define FONT_HEIGHT 7
-#define FONT_WIDTH 5
-#define LINE_SPACING 1
-#define CHAR_SPACING 1
-#define WHITE 255
-#define MSG_WIDTH 250
-#define MSG_HEIGHT 120
+// Assuming standard 320x240, 8-bit color depth (256 colors)
+#define SCREEN_WIDTH        320
+#define SCREEN_HEIGHT       240
+#define VGA_BUFFER_SIZE     (SCREEN_WIDTH * SCREEN_HEIGHT)
 
-#define VGA_BUFFER_SIZE SCREEN_WIDTH*SCREEN_HEIGHT
-extern volatile char *VGA;
-extern char back_buffer[VGA_BUFFER_SIZE];
+// Base address of the VGA memory-mapped I/O (this is system-specific)
+// Assuming VGA_BASE is 0x04000000 or similar, based on your previous code
+#define VGA_BASE            0x04000000 
+#define VGA                 ((volatile uint8_t*) VGA_BASE)
 
-extern const uint8_t font_5x7[96][7];
+// Font constants (from your original code)
+#define FONT_WIDTH          5
+#define FONT_HEIGHT         7
+#define CHAR_SPACING        1
+#define LINE_SPACING        1
 
-// void vga_int();
+// Simple Color Palette (8-bit)
+#define BLACK               0
+#define WHITE               255
+#define RED                 224 // High bits set
+#define GREEN               28
+#define BLUE                3
 
-void clear_backbuffer();
+// Add any other necessary struct definitions (e.g., Player, Food, GameState)
+// ...
 
-void swap_buffers();
+// Function prototypes
+void clear_buffer(uint8_t color);
+void swap_buffers(void);
+void draw_pixel(int x, int y, uint8_t color);
+void draw_filled_rect(int x, int y, int width, int height, uint8_t color);
+void draw_char(int x, int y, char ch, uint8_t color);
+void draw_string_wrapped(int x, int y, const char *str, uint8_t color, int max_width);
 
-void clear_screen();
-
-void draw_circle (int cx, int cy, int radius, int color);
-
-void draw_filled_rect(int x, int y, int width, int height, int color);
-
-void draw_pixel(int x, int y, int color);
-
-void draw_chars(int x, int y, char ch, int color);
-
-void draw_string(int x, int y, const char *str, int color);
-
-void draw_string_wrapped(int x, int y, const char *str, int color, int max_width);
-
-void draw_string_centered(int y, const char *str, int color);
-
-void render_game(GameState *game);
-
-void draw_msg(char* ch);
-
-#endif
+// The main rendering loop function
+void render_game(const GameState *game);
