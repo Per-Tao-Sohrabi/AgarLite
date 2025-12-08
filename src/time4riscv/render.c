@@ -670,9 +670,11 @@ void render_game(GameState *game) {
         draw_circle(ai.x_pos, ai.y_pos, ai.radius, ai.color);
     }
     swap_buffers();
+    clear_backbuffer();
 }
 
 void draw_msg(char* ch){
+    clear_backbuffer();
     draw_filled_rect(35, 60, MSG_WIDTH, MSG_HEIGHT, 0);
     draw_string_wrapped(35, 60, ch, 255, MSG_WIDTH);
     swap_buffers();
