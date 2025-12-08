@@ -271,6 +271,7 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
         volatile Player* p_i = &gs->players[i];
         if(p_i->id == -1) {
             continue; // Skip if Player does not exist
+            print("continue...");
         }
         // Read player input
         int x_ctrl = input_vector[i]; // X control
