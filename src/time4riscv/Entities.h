@@ -12,8 +12,8 @@ typedef struct {
     int id;
     int x_pos;
     int y_pos;
-    float area;
-    float radius;
+    int area;
+    int radius;
     int color;
     int velocity;
     int dx, dy;
@@ -21,7 +21,7 @@ typedef struct {
 
 typedef struct {
     int id;
-    float radius;
+    int radius;
     int x_pos;
     int y_pos;
     int nutrition;
@@ -32,8 +32,8 @@ typedef struct {
     int id;
     int x_pos;
     int y_pos;
-    float area;
-    float radius;
+    int area;
+    int radius;
     int color;
     int velocity;
     int dx, dy;

@@ -696,7 +696,7 @@ void draw_string_wrapped(int x, int y, const char *str, int color, int max_width
 }
 
 void render_game(GameState *game) {
-    clear_current_buffer();
+    clear_current_buffer(); // Clear, then draw to the buffer. 
     //players
     int antal_players = sizeof(game -> players) / sizeof(game -> players[0]); 
     for(int i = 0; i < antal_players; i++){

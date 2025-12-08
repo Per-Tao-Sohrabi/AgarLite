@@ -12,7 +12,7 @@ void Player_init(volatile Player* p, int id, int color, int x_pos, int y_pos) {
     p->velocity = 1; // Inital velocity
     p->dx = 0;
     p->dy = 0;
-    p->radius = sqrt(p->area/3.14f);
+    p->radius = sqrt(p->area*100/314);
     p->id = id;
     //print("-------- Player initialized\n");
 }
@@ -20,19 +20,19 @@ void Player_init(volatile Player* p, int id, int color, int x_pos, int y_pos) {
 void Ai_init(volatile Ai* ai, int id, int color, int x_pos, int y_pos) {
     ai->x_pos = x_pos; //TODO: Random start position
     ai->y_pos = y_pos; //TODO: Random start position
-    ai->area = 100.0f;
+    ai->area = 100;
     ai->color = color;
     ai->velocity = 1; // Inital velocity
     ai->dx = 0;
     ai->dy = 0;
-    ai->radius = sqrt(ai->area/3.14f);
+    ai->radius = sqrt(ai->area*100/314);
     ai->id = id;
     //print("-------- Calculating radius for AI with area \n");
     //print("-------- AI initialized: id=...d, pos=(...d,...d), color=...d, radius=\n");
 }
 
 void Food_init(volatile Food* f, int id, int type, int x_pos, int y_pos) {
-    f->radius = 1.0f;
+    f->radius = 1;
     f->x_pos = x_pos; //TODO: Random start position
     f->y_pos = y_pos; //TODO: Random start position
     f->type = type;
