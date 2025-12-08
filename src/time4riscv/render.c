@@ -301,33 +301,76 @@ void clear_screen(){
 
 // buffer
 volatile char *VGA = (volatile char*) VGA_BASE;
-char frame_buffer1[SCREEN_HEIGHT*SCREEN_WIDTH];
-char frame_buffer2[SCREEN_WIDTH*SCREEN_HEIGHT];
+// char frame_buffer1[SCREEN_HEIGHT*SCREEN_WIDTH];
+// char frame_buffer2[SCREEN_WIDTH*SCREEN_HEIGHT];
+// char *current_draw_buffer;
+// char *current_display_buffer;
 
-char *current_draw_buffer;
-char *current_display_buffer;
+char frame_buffer1 = NULL;
+char frame_buffer2 = NULL;
+char *current_draw_buffer = NULL;
+char *current_display_buffer = NULL;
 
-void init_buffers() {
-    clear_screen();
-    // init buffers
-    print("clear_screen");
-    current_draw_buffer = frame_buffer1;
-    current_display_buffer = frame_buffer2;
-    print("buffer init");
-    // clear both buffers
-    for (int i = 0; i < BUFFER_SIZE; i++) {
-        frame_buffer1[i] = 0;
-        frame_buffer2[i] = 0;
+void init_buffers(){
+    print("Allocating memory for double buffers...\n");
+    
+    frame_buffer1 = (char*)malloc(BUFFER_SIZE * sizeof(char));
+    frame_buffer2 = (char*)malloc(BUFFER_SIZE * sizeof(char));
+    
+    if (!frame_buffer1 || !frame_buffer2) {
+        print("ERROR: Failed to allocate memory for buffers!\n");
+        return;
     }
     
-    for (int i = 0; i < BUFFER_SIZE; i++) {
-        VGA[i] = 0;
-    }
+    current_draw_buffer = frame_buffer1;
+    current_display_buffer = frame_buffer2;
+    
+    memset(frame_buffer1, 0, BUFFER_SIZE);
+    memset(frame_buffer2, 0, BUFFER_SIZE);
 
-    print("Buffers initialized and cleared\n");
-    // init. vga
-    // copy_to_vga(current_draw_buffer);
+    clear_screen();
+    
+    printf("Buffers allocated: %d bytes each\n", BUFFER_SIZE);
 }
+
+void cleanup_buffers() {
+    print("Cleaning up buffer memory...\n");
+    
+    if (frame_buffer1) {
+        free(frame_buffer1);
+        frame_buffer1 = NULL;
+    }
+    
+    if (frame_buffer2) {
+        free(frame_buffer2);
+        frame_buffer2 = NULL;
+    }
+    
+    current_draw_buffer = NULL;
+    current_display_buffer = NULL;
+    
+    print("Buffer memory freed\n");
+}
+
+// void init_buffers() {
+//     clear_screen();
+//     // init buffers
+//     current_draw_buffer = frame_buffer1;
+//     current_display_buffer = frame_buffer2;
+//     // clear both buffers
+//     for (int i = 0; i < BUFFER_SIZE; i++) {
+//         frame_buffer1[i] = 0;
+//         frame_buffer2[i] = 0;
+//     }
+    
+//     for (int i = 0; i < BUFFER_SIZE; i++) {
+//         VGA[i] = 0;
+//     }
+
+//     print("Buffers initialized and cleared\n");
+//     // init. vga
+//     // copy_to_vga(current_draw_buffer);
+// }
 
 void copy_to_vga(char *src){
   for(int i = 0; i < BUFFER_SIZE; i++){
