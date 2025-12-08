@@ -4,6 +4,8 @@
 
 // #include "graphics.h"
 
+extern void print(const char*);
+
 const uint8_t font_5x7[96][7] = {
     // 空格 (ASCII 32)
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
@@ -308,12 +310,12 @@ char *current_display_buffer;
 void init_buffers() {
     clear_screen();
     // init buffers
+    print("clear_screen");
     current_draw_buffer = frame_buffer1;
     current_display_buffer = frame_buffer2;
-    
+    print("buffer init");
     // clear both buffers
     for (int i = 0; i < BUFFER_SIZE; i++) {
-        printf("%d", i);
         frame_buffer1[i] = 0;
         frame_buffer2[i] = 0;
     }
