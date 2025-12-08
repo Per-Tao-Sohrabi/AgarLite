@@ -400,7 +400,7 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
         if(p_i->id == -1) {
             continue; // Skip if Player does not exist
         }
-        if (p_i->area <= 1) {
+        if ((int) p_i->area <= 1) {
             // Handle game over for player i
             return true;
         }
