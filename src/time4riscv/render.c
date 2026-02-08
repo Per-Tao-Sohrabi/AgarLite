@@ -298,9 +298,11 @@ void clear_screen(){
 }
 
 // buffer
+// buffer
 volatile char *VGA = (volatile char*) VGA_BASE;
-char frame_buffer1[SCREEN_HEIGHT*SCREEN_WIDTH]; // char list
-char frame_buffer2[SCREEN_WIDTH*SCREEN_HEIGHT];
+// Align buffers to 4 bytes for 32-bit operations
+char frame_buffer1[SCREEN_HEIGHT*SCREEN_WIDTH] __attribute__((aligned(4))); 
+char frame_buffer2[SCREEN_WIDTH*SCREEN_HEIGHT] __attribute__((aligned(4)));
 
 char *current_draw_buffer; // Adress type
 char *current_display_buffer; // Adress type
@@ -321,9 +323,14 @@ void init_buffers() {
 }
 
 void copy_to_vga(char *src){
-  for(int i = 0; i < BUFFER_SIZE; i++){
-    VGA[i] = src[i];
-  }
+    volatile uint32_t *vga_ptr = (volatile uint32_t*)VGA;
+    uint32_t *src_ptr = (uint32_t*)src;
+    
+    // Copy 4 bytes at a time
+    int num_words = BUFFER_SIZE / 4;
+    for(int i = 0; i < num_words; i++){
+        vga_ptr[i] = src_ptr[i];
+    }
 }
 
 void swap_buffers(){
@@ -335,9 +342,13 @@ void swap_buffers(){
 }
 
 void clear_current_buffer(){
-  for(int i = 0; i < BUFFER_SIZE; i++){
-    current_draw_buffer[i] = 0;
-  }
+    uint32_t *buf_ptr = (uint32_t*)current_draw_buffer;
+    
+    // Clear 4 bytes at a time
+    int num_words = BUFFER_SIZE / 4;
+    for(int i = 0; i < num_words; i++){
+        buf_ptr[i] = 0;
+    }
 }
 
 // void draw_circle (int cx, int cy, int radius, int color) {
@@ -356,25 +367,32 @@ void clear_current_buffer(){
 //   }
 // }
 
+extern int int_sqrt(int x); // Forward declaration
+
 void draw_circle_to_buffer(char *buffer, int cx, int cy, int radius, int color) {
     int radius_squ = radius * radius;
     int min_y = cy - radius;
     int max_y = cy + radius;
-    int min_x = cx - radius;
-    int max_x = cx + radius;
     
     if (min_y < 0) min_y = 0;
     if (max_y >= SCREEN_HEIGHT) max_y = SCREEN_HEIGHT - 1;
-    if (min_x < 0) min_x = 0;
-    if (max_x >= SCREEN_WIDTH) max_x = SCREEN_WIDTH - 1;
     
     for (int y = min_y; y <= max_y; y++) {
+        int dy = y - cy;
+        // Optimize: Calculate x width using integer square root
+        // x = sqrt(r^2 - dy^2)
+        int dx_width = int_sqrt(radius_squ - dy*dy);
+        
+        int min_x = cx - dx_width;
+        int max_x = cx + dx_width;
+        
+        if (min_x < 0) min_x = 0;
+        if (max_x >= SCREEN_WIDTH) max_x = SCREEN_WIDTH - 1;
+        
+        // Draw horizontal line
+        int offset = y * SCREEN_WIDTH;
         for (int x = min_x; x <= max_x; x++) {
-            int dx = x - cx;
-            int dy = y - cy;
-            if (dx * dx + dy * dy <= radius_squ) {
-                buffer[y * SCREEN_WIDTH + x] = color;
-            }
+            buffer[offset + x] = color;
         }
     }
 }
@@ -540,6 +558,7 @@ void draw_string_wrapped(int x, int y, const char *str, int color, int max_width
     }
 }
 
+/* Render game to buffer*/
 void render_game(GameState *game) {
     clear_current_buffer(); // Clear, then draw to the buffer. 
     //players
