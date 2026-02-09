@@ -1,6 +1,7 @@
 #include "render.h"
 #include "Entities.h"
 #include "GameState.h"
+#include "math_tools.h"
 
 // #include "graphics.h"
 
@@ -297,91 +298,203 @@ void clear_screen(){
     }
 }
 
-// buffer
-// buffer
-volatile char *VGA = (volatile char*) VGA_BASE;
-// Align buffers to 4 bytes for 32-bit operations
-char frame_buffer1[SCREEN_HEIGHT*SCREEN_WIDTH] __attribute__((aligned(4))); 
-char frame_buffer2[SCREEN_WIDTH*SCREEN_HEIGHT] __attribute__((aligned(4)));
+/* VGA Buffer 
 
+*/
+volatile char *VGA = (volatile char*) VGA_BASE;
+
+/* Align buffers to 4 bytes for 32-bit operations
+Motivation:
+- standar c char array have allignment of 1.
+- Buffer point in our case cast to unit32_t: allows for writing 32 bits at once.
+- Limits to writing words at adressess dividible by 4, mitigating potential crashes common to some systems. 
+*/ 
+char frame_buffer1[SCREEN_WIDTH*SCREEN_HEIGHT] __attribute__((aligned(4))); // GCC compiler extension to manually set allignemnt to 4 bytes.
+char frame_buffer2[SCREEN_WIDTH*SCREEN_HEIGHT] __attribute__((aligned(4)));
+ 
+/* Double buffering
+
+*/
 char *current_draw_buffer; // Adress type
 char *current_display_buffer; // Adress type
 
+/* Initialize buffers
+@brief
+    Blanks at the VGA buffer memory locations.
+Calls:
+    copy_to_vga()
+@params
+    void: No arguments taken.
+
+@return
+    void: No return value.
+*/
 void init_buffers() {
     // init buffers
-    current_draw_buffer = frame_buffer1; // There are multiple?
-    current_display_buffer = frame_buffer2; // 
+    current_draw_buffer = frame_buffer1;    // initalizes to buffer one (height X width)
+    current_display_buffer = frame_buffer2; // initalizes to buffer two (width X height)
     
     // clear both buffers
     for (int i = 0; i < BUFFER_SIZE; i++) { // Itterate throguht the frame buffer.
         frame_buffer1[i] = 0;
         frame_buffer2[i] = 0;
     }
-    
+
     // init. vga
-    copy_to_vga(current_draw_buffer); // Paste in VGA
+    copy_to_vga(current_draw_buffer);       // Paste in VGA
 }
 
-void copy_to_vga(char *src){
-    volatile uint32_t *vga_ptr = (volatile uint32_t*)VGA;
-    uint32_t *src_ptr = (uint32_t*)src;
+/* Copy to VGA
+@brief
+    Copies the contents of the current draw buffer to the VGA buffer.
+@params
+    void: No arguments taken.
+
+@return
+    void: No return value.
+*/
+void copy_to_vga(char *buffer_root){
+    volatile uint32_t *vga_ptr = (volatile uint32_t*)VGA;   // The VGA pointer is copied to a local (volatile unit_32_t) pointer.
+    uint32_t *buffer_root = (uint32_t*)buffer_root;         // A pointer to the buffer root address.
     
     // Copy 4 bytes at a time
     int num_words = BUFFER_SIZE / 4;
     for(int i = 0; i < num_words; i++){
-        vga_ptr[i] = src_ptr[i];
+        vga_ptr[i] = buffer_root[i];
     }
 }
 
-void swap_buffers(){
-  copy_to_vga(current_draw_buffer);
+/* Swap buffers
+@brief
+    Swaps the contents of the current draw buffer and the current display buffer.
 
-  char *temp = current_draw_buffer;
-  current_draw_buffer = current_display_buffer;
-  current_display_buffer = temp;
+Calls:
+    copy_to_vga()
+
+@params
+    void: No arguments taken.
+
+@return
+    void: No return value.
+*/
+void swap_buffers(){
+  copy_to_vga(current_draw_buffer); // Draw draw buffer values to VGA
+
+  char *temp = current_draw_buffer;                 // Pass draw buffer adress into temporary pointer.
+  current_draw_buffer = current_display_buffer;     // Update draw buffer memory values to those of the current display buffer.
+  current_display_buffer = temp;                    // Update display buffer memory values to those of the temporary pointer.
 }
 
-void clear_current_buffer(){
-    uint32_t *buf_ptr = (uint32_t*)current_draw_buffer;
-    
+/* Clear current buffer
+@brief
+    Clears the current draw buffer.
+
+@params
+    void: No arguments taken.
+
+@return
+    void: No return value.
+*/
+void clear_current_buffer(){     
+    uint32_t *buffer_root = (uint32_t*)current_draw_buffer;
     // Clear 4 bytes at a time
     int num_words = BUFFER_SIZE / 4;
     for(int i = 0; i < num_words; i++){
-        buf_ptr[i] = 0;
+        buffer_root[i] = 0;
     }
 }
 
-// void draw_circle (int cx, int cy, int radius, int color) {
-//   int radius_squ = radius * radius;
-//   for(int y = cy - radius; y <= cy+radius; y++){
-//     for(int x = cx -radius; x <= cx+radius; x++){
-//       if(x >= 0 && x < SCREEN_WIDTH && y >= 0 && y < SCREEN_HEIGHT){
-//         int dx = x-cx;
-//         int dy = y-cy;
-//         if(dx*dx+dy*dy <= radius_squ){
-//             int offset = y * SCREEN_WIDTH + x; 
-//             back_buffer[offset] = color; 
-//         }   
-//       }
-//     }
-//   }
-// }
 
-extern int int_sqrt(int x); // Forward declaration
 
-void draw_circle_to_buffer(char *buffer, int cx, int cy, int radius, int color) {
-    int radius_squ = radius * radius;
+// ===========================================================
+// ================= Primitive shapes ========================
+// ===========================================================
+
+/* Draw pixel to buffer
+@brief
+    Draws a pixel to the buffer.
+
+@params
+    buffer: The buffer to draw the pixel to.
+    x: The x-coordinate of the pixel.
+    y: The y-coordinate of the pixel.
+    color: The color of the pixel.
+
+@return
+    void: No return value.
+*/
+void draw_pixel_to_buffer(char *buffer_root, int x, int y, int color){
+    // Edge cases
+    if(x < 0 || x >= SCREEN_WIDTH || y < 0 || y >= SCREEN_HEIGHT){
+        return;
+    }
+
+    // Calculate offset
+    int offset = y * SCREEN_WIDTH + x;
+    buffer_root[offset] = color;
+}
+
+/* Draw horizontal line
+@brief
+    Draws a horizontal line to the buffer.
+
+@params
+    buffer: The buffer to draw the line to.
+    x_min: The minimum x-coordinate of the line.
+    x_max: The maximum x-coordinate of the line.
+    y: The y-coordinate of the line.
+    color: The color of the line.
+
+@return
+    void: No return value.
+*/
+void draw_horizontal_line(char *line_root, int x_min, int x_max, int y, int color){
+   // Edge cases
+    if (y < 0 || y > SCREEN_HEIGHT) {
+        return; // No wrap around
+    }
+    if (x_min < 0) x_min = 0;
+    if (x_max > SCREEN_WIDTH) x_max = SCREEN_WIDTH;
+
+    // Draw line
+    for (int x = x_min; x < x_max; x++) {
+        draw_pixel_to_buffer(line_root, x, y, color);
+    }
+}
+
+/*
+@brief
+    Draws a circle to the buffer.
+    Itterates vertically, calculating the width of the circle at each y-coordinate, and drawing their corresponding lines to the buffer.
+
+@params
+    buffer: The buffer to draw the circle to.
+    cx: The x-coordinate of the center of the circle.
+    cy: The y-coordinate of the center of the circle.
+    radius: The radius of the circle.
+    color: The color of the circle.
+
+@return
+    void: No return value.
+*/
+void draw_circle_to_buffer(char *buffer_root, int cx, int cy, int radius, int color) {
+    // Pre-calculate radius squared
+    int radius_squared = radius * radius;
+    
+    // Calculate y-range for the circle (no wrap around)
     int min_y = cy - radius;
     int max_y = cy + radius;
     
+    // Edge cases
     if (min_y < 0) min_y = 0;
-    if (max_y >= SCREEN_HEIGHT) max_y = SCREEN_HEIGHT - 1;
+    if (max_y >= SCREEN_HEIGHT) max_y = SCREEN_HEIGHT - 1;  // Stops circles from becoming cut off at the top or bottom.
     
+    // Draw circle
     for (int y = min_y; y <= max_y; y++) {
         int dy = y - cy;
         // Optimize: Calculate x width using integer square root
         // x = sqrt(r^2 - dy^2)
-        int dx_width = int_sqrt(radius_squ - dy*dy);
+        int dx_width = int_sqrt(radius_squared - dy*dy);
         
         int min_x = cx - dx_width;
         int max_x = cx + dx_width;
@@ -390,44 +503,86 @@ void draw_circle_to_buffer(char *buffer, int cx, int cy, int radius, int color) 
         if (max_x >= SCREEN_WIDTH) max_x = SCREEN_WIDTH - 1;
         
         // Draw horizontal line
-        int offset = y * SCREEN_WIDTH;
-        for (int x = min_x; x <= max_x; x++) {
-            buffer[offset + x] = color;
-        }
+        draw_horizontal_line(buffer_root, min_x, max_x, y, color);
     }
 }
 
+/* Draw circle (WHY???)
+@brief
+    Draws a circle to the buffer.
+
+@params
+    cx: The x-coordinate of the center of the circle.
+    cy: The y-coordinate of the center of the circle.
+    radius: The radius of the circle.
+    color: The color of the circle.
+
+@return
+    void: No return value.
+*/
 void draw_circle(int cx, int cy, int radius, int color) {
     draw_circle_to_buffer(current_draw_buffer, cx, cy, radius, color);
 }
 
-void draw_filled_rect(int x, int y, int width, int height, int color){
-    for(int i = 0; i < height; i++){
-        int current_y = y+i;
-        if(current_y < 0 || current_y >= SCREEN_HEIGHT) continue;
+/* Draw filled rectangle
+@brief
+    Draws a filled rectangle to the buffer.
+    Itterates on the Y axis and draws horizontal lines.
 
-        for(int j = 0; j < width; j++){
-            int current_x = x+j;
-            if(current_x < 0 || current_x >= SCREEN_WIDTH) continue;
+@params
+    x: The x-coordinate of the top-left corner of the rectangle.
+    y: The y-coordinate of the top-left corner of the rectangle.
+    width: The width of the rectangle.
+    height: The height of the rectangle.
+    color: The color of the rectangle.
 
-            draw_pixel(current_x, current_y, color);
-        }
+@return
+    void: No return value.
+*/
+void draw_filled_rectangle(int x, int y, int width, int height, int color) {
+    // Iterate over the vertical range
+    int start_y = y;
+    int end_y = y + height;
+
+    // Clip to screen boundaries
+    if (start_y < 0) start_y = 0;
+    if (end_y > SCREEN_HEIGHT) end_y = SCREEN_HEIGHT;
+
+    for (int current_y = start_y; current_y < end_y; current_y++) {
+        // Draw a horizontal line for each row
+        draw_horizontal_line(current_draw_buffer, x, x + width, current_y, color);
     }
 }
 
-void draw_pixel_to_buffer(char *buffer, int x, int y, int color){
-    if(x < 0 || x >= SCREEN_WIDTH || y < 0 || y >= SCREEN_HEIGHT){
-        return;
-    }
+/* Draw pixel
+@brief
+    Draws a pixel to the buffer.
 
-    int offset = y * SCREEN_WIDTH + x;
-    buffer[offset] = color;
-}
+@params
+    x: The x-coordinate of the pixel.
+    y: The y-coordinate of the pixel.
+    color: The color of the pixel.
 
+@return
+    void: No return value.
+*/
 void draw_pixel(int x, int y, int color){
     draw_pixel_to_buffer(current_draw_buffer, x, y, color);
 }
 
+/* Draw character
+@brief
+    Draws a character to the buffer.
+
+@params
+    x: The x-coordinate of the top-left corner of the character.
+    y: The y-coordinate of the top-left corner of the character.
+    ch: The character to draw.
+    color: The color of the character.
+
+@return
+    void: No return value.
+*/
 void draw_char(int x, int y, char ch, int color){
     if(ch < 32 || ch > 126){
         return;
@@ -450,6 +605,19 @@ void draw_char(int x, int y, char ch, int color){
     }
 }
 
+/* Draw string
+@brief
+    Draws a string to the buffer.
+
+@params
+    x: The x-coordinate of the top-left corner of the string.
+    y: The y-coordinate of the top-left corner of the string.
+    str: The string to draw.
+    color: The color of the string.
+
+@return
+    void: No return value.
+*/
 void draw_string(int x, int y, const char *str, int color){
     int start_x = x;
     int original_y = y;
@@ -463,7 +631,7 @@ void draw_string(int x, int y, const char *str, int color){
             x += 4*(FONT_WIDTH + CHAR_SPACING);
         }else if(*str == '\b'){
             x -= FONT_WIDTH + CHAR_SPACING;
-            draw_filled_rect(x, y, FONT_WIDTH, FONT_HEIGHT, 0);
+            draw_filled_rectangle(x, y, FONT_WIDTH, FONT_HEIGHT, 0);
         }
         else{
             draw_char(x, y, *str, color);
@@ -474,21 +642,21 @@ void draw_string(int x, int y, const char *str, int color){
 
 }
 
-void draw_string_centered(int y, const char *str, int color){
-    if(y < 0 || y >= SCREEN_HEIGHT) return;
+// void draw_string_centered(int y, const char *str, int color){
+//     if(y < 0 || y >= SCREEN_HEIGHT) return;
 
-    int len = 0;
-    const char* temp = str;
+//     int len = 0;
+//     const char* temp = str;
 
-    while(*temp && *temp != '\n'){
-        len++;
-        temp++;
-    }
+//     while(*temp && *temp != '\n'){
+//         len++;
+//         temp++;
+//     }
 
-    int total_width = len*(FONT_WIDTH + CHAR_SPACING);
-    int x = (SCREEN_WIDTH-total_width)/2;
-    draw_string(x, y, str, color);
-}
+//     int total_width = len*(FONT_WIDTH + CHAR_SPACING);
+//     int x = (SCREEN_WIDTH-total_width)/2;
+//     draw_string(x, y, str, color);
+// }
 
 void draw_string_wrapped(int x, int y, const char *str, int color, int max_width){
     if(x < 0 || x >= SCREEN_WIDTH || y < 0 || y >= SCREEN_HEIGHT) return;
@@ -558,6 +726,10 @@ void draw_string_wrapped(int x, int y, const char *str, int color, int max_width
     }
 }
 
+// ===========================================================
+// =================== Game rendering ========================
+// ===========================================================
+
 /* Render game to buffer*/
 void render_game(GameState *game) {
     clear_current_buffer(); // Clear, then draw to the buffer. 
@@ -584,7 +756,7 @@ void render_game(GameState *game) {
     swap_buffers();
 }
 
-void draw_msg(char* ch){
+void draw_msg(char* ch) {
     // räkna msg_box postion, att vara inner i skärmen
     int msg_x = 35;
     int msg_y = 60;
@@ -598,7 +770,7 @@ void draw_msg(char* ch){
     if(msg_y < 0) msg_y = 0;
     
     // clear box position
-    draw_filled_rect(msg_x, msg_y, msg_width, msg_height, 0);
+    draw_filled_rectangle(msg_x, msg_y, msg_width, msg_height, 0);
     
     // rita information
     draw_string_wrapped(msg_x, msg_y, ch, 255, msg_width);

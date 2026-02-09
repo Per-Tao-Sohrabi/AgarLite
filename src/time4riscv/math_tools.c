@@ -68,3 +68,30 @@ int Dict_set_value(Dictionary* dict, int key, int value) {
     }
     return -1; // Key not found
 }
+
+/* int_sqrt
+@brief:
+    Calculates the integer square root of a non-negative integer using Newton's method.
+
+@params
+    x: The integer to find the square root of.
+
+@return
+    The integer square root of x.
+*/
+int int_sqrt(int x) {
+    if (x <= 0) return 0;
+    if (x == 1) return 1;
+    
+    // Initial guess
+    int guess = x / 2;
+    
+    // Newton's method: guess_new = (guess + x/guess) / 2
+    for (int i = 0; i < 10; i++) {
+        int new_guess = (guess + x / guess) / 2;
+        if (new_guess == guess) break;  // Converged
+        guess = new_guess;
+    }
+    
+    return guess;
+}
