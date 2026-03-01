@@ -11,6 +11,9 @@ int rand_range(int min, int max);
 #define INT_TO_FP(x) ((x) << FP_SHIFT)        // int -> fixed-point
 #define FP_TO_INT(x) ((x) >> FP_SHIFT)        // fixed-point -> int (truncate)
 #define FP_MUL(a,b)  (((a) >> 8) * ((b) >> 8)) // fixed * fixed (shift-split to avoid overflow)
+
+// Integer square root (Newton's method)
+int int_sqrt(int x);
 // typedef struct {
 //     int keys[100];
 //     int values[100];

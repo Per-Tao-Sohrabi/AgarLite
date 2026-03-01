@@ -29,6 +29,18 @@ int rand_range(int min, int max) {
     return min + rand() % (max - min + 1);
 }
 
+// Integer square root using Newton's method
+int int_sqrt(int x) {
+    if (x <= 0) return 0;
+    if (x == 1) return 1;
+    int guess = x / 2;
+    for (int i = 0; i < 10; i++) {
+        int new_guess = (guess + x / guess) / 2;
+        if (new_guess == guess) break;
+        guess = new_guess;
+    }
+    return guess;
+}
 // void Dict_insert(Dictionary* dict, int key, int value) {
 //     for (int i = 0; i < dict->size; i++) {
 //         if (dict->keys[i] == key) {
