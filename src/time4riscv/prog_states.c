@@ -36,6 +36,7 @@ int query_game_mode() {
     while(1) {
         int mode = get_switch_state(0);      // Read the mode input
         if(get_btn() == 1) {                 // Poll the button
+            while(get_btn()) {}              // Wait for button release
             clear_current_buffer();
             swap_buffers();
             return mode;                     // Return set mode
@@ -48,8 +49,9 @@ int query_game_mode() {
 int query_game_difficulty() {
     clear_current_buffer();
     char* msg = "Use the three first switches to set your difficulty. \nNote binary numbers! Press button to confirm.\n";
+    // draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
     draw_msg(msg);
-    print(msg);
+    //print(msg); // render function
     
     // Wait for user input and return selected mode
     while(1) {
@@ -61,8 +63,9 @@ int query_game_difficulty() {
         int btn = get_btn();
         print("Selected difficulty: d%d\n", diff);
         if (btn) {
-            clear_current_buffer();
-            swap_buffers();
+            while(get_btn()) {}              // Wait for button release
+            // clear_current_buffer();
+            // swap_buffers();
             switch (diff)
             {
             case 0:
@@ -102,6 +105,7 @@ void run_pause() {
     clear_current_buffer();
     print("Toggle switch 4 down to exit pause");
     char* msg = "Toggle switch 4 down to exit pause";
+    // draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
     draw_msg(msg);
     while(1) {
         int status = get_switch_state(4);
@@ -118,6 +122,7 @@ void run_game_over() {
     clear_current_buffer();
     print("Game Over! Press button to restart.");
     char* msg = "Game Over! \nPress button to restart.";
+    // draw_string_wrapped(35, 60, msg, WHITE, MSG_WIDTH);
     draw_msg(msg);
 
     while(1) {

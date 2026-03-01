@@ -3,15 +3,14 @@
 
 int rand();
 int rand_range(int min, int max);
-typedef struct {
-    int keys[100];
-    int values[100];
-    int size;
-} Dictionary;
-void Dict_insert(Dictionary* dict, int key, int value);
-int Dict_get_value(Dictionary* dict, int key);
-int Dict_get_key(Dictionary* dict, int value);
-int Dict_set_value(Dictionary* dict, int key, int value);
-int int_sqrt(int x);
+// typedef struct {
+//     int keys[100];
+//     int values[100];
+//     int size;
+// } Dictionary;
+// void Dict_insert(Dictionary* dict, int key, int value);
+// int Dict_get_value(Dictionary* dict, int key);
+// int Dict_get_key(Dictionary* dict, int value);
+// int Dict_set_value(Dictionary* dict, int key, int value);
 
 #endif

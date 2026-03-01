@@ -12,8 +12,8 @@
 extern int rand_range(int, int);
 
 #define MAXPLAYERS 2
-#define MAXAI 6
-#define MAXFOOD 20
+#define MAXAI 0
+#define MAXFOOD 5
 
 typedef struct GameState{
     int ticks;
@@ -28,11 +28,11 @@ typedef struct GameState{
     Food crumbs[MAXFOOD]; // Can hold five food pieces
     Ai ais[MAXAI];
 
-    //Dict and data
-    bool available_ids[MAXPLAYERS + MAXAI + MAXFOOD]; // To track available entity IDs.
+    // //Dict and data
+    // bool available_ids[MAXPLAYERS + MAXAI + MAXFOOD]; // To track available entity IDs.
 
-    Dictionary occupied_coords_dict; // Key. coord id. Value: entity ID
-    Dictionary id_type_dict; // Key: entity ID. Value: entity type
+    //Dictionary occupied_coords_dict; // Key. coord id. Value: entity ID
+    //Dictionary id_type_dict; // Key: entity ID. Value: entity type
 } GameState;
 
 /* Initializes the game state */

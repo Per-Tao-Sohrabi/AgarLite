@@ -47,7 +47,7 @@ void labinit(void) {
   timer[3] = (period_val >> 16) & 0xFFFF;
 
   // Set start statuss
-  timer[0] = 0b1110; // Enable timer, sets ito = off, cont = on, start = on, stop. = off. 
+  timer[1] = 0b0111; // Control register: ITO = on, CONT = on, START = on, STOP = off
   print("---- Timer start status set.\n");
 }
 
@@ -109,11 +109,11 @@ int main() {
   
   int input_vector[5] = {0}; // Input vector to hold switch states
   while (1) {
-    //print("tick\n");
-    //while (game_tick == false){
+    print("tick\n");
+    while (game_tick == false){
       // Keep waiting
-    //}
-    //game_tick = false;
+    }
+    game_tick = false;
     print("tock\n");
 
     // READ PLAYER INPUT
