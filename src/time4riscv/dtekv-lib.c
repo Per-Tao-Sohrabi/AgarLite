@@ -48,7 +48,7 @@ void print_hex32 ( unsigned int x)
 }
 
 /* function: handle_exception
-   Description: This code handles an exception. */
+   @brief: This code handles an exception. */
 void handle_exception ( unsigned arg0, unsigned arg1, unsigned arg2, unsigned arg3, unsigned arg4, unsigned arg5, unsigned mcause, unsigned syscall_num )
 {
   switch (mcause)

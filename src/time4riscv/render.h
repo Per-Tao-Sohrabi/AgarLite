@@ -49,7 +49,9 @@ void draw_circle (int cx, int cy, int radius, int color);
 
 void draw_circle_to_buffer(char *buffer, int cx, int cy, int radius, int color);
 
-void draw_filled_rect(int x, int y, int width, int height, int color);
+void draw_filled_rectangle(int x, int y, int width, int height, int color);
+
+void draw_horizontal_line(char *buffer, int x_min, int x_max, int y, int color);
 
 void draw_pixel_to_buffer(char *buffer, int x, int y, int color);
 
