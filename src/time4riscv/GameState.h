@@ -31,8 +31,8 @@ typedef struct GameState{
     //Dict and data
     bool available_ids[MAXPLAYERS + MAXAI + MAXFOOD]; // To track available entity IDs.
 
-    Dictionary occupied_coords_dict; // Key. coord id. Value: entity ID
-    Dictionary id_type_dict; // Key: entity ID. Value: entity type
+    //Dictionary occupied_coords_dict; // Key. coord id. Value: entity ID
+    //Dictionary id_type_dict; // Key: entity ID. Value: entity type
 } GameState;
 
 /* Initializes the game state */
