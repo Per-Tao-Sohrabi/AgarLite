@@ -127,7 +127,7 @@ void Player_update_velocity(volatile Player* p) {
 
 void AI_update_position(volatile Ai* ai, volatile GameState* gs, int x_ctrl, int y_ctrl) {
     
-    Dict_set_value(&gs->occupied_coords_dict, (ai->x_pos << 16) | ai->y_pos, -1);
+    // Dict_set_value(&gs->occupied_coords_dict, (ai->x_pos << 16) | ai->y_pos, -1);
     int x_sign;
         int y_sign;
 
