@@ -9,7 +9,7 @@ typedef struct GameState GameState;
 // typedef struct Dictionary Dictionary;
 
 typedef struct {
-    int id;
+    bool is_active;
     int x_pos;
     int y_pos;
     int area;
@@ -20,7 +20,7 @@ typedef struct {
 } Player;
 
 typedef struct {
-    int id;
+    bool is_active;
     int radius;
     int x_pos;
     int y_pos;
@@ -29,7 +29,7 @@ typedef struct {
 } Food;
 
 typedef struct {
-    int id;
+    bool is_active;
     int x_pos;
     int y_pos;
     int area;
@@ -39,11 +39,11 @@ typedef struct {
     int dx, dy;
 } Ai;
 
-void Ai_init(volatile Ai* ai, int id, int color, int x_pos, int y_pos);
+void Ai_init(volatile Ai* ai, bool is_active, int color, int x_pos, int y_pos);
 
-void Player_init(volatile Player* p, int id, int color, int x_pos, int y_pos);
+void Player_init(volatile Player* p, bool is_active, int color, int x_pos, int y_pos);
 
-void Food_init(volatile Food* f, int id, int type, int x_pos, int y_pos);
+void Food_init(volatile Food* f, bool is_active, int type, int x_pos, int y_pos);
 
 void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ctrl, int y_ctrl);
 

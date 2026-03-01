@@ -4,7 +4,7 @@
 #include "GameState.h"
 #include "math_tools.h" // For Dict_set_value
 
-void Player_init(volatile Player* p, int id, int color, int x_pos, int y_pos) {
+void Player_init(volatile Player* p, int color, int x_pos, int y_pos) {
     p->x_pos = x_pos; //TODO: Random start position
     p->y_pos = y_pos; //TODO: Random start position
     p->area = 100;
@@ -13,11 +13,11 @@ void Player_init(volatile Player* p, int id, int color, int x_pos, int y_pos) {
     p->dx = 0;
     p->dy = 0;
     p->radius = int_sqrt(p->area*100/314);
-    p->id = id;
+    p->is_active = true;
     //print("-------- Player initialized\n");
 }
 
-void Ai_init(volatile Ai* ai, int id, int color, int x_pos, int y_pos) {
+void Ai_init(volatile Ai* ai, int color, int x_pos, int y_pos) {
     ai->x_pos = x_pos; //TODO: Random start position
     ai->y_pos = y_pos; //TODO: Random start position
     ai->area = 100;
@@ -26,12 +26,12 @@ void Ai_init(volatile Ai* ai, int id, int color, int x_pos, int y_pos) {
     ai->dx = 0;
     ai->dy = 0;
     ai->radius = int_sqrt(ai->area*100/314);
-    ai->id = id;
+    ai->is_active = true;
     //print("-------- Calculating radius for AI with area \n");
     //print("-------- AI initialized: id=...d, pos=(...d,...d), color=...d, radius=\n");
 }
 
-void Food_init(volatile Food* f, int id, int type, int x_pos, int y_pos) {
+void Food_init(volatile Food* f, int type, int x_pos, int y_pos) {
     f->radius = 1;
     f->x_pos = x_pos; //TODO: Random start position
     f->y_pos = y_pos; //TODO: Random start position
@@ -55,7 +55,7 @@ void Food_init(volatile Food* f, int id, int type, int x_pos, int y_pos) {
         f->nutrition = 0;
         break;
     }
-    f->id = id;
+    f->is_active = true;
     //print("------ Food initialized: id=...d, type=...d, nutrition=...d, pos=(...d,...d), radius=\n");
 }
 
