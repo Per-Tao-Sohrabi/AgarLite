@@ -272,7 +272,7 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
     for(int i = 0; i< gs->game_mode + 1; i++) {
         // //print("---- Updating player %d position...\n", i);
         volatile Player* p_i = &gs->players[i];
-        if(p_i->is_active) {
+        if(!p_i->is_active) {
             continue; // Skip if Player does not exist
         }
         // Read player input
@@ -287,7 +287,7 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
     for(int i = 0; i< MAXAI; i++) {
         // //print("---- Updating AI %d position...\n", i);
         volatile Ai* ai_i = &gs->ais[i];
-        if(ai_i->is_active) {
+        if(!ai_i->is_active) {
             continue; // Skip if AI does not exist
         }
         // Simple AI movement logic: random walk
@@ -302,12 +302,12 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
         // //print("---- Checking collisions for player %d with...\n", i);
         // Fix a player
         volatile Player* p_ptr = &gs->players[i];
-        if(p_ptr->is_active) {
+        if(!p_ptr->is_active) {
             continue; // Skip if Player does not exist
         }
         // Check collision with AI
         for(int j = 0; j < MAXAI; j++) {
-            if(gs->ais[j].is_active) {
+            if(!gs->ais[j].is_active) {
                 continue; // Skip if AI does not exist
             }
             volatile Ai* ai_ptr = &gs->ais[j];
@@ -327,7 +327,7 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
         //print("---- Check collision with other players");
         for(int j = i+1; j <= gs->game_mode; j++) {
             volatile Player* p2_ptr = &gs->players[j];
-            if(p2_ptr->is_active) {
+            if(!p2_ptr->is_active) {
                 continue; // Skip if Player does not exist
             }
             bool col = check_player_player_collision(p_ptr, p2_ptr);
@@ -343,7 +343,7 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
         //print("---- Checking collision with food");
         for(int j = 0; j < MAXFOOD; j++) {
             volatile Food* f_ptr = &gs->crumbs[j];
-            if(f_ptr->is_active) {
+            if(!f_ptr->is_active) {
                 continue; // Skip if Food does not exist
             }
             bool col = check_player_food_collision(p_ptr, f_ptr);
@@ -364,13 +364,13 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
     // HANLDE COLLISIONS BETWEEN AI AND OTHER TODO...
     for(int i = 0; i < MAXAI; i++) {
             volatile Ai* ai_ptr = &gs->ais[i];
-            if(ai_ptr->is_active) {
+            if(!ai_ptr->is_active) {
                 continue; // Skip if AI does not exist
             }
             // Check collision with other AI
             for(int j = i+1; j < MAXAI; j++) {
                 volatile Ai* ai2_ptr = &gs->ais[j];
-                if(ai2_ptr->is_active) {
+                if(!ai2_ptr->is_active) {
                     continue; // Skip if AI does not exist
                 }
                 bool col = check_ai_ai_collision(ai_ptr, ai2_ptr);
@@ -384,7 +384,7 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
             // Check collision with food
             for(int j = 0; j < MAXFOOD; j++) {
                 volatile Food* f_ptr = &gs->crumbs[j];
-                if(f_ptr->is_active) {
+                if(!f_ptr->is_active) {
                     continue; // Skip if Food does not exist
                 }
 
@@ -403,7 +403,7 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
     //print("---- Checking Game Over conditions");
     for(int i = 0; i <= gs->game_mode; i++) {
         volatile Player* p_i = &gs->players[i];
-        if(p_i->is_active) {
+        if(!p_i->is_active) {
             continue; // Skip if Player does not exist
         }
         if (p_i->area <= 0) {
