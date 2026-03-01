@@ -1,6 +1,7 @@
 #ifndef ENTITIES_H  // 1. Check if the guard symbol is NOT defined
 #define ENTITIES_H  // 2. Define the guard symbol
 #include <math.h>
+#include <stdbool.h>
 //#include "GameState.h"
 
 // 1. FORWARD DECLARATION for GameState

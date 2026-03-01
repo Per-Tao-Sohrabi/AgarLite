@@ -1,5 +1,5 @@
 #include <math.h>
-
+#include <stdbool.h>
 #include "Entities.h"
 #include "GameState.h"
 #include "math_tools.h" // For Dict_set_value
