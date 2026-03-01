@@ -93,8 +93,8 @@ int GameState_get_random_position(volatile GameState* gs) {
     }
     // Check with all food
     for (int f = 0; f < MAXFOOD; f++) {
-                // Compare with player i's position
-        Ai* fi = &gs->crumbs[f];
+        // Compare with player i's position
+        Food* fi = &gs->crumbs[f];
         int f_coord_key = (fi->x_pos << 16) |fi->y_pos;
         while(f_coord_key == coord_key) {
             // Redefine

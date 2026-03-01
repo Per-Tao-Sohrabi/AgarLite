@@ -110,11 +110,11 @@ int main() {
   
   int input_vector[5] = {0}; // Input vector to hold switch states
   while (1) {
-    //print("tick\n");
-    //while (game_tick == false){
+    print("tick\n");
+    while (game_tick == false){
       // Keep waiting
-    //}
-    //game_tick = false;
+    }
+    game_tick = false;
     print("tock\n");
 
     // READ PLAYER INPUT
