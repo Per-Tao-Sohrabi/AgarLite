@@ -47,7 +47,7 @@ void labinit(void) {
   timer[3] = (period_val >> 16) & 0xFFFF;
 
   // Set start statuss
-  timer[0] = 0b0111; // ITO = on, CONT = on, START = on, STOP = off
+  timer[1] = 0b0111; // Control register: ITO = on, CONT = on, START = on, STOP = off
   print("---- Timer start status set.\n");
 }
 
