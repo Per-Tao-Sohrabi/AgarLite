@@ -74,7 +74,7 @@ int GameState_get_random_position(volatile GameState* gs) {
     for (int p = 0; p < MAXPLAYERS; p++) {
         // Compare with player i's position
         volatile Player* pi = &gs->players[p];
-        int p_coord_key = (pi->x_pos << 16) |pi->y_pos;
+        int p_coord_key = (FP_TO_INT(pi->x_fp) << 16) | FP_TO_INT(pi->y_fp);
         while(p_coord_key == coord_key) {
             // Redefine
             x_pos = rand_range(gs->min_x, gs->max_x);
@@ -84,9 +84,9 @@ int GameState_get_random_position(volatile GameState* gs) {
     }
     // Check with all ai
     for (int ai = 0; ai < MAXAI; ai++) {
-                // Compare with player i's position
+        // Compare with AI's position
         Ai* aii = &gs->ais[ai];
-        int ai_coord_key = (aii->x_pos << 16) |aii->y_pos;
+        int ai_coord_key = (FP_TO_INT(aii->x_fp) << 16) | FP_TO_INT(aii->y_fp);
         while(ai_coord_key == coord_key) {
             // Redefine
             x_pos = rand_range(gs->min_x, gs->max_x);
@@ -158,11 +158,7 @@ void GameState_generate_players(volatile GameState* gs, int game_mode) {
         // Save
         gs->players[i] = p;
         
-        // Set initial positions
-        ////print("---- Setting occupied position for player %d at (%d, %d)\n", i, x_pos, y_pos);
-        int coord_key = (p.x_pos << 16) | p.y_pos; // Combine x and y into a single key
-        //Dict_insert(&gs->occupied_coords_dict, coord_key, p.id); // Key: combined coord, Value: food index
-        //Dict_insert(&gs->id_type_dict, p.id, 0); // Key: food index, Value: entity type (1 for food)
+        // (Dict and coord_key code removed — no longer needed)
     }
     //print("---- Player generation complete.\n");
 }
@@ -222,10 +218,7 @@ void GameState_generate_food(volatile GameState* gs, int gm, int diff) {
 
         // Store food item
         gs->crumbs[i] = f;
-        coord_key = (f.x_pos << 16) | f.y_pos; // Combine x and y into a single key
-        //Dict_insert(&gs->occupied_coords_dict, coord_key, f.id); // Key: combined coord, Value: food index
-        //Dict_insert(&gs->id_type_dict, f.id, 2); // Key: food index, Value: entity type (1 for food)
-        // To check, get the type and then check the id in the type entity list. 
+        // (Dict and coord_key code removed — no longer needed)
     }
     //print("---- Food generation complete.\n");
 }
@@ -254,9 +247,7 @@ void GameState_generate_ai(volatile GameState* gs, int diff) {
         
         // Save
         gs->ais[i] = ai;
-        coord_key = (ai.x_pos << 16) | ai.y_pos; // Combine x and y into a single key
-        //Dict_insert(&gs->occupied_coords_dict, coord_key, ai.id); // Key:
-        //Dict_insert(&gs->id_type_dict, ai.id, 1); // Key: food index, Value: entity type (1 for food)
+        // (Dict and coord_key code removed — no longer needed)
     }
     //print("---- AI generation complete.\n");
 }
@@ -416,40 +407,40 @@ bool GameState_update(volatile GameState* gs, int input_vector[]) {
 
 // CHECK COLLISIONS BETWEEN ENTITIES
 bool check_player_food_collision(volatile Player* p, volatile Food* f) {
-    int dx = p-> x_pos - f-> x_pos;
-    int dy = p-> y_pos - f-> y_pos;
+    int dx = FP_TO_INT(p->x_fp) - f->x_pos;
+    int dy = FP_TO_INT(p->y_fp) - f->y_pos;
     int distance_squared = dx*dx + dy*dy;
     int radius_sum = p->radius + f->radius;
     return distance_squared <= radius_sum*radius_sum;
 }
 
 bool check_player_player_collision(volatile Player* p1, volatile Player* p2) {
-    int dx = p1-> x_pos - p2-> x_pos;
-    int dy = p1-> y_pos - p2-> y_pos;
+    int dx = FP_TO_INT(p1->x_fp) - FP_TO_INT(p2->x_fp);
+    int dy = FP_TO_INT(p1->y_fp) - FP_TO_INT(p2->y_fp);
     int distance_squared = dx*dx + dy*dy;
     int radius_sum = p1->radius + p2->radius;
     return distance_squared <= radius_sum*radius_sum;
 }
 
 bool check_player_ai_collision(volatile Player* p, volatile Ai* ai) {
-    int dx = p-> x_pos - ai-> x_pos;
-    int dy = p-> y_pos - ai-> y_pos;
+    int dx = FP_TO_INT(p->x_fp) - FP_TO_INT(ai->x_fp);
+    int dy = FP_TO_INT(p->y_fp) - FP_TO_INT(ai->y_fp);
     int distance_squared = dx*dx + dy*dy;
     int radius_sum = p->radius + ai->radius;
     return distance_squared <= radius_sum*radius_sum;
 }
 
 bool check_ai_ai_collision(volatile Ai* ai1, volatile Ai* ai2) {
-    int dx = ai1-> x_pos - ai2-> x_pos;
-    int dy = ai1-> y_pos - ai2-> y_pos;
+    int dx = FP_TO_INT(ai1->x_fp) - FP_TO_INT(ai2->x_fp);
+    int dy = FP_TO_INT(ai1->y_fp) - FP_TO_INT(ai2->y_fp);
     int distance_squared = dx*dx + dy*dy;
     int radius_sum = ai1->radius + ai2->radius;
     return distance_squared <= radius_sum*radius_sum;
 }
 
 bool check_ai_food_collision(volatile Ai* ai, volatile Food* f) {
-    int dx = ai-> x_pos - f-> x_pos;
-    int dy = ai-> y_pos - f-> y_pos;
+    int dx = FP_TO_INT(ai->x_fp) - f->x_pos;
+    int dy = FP_TO_INT(ai->y_fp) - f->y_pos;
     int distance_squared = dx*dx + dy*dy;
     int radius_sum = ai->radius + f->radius;
     return distance_squared <= radius_sum*radius_sum;
@@ -476,12 +467,7 @@ void GameState_handle_player_ai_collision(volatile GameState* gs, volatile Playe
         AI_update_velocity(ai);
         // //print("Updated AI %d velocity to %d\n", ai->id, ai->velocity);
         
-        // Update occupied coords dictionary in GameState
-        int coord_key_ai = (ai->x_pos << 16) | ai->y_pos;  // Combine x and y into a single key
-        // Dict_set_value(&gs->occupied_coords_dict, coord_key_ai, ai->id);   
-        
-        int coord_key_p = (p->x_pos << 16) | p->y_pos;  // Combine x and y into a single key
-        // Dict_set_value(&gs->occupied_coords_dict, coord_key_p, p->id);
+        // (Dict code removed)
     } else if (ai->area > p->area) {
         //print("-------- Ai eats Player \n");
         // AI eats Player
@@ -499,20 +485,10 @@ void GameState_handle_player_ai_collision(volatile GameState* gs, volatile Playe
         ai->radius =  int_sqrt(ai->area*100/314); // Update player radius
         Player_update_velocity(p);
         AI_update_velocity(ai);
-        // Update occupied coords dictionary in GameState
-        int coord_key_p = (p->x_pos << 16) | p->y_pos;  // Combine x and y into a single key
-        // Dict_set_value(&gs->occupied_coords_dict, coord_key_p, p->id);   
-        
-        int coord_key_ai = (ai->x_pos << 16) | ai->y_pos;  // Combine x and y into a single key
-        // Dict_set_value(&gs->occupied_coords_dict, coord_key_ai, ai->id);
+        // (Dict code removed)
     } else {
         //print("--------  Equal size");
         // Equal area, no one eats
-        int coord_key_ai = (ai->x_pos << 16) | ai->y_pos;  // Combine x and y into a single key
-        // Dict_set_value(&gs->occupied_coords_dict, coord_key_ai, ai->id);   
-        
-        int coord_key_p = (p->x_pos << 16) | p->y_pos;  // Combine x and y into a single key
-        // Dict_set_value(&gs->occupied_coords_dict, coord_key_p, p->id);
         return;
     }
 }
@@ -531,12 +507,6 @@ void GameState_handle_player_player_collision(volatile GameState* gs, volatile P
     }   else {
         //print("-------- No conflict");
         // Equal area, no one eats
-            // Update occupied coords dictionary in GameState
-            int coord_key_pj = (pj->x_pos << 16) | pj->y_pos;  // Combine x and y into a single key
-            // Dict_set_value(&gs->occupied_coords_dict, coord_key_pj, pj->id);   
-            
-            int coord_key_pi = (pi->x_pos << 16) | pi->y_pos;  // Combine x and y into a single key
-            // Dict_set_value(&gs->occupied_coords_dict, coord_key_pi, pi->id);
         return;
     }
     int a_ratio = pj->area / pi->area;
@@ -554,11 +524,7 @@ void GameState_handle_player_player_collision(volatile GameState* gs, volatile P
     Player_update_velocity(pi);
     Player_update_velocity(pj);
 
-    // Update occupied coords dictionary in GameState
-    int coord_key_pj = (pj->x_pos << 16) | pj->y_pos;  // Combine x and y into a single key
-    // Dict_set_value(&gs->occupied_coords_dict, coord_key_pj, pj->id);   
-    int coord_key_pi = (pi->x_pos << 16) | pi->y_pos;  // Combine x and y into a single key
-    // Dict_set_value(&gs->occupied_coords_dict, coord_key_pi, pi->id);
+    // (Dict code removed)
 }
 /* Handle player food collision*/   
 void GameState_handle_player_food_collision(volatile GameState* gs, volatile Player* p, volatile Food* f) {
@@ -574,18 +540,10 @@ void GameState_handle_player_food_collision(volatile GameState* gs, volatile Pla
     Player_update_velocity(p);
     
     // Update food position. 
-    // Dict_set_value(&gs->occupied_coords_dict, (f->x_pos << 16) | f->y_pos, -1);  // Reset old position in occupied coords dict
+    // Respawn food at a new random position
     int coord_key = GameState_get_random_position(gs);
-    int x_pos = coord_key >> 16;                       // Unpack X
-    int y_pos = coord_key & 0xFFFF;                    // Unpack Y
-    f-> x_pos = x_pos;
-    f-> y_pos = y_pos;
-    // Update occupied coords dictionary in GameState
-    
-    int coord_key_f = (f->x_pos << 16) | f->y_pos;  // Combine x and y into a single key
-    // Dict_set_value(&gs->occupied_coords_dict, coord_key_f, f->id);   
-    int coord_key_p = (p->x_pos << 16) | p->y_pos;  // Combine x and y into a single key
-    // Dict_set_value(&gs->occupied_coords_dict, coord_key_p, p->id);
+    f->x_pos = coord_key >> 16;       // Unpack X
+    f->y_pos = coord_key & 0xFFFF;    // Unpack Y
 }
 /* Handle ai ai collisions*/
 void GameState_handle_ai_ai_collision(volatile GameState* gs, volatile Ai* ai1, volatile Ai* ai2) {
@@ -599,12 +557,6 @@ void GameState_handle_ai_ai_collision(volatile GameState* gs, volatile Ai* ai1, 
         aj = ai1;
     }   else {
         // Equal area, no one eats
-            // Update occupied coords dictionary in GameState
-            int coord_key_aj = (aj->x_pos << 16) | aj->y_pos;  // Combine x and y into a single key
-            // Dict_set_value(&gs->occupied_coords_dict, coord_key_aj, aj->id);   
-            
-            int coord_key_ai = (ai->x_pos << 16) | ai->y_pos;  // Combine x and y into a single key
-            // Dict_set_value(&gs->occupied_coords_dict, coord_key_ai, ai->id);
         return;
     }
     int a_ratio = aj->area / ai->area;
@@ -622,11 +574,7 @@ void GameState_handle_ai_ai_collision(volatile GameState* gs, volatile Ai* ai1, 
     AI_update_velocity(aj);
     AI_update_velocity(ai);
 
-    // Update occupied coords dictionary in GameState
-    int coord_key_aj = (aj->x_pos << 16) | aj->y_pos;  // Combine x and y into a single key
-    // Dict_set_value(&gs->occupied_coords_dict, coord_key_aj, aj->id);   
-    int coord_key_ai = (ai->x_pos << 16) | ai->y_pos;  // Combine x and y into a single key
-    // Dict_set_value(&gs->occupied_coords_dict, coord_key_ai, ai->id);
+    // (Dict code removed)
 }
 /* Handle ai food collisions*/
 void GameState_handle_ai_food_collision(volatile GameState* gs, volatile Ai* ai, volatile Food* f) {
@@ -640,16 +588,8 @@ void GameState_handle_ai_food_collision(volatile GameState* gs, volatile Ai* ai,
     AI_update_velocity(ai);
 
     // Update food position. 
-    // Dict_set_value(&gs->occupied_coords_dict, (f->x_pos << 16) | f->y_pos, -1);  // Reset old position in occupied coords dict
+    // Respawn food at a new random position
     int coord_key = GameState_get_random_position(gs);
-    int x_pos = coord_key >> 16;                       // Unpack X
-    int y_pos = coord_key & 0xFFFF;                    // Unpack Y
-    f-> x_pos = x_pos;
-    f-> y_pos = y_pos;
-    
-    // Update occupied coords dictionary in GameState
-    int coord_key_f = (f->x_pos << 16) | f->y_pos;  // Combine x and y into a single key
-    // Dict_set_value(&gs->occupied_coords_dict, coord_key_f, f->id);   
-    int coord_key_ai = (ai->x_pos << 16) | ai->y_pos;  // Combine x and y into a single key
-    // Dict_set_value(&gs->occupied_coords_dict, coord_key_ai, ai->id);
+    f->x_pos = coord_key >> 16;       // Unpack X
+    f->y_pos = coord_key & 0xFFFF;    // Unpack Y
 }

@@ -11,12 +11,12 @@ typedef struct GameState GameState;
 
 typedef struct {
     bool is_active;
-    int x_pos;
-    int y_pos;
+    int x_fp;      // Q16.16 fixed-point x position
+    int y_fp;      // Q16.16 fixed-point y position
     int area;
     int radius;
     int color;
-    int velocity;
+    int vel_fp;    // Q16.16 fixed-point velocity
     int dx, dy;
 } Player;
 
@@ -31,12 +31,12 @@ typedef struct {
 
 typedef struct {
     bool is_active;
-    int x_pos;
-    int y_pos;
+    int x_fp;      // Q16.16 fixed-point x position
+    int y_fp;      // Q16.16 fixed-point y position
     int area;
     int radius;
     int color;
-    int velocity;
+    int vel_fp;    // Q16.16 fixed-point velocity
     int dx, dy;
 } Ai;
 
