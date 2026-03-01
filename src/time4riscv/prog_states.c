@@ -36,6 +36,7 @@ int query_game_mode() {
     while(1) {
         int mode = get_switch_state(0);      // Read the mode input
         if(get_btn() == 1) {                 // Poll the button
+            while(get_btn()) {}              // Wait for button release
             clear_current_buffer();
             swap_buffers();
             return mode;                     // Return set mode
@@ -62,6 +63,7 @@ int query_game_difficulty() {
         int btn = get_btn();
         //print("Selected difficulty: d%d\n", diff);
         if (btn) {
+            while(get_btn()) {}              // Wait for button release
             // clear_current_buffer();
             // swap_buffers();
             switch (diff)
