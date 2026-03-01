@@ -737,13 +737,15 @@ void render_game(GameState *game) {
     int antal_players = sizeof(game -> players) / sizeof(game -> players[0]); 
     for(int i = 0; i < antal_players; i++){
         Player player = game -> players[i];
-        draw_circle(player.x_pos, player.y_pos, player.radius, player.color);
+        if(!player.is_active) continue;
+        draw_circle(FP_TO_INT(player.x_fp), FP_TO_INT(player.y_fp), player.radius, player.color);
     }
 
     //food
     int antal_food = sizeof(game -> crumbs) / sizeof(game -> crumbs[0]); 
     for(int i = 0; i < antal_food;  i++){
         Food food = game -> crumbs[i];
+        if(!food.is_active) continue;
         draw_circle(food.x_pos, food.y_pos, food.radius, food.nutrition);
     }
 
@@ -751,7 +753,8 @@ void render_game(GameState *game) {
     int antal_ai = sizeof(game -> ais)/sizeof(game->ais[0]);
     for(int i = 0; i < antal_ai; i++){
         Ai ai = game -> ais[i];
-        draw_circle(ai.x_pos, ai.y_pos, ai.radius, ai.color);
+        if(!ai.is_active) continue;
+        draw_circle(FP_TO_INT(ai.x_fp), FP_TO_INT(ai.y_fp), ai.radius, ai.color);
     }
     swap_buffers();
 }
