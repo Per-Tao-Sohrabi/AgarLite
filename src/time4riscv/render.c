@@ -355,12 +355,12 @@ void init_buffers() {
 */
 void copy_to_vga(char *buffer_root){
     volatile uint32_t *vga_ptr = (volatile uint32_t*)VGA;   // The VGA pointer is copied to a local (volatile unit_32_t) pointer.
-    uint32_t *buffer_root = (uint32_t*)buffer_root;         // A pointer to the buffer root address.
+    uint32_t *buf_ptr = (uint32_t*)buffer_root;             // A pointer to the buffer root address.
     
     // Copy 4 bytes at a time
     int num_words = BUFFER_SIZE / 4;
     for(int i = 0; i < num_words; i++){
-        vga_ptr[i] = buffer_root[i];
+        vga_ptr[i] = buf_ptr[i];
     }
 }
 
