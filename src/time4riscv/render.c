@@ -769,13 +769,9 @@ void draw_hud(GameState *game){
     char buffer[32]; // Temporary buffer for string conversions
 
     // --- Global Stats (Top Center) ---
-    draw_string(130, 5, "Ticks:", WHITE);
-    int_to_string(game->ticks, buffer);
-    draw_string(170, 5, buffer, WHITE);
-
-    draw_string(130, 15, "Diff:", WHITE);
+    draw_string(130, 5, "Diff:", WHITE);
     int_to_string(game->difficulty, buffer);
-    draw_string(165, 15, buffer, WHITE);
+    draw_string(165, 5, buffer, WHITE);
 
     int food_count = 0;
     for (int i = 0; i < MAX_ENTITIES; i++) {
@@ -800,9 +796,10 @@ void draw_hud(GameState *game){
             int_to_string(FP_TO_INT(p1->vel_fp), buffer);
             draw_string(65, 15, buffer, WHITE);
 
-            draw_string(5, 25, "Area: ", WHITE);
-            int_to_string(p1->area, buffer);
-            draw_string(45, 25, buffer, WHITE);
+            // same as health
+            // draw_string(5, 25, "Area: ", WHITE);
+            // int_to_string(p1->area, buffer);
+            // draw_string(45, 25, buffer, WHITE);
         }
     } else if (game->num_players >= 2) {
         // --- Multiplayer ---
@@ -820,9 +817,10 @@ void draw_hud(GameState *game){
             int_to_string(FP_TO_INT(p1->vel_fp), buffer);
             draw_string(65, 25, buffer, WHITE);
 
-            draw_string(5, 35, "Area: ", WHITE);
-            int_to_string(p1->area, buffer);
-            draw_string(45, 35, buffer, WHITE);
+            // same as health
+            // draw_string(5, 35, "Area: ", WHITE);
+            // int_to_string(p1->area, buffer);
+            // draw_string(45, 35, buffer, WHITE);
         }
 
         // Player 2 (Top Right, starting at x=250 to avoid center HUD)
@@ -838,11 +836,14 @@ void draw_hud(GameState *game){
             int_to_string(FP_TO_INT(p2->vel_fp), buffer);
             draw_string(310, 25, buffer, WHITE);
 
-            draw_string(250, 35, "Area: ", WHITE);
-            int_to_string(p2->area, buffer);
-            draw_string(290, 35, buffer, WHITE);
+            // same as health
+            // draw_string(250, 35, "Area: ", WHITE);
+            // int_to_string(p2->area, buffer);
+            // draw_string(290, 35, buffer, WHITE);
         }
     }
+
+    draw_horizontal_line(current_draw_buffer, 0, SCREEN_WIDTH, 48, WHITE);
 }
 
 // ===========================================================
