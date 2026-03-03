@@ -726,6 +726,125 @@ void draw_string_wrapped(int x, int y, const char *str, int color, int max_width
     }
 }
 
+void int_to_string(int num, char *str){
+    if (num == 0) {
+        str[0] = '0';
+        str[1] = '\0';
+        return;
+    }
+
+    int i = 0;
+    bool is_negative = false;
+
+    if (num < 0) {
+        is_negative = true;
+        num = -num;
+    }
+
+    // Extract digits in reverse order
+    while (num > 0) {
+        str[i++] = (num % 10) + '0';
+        num /= 10;
+    }
+
+    if (is_negative) {
+        str[i++] = '-';
+    }
+
+    str[i] = '\0';
+
+    // Reverse the string
+    int start = 0;
+    int end = i - 1;
+    while (start < end) {
+        char temp = str[start];
+        str[start] = str[end];
+        str[end] = temp;
+        start++;
+        end--;
+    }
+}
+
+void draw_hud(GameState *game){
+    char buffer[32]; // Temporary buffer for string conversions
+
+    // --- Global Stats (Top Center) ---
+    draw_string(130, 5, "Ticks:", WHITE);
+    int_to_string(game->ticks, buffer);
+    draw_string(170, 5, buffer, WHITE);
+
+    draw_string(130, 15, "Diff:", WHITE);
+    int_to_string(game->difficulty, buffer);
+    draw_string(165, 15, buffer, WHITE);
+
+    int food_count = 0;
+    for (int i = 0; i < MAX_ENTITIES; i++) {
+        if (game->entities[i].is_active && game->entities[i].type == ENTITY_FOOD) {
+            food_count++;
+        }
+    }
+    
+    draw_string(130, 25, "Food:", WHITE);
+    int_to_string(food_count, buffer);
+    draw_string(165, 25, buffer, WHITE);
+
+    if (game->num_players == 1) {
+        // --- Single Player ---
+        Entity* p1 = &game->entities[0];
+        if (p1->is_active) {
+            draw_string(5, 5, "Health: ", WHITE);
+            int_to_string(p1->area, buffer); // Using area for health/score
+            draw_string(55, 5, buffer, WHITE);
+
+            draw_string(5, 15, "Velocity: ", WHITE);
+            int_to_string(FP_TO_INT(p1->vel_fp), buffer);
+            draw_string(65, 15, buffer, WHITE);
+
+            draw_string(5, 25, "Area: ", WHITE);
+            int_to_string(p1->area, buffer);
+            draw_string(45, 25, buffer, WHITE);
+        }
+    } else if (game->num_players >= 2) {
+        // --- Multiplayer ---
+        
+        // Player 1 (Top Left)
+        Entity* p1 = &game->entities[0];
+        if (p1->is_active) {
+            draw_string(5, 5, "Player 1:", WHITE);
+
+            draw_string(5, 15, "Health: ", WHITE);
+            int_to_string(p1->area, buffer);
+            draw_string(55, 15, buffer, WHITE);
+
+            draw_string(5, 25, "Velocity: ", WHITE);
+            int_to_string(FP_TO_INT(p1->vel_fp), buffer);
+            draw_string(65, 25, buffer, WHITE);
+
+            draw_string(5, 35, "Area: ", WHITE);
+            int_to_string(p1->area, buffer);
+            draw_string(45, 35, buffer, WHITE);
+        }
+
+        // Player 2 (Top Right, starting at x=250 to avoid center HUD)
+        Entity* p2 = &game->entities[1];
+        if (p2->is_active) {
+            draw_string(250, 5, "Player 2:", WHITE);
+
+            draw_string(250, 15, "Health: ", WHITE);
+            int_to_string(p2->area, buffer);
+            draw_string(300, 15, buffer, WHITE);
+
+            draw_string(250, 25, "Velocity: ", WHITE);
+            int_to_string(FP_TO_INT(p2->vel_fp), buffer);
+            draw_string(310, 25, buffer, WHITE);
+
+            draw_string(250, 35, "Area: ", WHITE);
+            int_to_string(p2->area, buffer);
+            draw_string(290, 35, buffer, WHITE);
+        }
+    }
+}
+
 // ===========================================================
 // =================== Game rendering ========================
 // ===========================================================
@@ -738,6 +857,7 @@ void render_game(GameState *game) {
         if (!e->is_active) continue;
         draw_circle(FP_TO_INT(e->x_fp), FP_TO_INT(e->y_fp), e->radius, e->color);
     }
+    draw_hud(game);
     swap_buffers();
 }
 
