@@ -13,7 +13,7 @@ extern int rand_range(int, int);
 #define MAXFOOD 5
 
 /* Initializes the game state */
-void GameState_init(volatile GameState* gs, int gm, int diff) {
+void GameState_init(GameState* gs, int gm, int diff) {
     gs->game_mode = gm;
     gs->difficulty = diff;
 
@@ -40,7 +40,7 @@ void GameState_init(volatile GameState* gs, int gm, int diff) {
 }
 
 /* Generate a random position that doesn't overlap existing entities */
-int GameState_get_random_position(volatile GameState* gs) {
+int GameState_get_random_position(GameState* gs) {
     print("------ Generating random position...\n");
     int x_pos = rand_range(gs->min_x, gs->max_x);
     int y_pos = rand_range(gs->min_y, gs->max_y);
@@ -68,7 +68,7 @@ int GameState_get_random_position(volatile GameState* gs) {
 }
 
 /* Generate players — stored at entities[0..game_mode] */
-void GameState_generate_players(volatile GameState* gs, int game_mode) {
+void GameState_generate_players(GameState* gs, int game_mode) {
     int colors[] = {100, 200, 150, 50, 250};
     int count = game_mode + 1; // game_mode=0 → 1 player, game_mode=1 → 2 players
     if (count > MAXPLAYERS) count = MAXPLAYERS;
@@ -82,7 +82,7 @@ void GameState_generate_players(volatile GameState* gs, int game_mode) {
 }
 
 /* Generate food — stored after players in the entities array */
-void GameState_generate_food(volatile GameState* gs, int gm, int diff) {
+void GameState_generate_food(GameState* gs, int gm, int diff) {
     int base_food_n = 10;
     int diff_food_mod = diff * 2;
     int gm_food_mod = (gm == 1) ? 5 : 0;
@@ -119,7 +119,7 @@ void GameState_generate_food(volatile GameState* gs, int gm, int diff) {
 }
 
 /* Generate AI — stored after food in the entities array */
-void GameState_generate_ai(volatile GameState* gs, int diff) {
+void GameState_generate_ai(GameState* gs, int diff) {
     int total_ai_n = diff * 2;
     if (total_ai_n > MAXAI) total_ai_n = MAXAI;
 
@@ -143,7 +143,7 @@ bool check_collision(Entity* a, Entity* b) {
 }
 
 /* Handle eating food: eater gains nutrition, food respawns */
-void handle_food_eat(volatile GameState* gs, Entity* eater, Entity* food) {
+void handle_food_eat(GameState* gs, Entity* eater, Entity* food) {
     // Update eater
     int area = eater->radius * eater->radius * 3;
     int new_area = area + food->nutrition;
@@ -158,7 +158,7 @@ void handle_food_eat(volatile GameState* gs, Entity* eater, Entity* food) {
 }
 
 /* Handle entity-vs-entity eating: larger eats half of smaller's area */
-void handle_entity_eat(volatile GameState* gs, Entity* eater, Entity* eaten) {
+void handle_entity_eat(GameState* gs, Entity* eater, Entity* eaten) {
     if (eater->area > eaten->area) {
         // Eater takes half of eaten's area
         int transfer = eaten->area / 2;
@@ -181,7 +181,7 @@ void handle_entity_eat(volatile GameState* gs, Entity* eater, Entity* eaten) {
 }
 
 /* Update the game state. Returns true on game over. */
-bool GameState_update(volatile GameState* gs, int input_vector[]) {
+bool GameState_update(GameState* gs, int input_vector[]) {
     // UPDATE PLAYER POSITIONS
     for (int i = 0; i < gs->num_players; i++) {
         Entity* p = &gs->entities[i];
