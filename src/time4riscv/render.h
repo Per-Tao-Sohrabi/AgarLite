@@ -69,4 +69,8 @@ void render_game(GameState *game);
 
 void draw_msg(char* ch);
 
+void draw_hud(GameState *game);
+
+void int_to_string(int num, char *str);
+
 #endif

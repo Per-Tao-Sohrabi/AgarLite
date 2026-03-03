@@ -20,7 +20,7 @@ void GameState_init(volatile GameState* gs, int gm, int diff) {
     // Set boundaries
     gs->min_x = 0;
     gs->max_x = 320;
-    gs->min_y = 0;
+    gs->min_y = 48;
     gs->max_y = 240;
 
     // Clear all entity slots

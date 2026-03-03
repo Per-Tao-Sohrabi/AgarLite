@@ -59,10 +59,14 @@ void Entity_update_position(Entity* e, GameState* gs, int x_ctrl, int y_ctrl) {
     int px = FP_TO_INT(new_x);
     int py = FP_TO_INT(new_y);
 
-    if (px - e->radius > gs->min_x && px + e->radius < gs->max_x)
-        e->x_fp = new_x;
-    if (py - e->radius > gs->min_y && py + e->radius < gs->max_y)
-        e->y_fp = new_y;
+    if (px - e->radius < gs->min_x) new_x = INT_TO_FP(gs->min_x + e->radius);
+    else if (px + e->radius > gs->max_x) new_x = INT_TO_FP(gs->max_x - e->radius);
+    
+    if (py - e->radius < gs->min_y) new_y = INT_TO_FP(gs->min_y + e->radius);
+    else if (py + e->radius > gs->max_y) new_y = INT_TO_FP(gs->max_y - e->radius);
+
+    e->x_fp = new_x;
+    e->y_fp = new_y;
 }
 
 void Entity_update_velocity(Entity* e) {
