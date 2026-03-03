@@ -75,7 +75,7 @@ void GameState_generate_players(volatile GameState* gs, int game_mode) {
 
     for (int i = 0; i < count; i++) {
         int x_pos = i * 10 + 50;
-        int y_pos = (gs->min_y + i) * 10 + 50;
+        int y_pos = i * 10 + 50;
         Entity_init_player(&gs->entities[i], colors[i], x_pos, y_pos);
     }
     gs->num_players = count;
