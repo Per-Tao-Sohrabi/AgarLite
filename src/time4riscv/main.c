@@ -98,7 +98,7 @@ int main() {
   // Display a welcome message.
   print("- Running startup sequence...\n");
   GameState gs = run_start_up(); // Set the game state and diffuculty mode.
-  volatile GameState* gs_ptr = &gs;
+  GameState* gs_ptr = &gs;
   // Start game query ...
   
     // Enable interrupts
