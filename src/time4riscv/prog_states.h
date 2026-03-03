@@ -1,20 +1,25 @@
 #ifndef PROG_STATES_H
 #define PROG_STATES_H
 
+#include <stdbool.h>
 #include "GameState.h"
-#include "inputs.h"
 
-// Initalize a game state
-GameState run_start_up();
-/* Query the player about the game mode they want to play at*/
-int query_game_mode();
+typedef enum {
+    STATE_MENU_MODE,
+    STATE_MENU_DIFFICULTY,
+    STATE_PLAYING,
+    STATE_PAUSED,
+    STATE_GAME_OVER
+} ProgramState;
 
-/* Query the player about the difficulty they want to play at*/
-int query_game_difficulty();
-/* Pause logic*/
-void run_pause();
+// Per-frame state handlers (non-blocking, called once per tick)
+ProgramState state_menu_mode(GameState* gs);
+ProgramState state_menu_difficulty(GameState* gs);
+ProgramState state_playing(GameState* gs, int input_vector[]);
+ProgramState state_paused(void);
+ProgramState state_game_over(void);
 
-/* Game Over*/
-void run_game_over();
+// Edge detection helper
+bool btn_just_pressed(void);
 
 #endif
