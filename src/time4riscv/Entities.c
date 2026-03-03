@@ -38,11 +38,11 @@ void Entity_init_food(Entity* e, int type, int x, int y) {
 
     // Set nutrition based on food type, reuse color for rendering
     switch (type) {
-    case 0: e->nutrition = 5;  e->color = 5;  break; // Banana
-    case 1: e->nutrition = 10; e->color = 10; break; // Apple
-    case 2: e->nutrition = 15; e->color = 15; break; // Pear
-    case 3: e->nutrition = 20; e->color = 20; break; // Grape
-    default: e->nutrition = 0; e->color = 0;  break;
+    case 0: e->nutrition = 5;  e->color = 220; break; // Banana (Light / Yellowish)
+    case 1: e->nutrition = 10; e->color = 70;  break; // Apple (Medium Dark / Reddish)
+    case 2: e->nutrition = 15; e->color = 160; break; // Pear (Medium Light / Greenish)
+    case 3: e->nutrition = 20; e->color = 40;  break; // Grape (Dark / Purplish)
+    default: e->nutrition = 0; e->color = 0;   break;
     }
 }
 

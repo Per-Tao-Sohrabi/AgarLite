@@ -69,7 +69,8 @@ int GameState_get_random_position(GameState* gs) {
 
 /* Generate players — stored at entities[0..game_mode] */
 void GameState_generate_players(GameState* gs, int game_mode) {
-    int colors[] = {100, 200, 150, 50, 250};
+    // Player 1: Red (70 - mid-dark grey), Player 2: Blue (30 - dark grey)
+    int colors[] = {70, 30, 255, 200, 100};
     int count = game_mode + 1; // game_mode=0 → 1 player, game_mode=1 → 2 players
     if (count > MAXPLAYERS) count = MAXPLAYERS;
 
