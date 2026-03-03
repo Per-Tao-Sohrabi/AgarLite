@@ -733,28 +733,10 @@ void draw_string_wrapped(int x, int y, const char *str, int color, int max_width
 /* Render game to buffer*/
 void render_game(GameState *game) {
     clear_current_buffer(); // Clear, then draw to the buffer. 
-    //players
-    int antal_players = sizeof(game -> players) / sizeof(game -> players[0]); 
-    for(int i = 0; i < antal_players; i++){
-        Player player = game -> players[i];
-        if(!player.is_active) continue;
-        draw_circle(FP_TO_INT(player.x_fp), FP_TO_INT(player.y_fp), player.radius, player.color);
-    }
-
-    //food
-    int antal_food = sizeof(game -> crumbs) / sizeof(game -> crumbs[0]); 
-    for(int i = 0; i < antal_food;  i++){
-        Food food = game -> crumbs[i];
-        if(!food.is_active) continue;
-        draw_circle(food.x_pos, food.y_pos, food.radius, food.nutrition);
-    }
-
-    //ai
-    int antal_ai = sizeof(game -> ais)/sizeof(game->ais[0]);
-    for(int i = 0; i < antal_ai; i++){
-        Ai ai = game -> ais[i];
-        if(!ai.is_active) continue;
-        draw_circle(FP_TO_INT(ai.x_fp), FP_TO_INT(ai.y_fp), ai.radius, ai.color);
+    for (int i = 0; i < MAX_ENTITIES; i++) {
+        Entity* e = &game->entities[i];
+        if (!e->is_active) continue;
+        draw_circle(FP_TO_INT(e->x_fp), FP_TO_INT(e->y_fp), e->radius, e->color);
     }
     swap_buffers();
 }
