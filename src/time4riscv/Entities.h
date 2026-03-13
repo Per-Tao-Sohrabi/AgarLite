@@ -25,6 +25,7 @@ typedef struct {
     int color;      // grayscale value (food: uses nutrition for render color)
     int vel_fp;     // Q16.16 velocity (food: 0)
     int nutrition;  // food only (players/ai: 0)
+    int lives;      // number of remaining lives (players only)
 } Entity;
 
 // Init functions

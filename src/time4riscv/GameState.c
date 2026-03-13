@@ -146,10 +146,8 @@ bool check_collision(Entity* a, Entity* b) {
 /* Handle eating food: eater gains nutrition, food respawns */
 void handle_food_eat(GameState* gs, Entity* eater, Entity* food) {
     // Update eater
-    int area = eater->radius * eater->radius * 3;
-    int new_area = area + food->nutrition;
-    eater->area = new_area;
-    eater->radius = int_sqrt(new_area * 100 / 314);
+    eater->area += food->nutrition;
+    eater->radius = int_sqrt(eater->area * 100 / 314);
     Entity_update_velocity(eater);
 
     // Respawn food at a new random position
@@ -160,25 +158,42 @@ void handle_food_eat(GameState* gs, Entity* eater, Entity* food) {
 
 /* Handle entity-vs-entity eating: larger eats half of smaller's area */
 void handle_entity_eat(GameState* gs, Entity* eater, Entity* eaten) {
+    Entity* winner = NULL;
+    Entity* loser = NULL;
+
     if (eater->area > eaten->area) {
-        // Eater takes half of eaten's area
-        int transfer = eaten->area / 2;
-        eaten->area -= transfer;
-        eater->area += transfer;
+        winner = eater;
+        loser = eaten;
     } else if (eaten->area > eater->area) {
-        // Swap roles
-        int transfer = eater->area / 2;
-        eater->area -= transfer;
-        eaten->area += transfer;
+        winner = eaten;
+        loser = eater;
     } else {
         // Equal area, nothing happens
         return;
     }
-    // Update radii and velocities for both
-    eater->radius = int_sqrt(eater->area * 100 / 314);
-    eaten->radius = int_sqrt(eaten->area * 100 / 314);
-    Entity_update_velocity(eater);
-    Entity_update_velocity(eaten);
+
+    // Winner gets half of loser's area
+    winner->area += loser->area / 2;
+    winner->radius = int_sqrt(winner->area * 100 / 314);
+    Entity_update_velocity(winner);
+
+    // Loser logic: if player with lives > 1, respawn
+    if (loser->type == ENTITY_PLAYER && loser->lives > 1) {
+        loser->lives -= 1;
+        loser->area = 100;
+        int coord_key = GameState_get_random_position(gs);
+        loser->x_fp = INT_TO_FP(coord_key >> 16);
+        loser->y_fp = INT_TO_FP(coord_key & 0xFFFF);
+        loser->radius = int_sqrt(loser->area * 100 / 314);
+        Entity_update_velocity(loser);
+    } else {
+        // Loser dies permanently
+        if (loser->type == ENTITY_PLAYER) {
+            loser->lives = 0;
+        }
+        loser->area = 0;
+        loser->is_active = false;
+    }
 }
 
 /* Update the game state. Returns true on game over. */
@@ -230,10 +245,17 @@ bool GameState_update(GameState* gs, int input_vector[]) {
     }
 
     // CHECK GAME OVER
+    int active_players = 0;
     for (int i = 0; i < gs->num_players; i++) {
         Entity* p = &gs->entities[i];
-        if (!p->is_active) continue;
-        if (p->area <= 0) return true;
+        if (p->is_active && p->lives > 0) {
+            active_players++;
+        }
     }
+    
+    // Game over if 0 players remain (all modes) or 1 player remains (in multiplayer)
+    if (active_players == 0) return true;
+    if (gs->game_mode == 1 && active_players == 1) return true; // Multiplayer win condition
+    
     return false;
 }
