@@ -212,7 +212,7 @@ ProgramState state_game_over(void) {
     }
     if (btn_just_pressed()) {
         screen_drawn = false;
-        return STATE_MENU_MODE;
+        return STATE_MENU_START;
     }
     return STATE_GAME_OVER;
 }
