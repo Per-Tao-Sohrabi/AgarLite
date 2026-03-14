@@ -209,7 +209,7 @@ void handle_entity_eat(GameState* gs, Entity* eater, Entity* eaten) {
     Entity_update_velocity(winner);
     
     // Loser logic: lose 1 life and instantly respawn with remaining half area
-    if (loser->type == ENTITY_PLAYER) {
+    // if (loser->type == ENTITY_PLAYER) {
         if (loser->lives > 1) {
             loser->lives -= 1;
             // Respawn with remaining area
@@ -224,17 +224,17 @@ void handle_entity_eat(GameState* gs, Entity* eater, Entity* eaten) {
             loser->area = 0;
             loser->is_active = false;
         }
-    } else {
-        // AI respawn with remaining half area
-        int temp_r = int_sqrt(loser->area * 100 / 314);
-        if(temp_r > MIN_AI_RADIUS) {
-            loser->radius = temp_r;
-        }
-        int coord_key = GameState_get_random_position(gs);
-        loser->x_fp = INT_TO_FP(coord_key >> 16);
-        loser->y_fp = INT_TO_FP(coord_key & 0xFFFF);
-        Entity_update_velocity(loser);
-    }
+    // } else {
+    //     // AI respawn with remaining half area
+    //     int temp_r = int_sqrt(loser->area * 100 / 314);
+    //     if(temp_r > MIN_AI_RADIUS) {
+    //         loser->radius = temp_r;
+    //     }
+    //     int coord_key = GameState_get_random_position(gs);
+    //     loser->x_fp = INT_TO_FP(coord_key >> 16);
+    //     loser->y_fp = INT_TO_FP(coord_key & 0xFFFF);
+    //     Entity_update_velocity(loser);
+    // }
 }
 
 /* Update the game state. Returns true on game over. */
@@ -345,7 +345,7 @@ bool GameState_update(GameState* gs, int input_vector[]) {
             }
 
             // If entity 'a' died permanently in this collision, abort checking it against others
-            if (!a->is_active) break;
+            if (!a->is_active && a->type == ENTITY_PLAYER) break;
         }
     }
 
