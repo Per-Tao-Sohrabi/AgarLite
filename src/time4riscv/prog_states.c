@@ -74,15 +74,56 @@ ProgramState state_playing(GameState* gs, int input_vector[]) {
 
 /* STATE_PAUSED: wait for switch 4 to toggle off */
 ProgramState state_paused(void) {
-    if (!screen_drawn) {
-        clear_current_buffer();
-        draw_msg("Paused.\nToggle switch 4 down to resume.");
-        screen_drawn = true;
+    static int pause_substate = 0; // 0 = main, 1 = confirm restart
+    static int debounce_timer = 0;
+    static int last_switch_state = -1;
+
+    if (debounce_timer > 0) debounce_timer--;
+
+    if (pause_substate == 0) {
+        if (!screen_drawn) {
+            clear_current_buffer();
+            draw_pause_box("Paused.\nDown S4 to resume.\nPress btn to restart.", "Restart", NULL);
+            screen_drawn = true;
+        }
+
+        if (!get_switch_state(4)) {
+            screen_drawn = false;
+            // Reset for next pause
+            pause_substate = 0;
+            return STATE_PLAYING;
+        }
+
+        if (btn_just_pressed() && debounce_timer == 0) {
+            pause_substate = 1;
+            screen_drawn = false;
+            debounce_timer = 15;    // 15 frames debounce
+            last_switch_state = -1;
+        }
+    } else if (pause_substate == 1) {
+        int current_switch = get_switch_state(0);
+
+        if (!screen_drawn || current_switch != last_switch_state) {
+            clear_current_buffer();
+            draw_confirm_box("Are you sure you want to restart?\nUp S0 = Yes, Down S0 = No", current_switch);
+            screen_drawn = true;
+            last_switch_state = current_switch;
+        }
+
+        if (btn_just_pressed() && debounce_timer == 0) {
+            pause_substate = 0;     // reset for next pause
+            screen_drawn = false;
+            last_switch_state = -1;
+            debounce_timer = 15;    // debounce for whatever state comes next
+
+            if (current_switch == 1) {
+                return STATE_MENU_MODE; // Yes, restart
+            } else {
+                return STATE_PAUSED;    // No, back to main pause screen
+            }
+        }
     }
-    if (!get_switch_state(4)) {
-        screen_drawn = false;
-        return STATE_PLAYING;
-    }
+
     return STATE_PAUSED;
 }
 

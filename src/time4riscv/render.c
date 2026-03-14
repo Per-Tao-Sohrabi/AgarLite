@@ -884,3 +884,76 @@ void draw_msg(char* ch) {
     // buttar buffer
     swap_buffers();
 }
+
+void draw_rounded_rectangle(int x, int y, int width, int height, int radius, int color) {
+    // Fill middle parts
+    draw_filled_rectangle(x + radius, y, width - 2*radius, height, color); // horizontal
+    draw_filled_rectangle(x, y + radius, width, height - 2*radius, color); // vertical
+    
+    // Corners
+    draw_circle(x + radius, y + radius, radius, color); // Top-left
+    draw_circle(x + width - 1 - radius, y + radius, radius, color); // Top-right
+    draw_circle(x + radius, y + height - 1 - radius, radius, color); // Bottom-left
+    draw_circle(x + width - 1 - radius, y + height - 1 - radius, radius, color); // Bottom-right
+}
+
+void draw_pause_box(const char* msg, const char* button, void* callback) {
+    int msg_x = 35;
+    int msg_y = 60;
+    int msg_width = MSG_WIDTH;
+    int msg_height = MSG_HEIGHT;
+    
+    // Draw white border, black interior
+    draw_rounded_rectangle(msg_x, msg_y, msg_width, msg_height, 5, WHITE);
+    draw_rounded_rectangle(msg_x + 2, msg_y + 2, msg_width - 4, msg_height - 4, 3, COLOR_BLACK);
+    
+    // Draw msg
+    draw_string_wrapped(msg_x + 10, msg_y + 10, msg, WHITE, msg_width - 20);
+    
+    // Draw button
+    if (button) {
+        int btn_w = 60;
+        int btn_h = 20;
+        int btn_x = msg_x + (msg_width - btn_w)/2;
+        int btn_y = msg_y + msg_height - 30;
+        draw_rounded_rectangle(btn_x, btn_y, btn_w, btn_h, 3, WHITE);
+        draw_rounded_rectangle(btn_x+1, btn_y+1, btn_w-2, btn_h-2, 2, COLOR_BLACK);
+        draw_string(btn_x + 10, btn_y + 6, button, WHITE);
+    }
+    swap_buffers();
+}
+
+void draw_confirm_box(const char* msg, int selected_option) {
+    int msg_x = 35;
+    int msg_y = 60;
+    int msg_width = MSG_WIDTH;
+    int msg_height = MSG_HEIGHT;
+    
+    // Draw white border, black interior
+    draw_rounded_rectangle(msg_x, msg_y, msg_width, msg_height, 5, WHITE);
+    draw_rounded_rectangle(msg_x + 2, msg_y + 2, msg_width - 4, msg_height - 4, 3, COLOR_BLACK);
+    
+    draw_string_wrapped(msg_x + 10, msg_y + 10, msg, WHITE, msg_width - 20);
+    
+    // Options: 1 = Yes, 0 = No
+    int btn_w = 40;
+    int btn_h = 20;
+    int btn1_x = msg_x + msg_width/2 - btn_w - 10;
+    int btn0_x = msg_x + msg_width/2 + 10;
+    int btn_y = msg_y + msg_height - 30;
+    
+    int color1 = (selected_option == 1) ? COLOR_BRIGHT_GREEN : WHITE;
+    int color0 = (selected_option == 0) ? COLOR_BRIGHT_GREEN : WHITE;
+    
+    // Yes button
+    draw_rounded_rectangle(btn1_x, btn_y, btn_w, btn_h, 3, color1);
+    draw_rounded_rectangle(btn1_x+1, btn_y+1, btn_w-2, btn_h-2, 2, COLOR_BLACK);
+    draw_string(btn1_x + 10, btn_y + 6, "Yes", color1);
+    
+    // No button
+    draw_rounded_rectangle(btn0_x, btn_y, btn_w, btn_h, 3, color0);
+    draw_rounded_rectangle(btn0_x+1, btn_y+1, btn_w-2, btn_h-2, 2, COLOR_BLACK);
+    draw_string(btn0_x + 10, btn_y + 6, "No", color0);
+    
+    swap_buffers();
+}
