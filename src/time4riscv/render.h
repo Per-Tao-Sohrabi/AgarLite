@@ -18,6 +18,8 @@
 #define LINE_SPACING 1
 #define CHAR_SPACING 1
 #define WHITE 255
+#define COLOR_BLACK 0
+#define COLOR_BRIGHT_GREEN 0x1C  // RGB332 000 111 00
 #define MSG_WIDTH 250
 #define MSG_HEIGHT 120
 
@@ -72,5 +74,11 @@ void draw_msg(char* ch);
 void draw_hud(GameState *game);
 
 void int_to_string(int num, char *str);
+
+void draw_rounded_rectangle(int x, int y, int width, int height, int radius, int color);
+
+void draw_pause_box(const char* msg, const char* button, void* callback);
+
+void draw_confirm_box(const char* msg, int selected_option);
 
 #endif
