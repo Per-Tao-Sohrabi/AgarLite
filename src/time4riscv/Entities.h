@@ -18,6 +18,7 @@ typedef enum {
 #define MAXFOOD 10
 
 #define MAX_ENTITIES (MAXPLAYERS + MAXAI + MAXFOOD)
+#define min_ai_radius 5
 
 typedef struct {
     bool is_active;

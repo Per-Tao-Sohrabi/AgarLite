@@ -227,9 +227,10 @@ void handle_entity_eat(GameState* gs, Entity* eater, Entity* eaten) {
     } else {
         // AI respawn with remaining half area
         int coord_key = GameState_get_random_position(gs);
+        int temp_r = int_sqrt(loser->area * 100 / 314);
         loser->x_fp = INT_TO_FP(coord_key >> 16);
         loser->y_fp = INT_TO_FP(coord_key & 0xFFFF);
-        loser->radius = int_sqrt(loser->area * 100 / 314);
+        loser->radius = (temp_r < min_ai_radius) ? min_ai_radius : temp_r;
         Entity_update_velocity(loser);
     }
 }
