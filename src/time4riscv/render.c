@@ -890,6 +890,32 @@ void draw_rounded_rectangle(int x, int y, int width, int height, int radius, int
     draw_circle(x + width - 1 - radius, y + height - 1 - radius, radius, color); // Bottom-right
 }
 
+void draw_game_over_box(const char* msg, const char* button, void* callback) {
+    int msg_x = 35;
+    int msg_y = 60;
+    int msg_width = MSG_WIDTH;
+    int msg_height = MSG_HEIGHT;
+    
+    // Draw white border, black interior
+    draw_rounded_rectangle(msg_x, msg_y, msg_width, msg_height, 5, WHITE);
+    draw_rounded_rectangle(msg_x + 2, msg_y + 2, msg_width - 4, msg_height - 4, 3, COLOR_BLACK);
+    
+    // Draw msg
+    draw_string_wrapped(msg_x + 10, msg_y + 10, msg, WHITE, msg_width - 20);
+    
+    // Draw button
+    if (button) {
+        int btn_w = 60;
+        int btn_h = 20;
+        int btn_x = msg_x + (msg_width - btn_w)/2;
+        int btn_y = msg_y + msg_height - 30;
+        draw_rounded_rectangle(btn_x, btn_y, btn_w, btn_h, 3, WHITE);
+        draw_rounded_rectangle(btn_x+1, btn_y+1, btn_w-2, btn_h-2, 2, COLOR_BLACK);
+        draw_string(btn_x + 10, btn_y + 6, button, WHITE);
+    }
+    swap_buffers();
+}
+
 void draw_pause_box(const char* msg, const char* button, void* callback) {
     int msg_x = 35;
     int msg_y = 60;

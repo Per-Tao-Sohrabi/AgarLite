@@ -229,8 +229,9 @@ ProgramState state_paused(void) {
 /* STATE_GAME_OVER: display message, button restarts */
 ProgramState state_game_over(void) {
     if (!screen_drawn) {
-        clear_current_buffer();
-        draw_msg("Game Over!\nPress button to restart.");
+        //clear_current_buffer();
+        
+        draw_game_over_box("Game Over!", "Back to menu", NULL);
         screen_drawn = true;
     }
     if (btn_just_pressed()) {
