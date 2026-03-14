@@ -950,3 +950,9 @@ void draw_confirm_box(const char* msg, int selected_option) {
     
     swap_buffers();
 }
+
+void draw_start_menu(int substate, int mode, int diff) {
+    // Stub implementation. Will be fleshed out in the UI phase.
+    clear_current_buffer();
+    draw_msg("Start Menu UI Placeholder");
+}
