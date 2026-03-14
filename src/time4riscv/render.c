@@ -788,13 +788,21 @@ void draw_hud(GameState *game){
         // --- Single Player ---
         Entity* p1 = &game->entities[0];
         if (p1->is_active) {
-            draw_string(5, 5, "Velocity: ", WHITE);
-            int_to_string(FP_TO_INT(p1->vel_fp*100), buffer);
-            draw_string(65, 5, buffer, WHITE);
+            draw_string(5, 5, "Player 1: ", WHITE);
 
             draw_string(5, 15, "Area: ", WHITE);
             int_to_string(p1->area, buffer);
             draw_string(55, 15, buffer, WHITE);
+
+            draw_string(5, 25, "Velocity: ", WHITE);
+            int_to_string(FP_TO_INT(p1->vel_fp*100), buffer);
+            draw_string(65, 25, buffer, WHITE);
+
+            if(game->difficulty > 1){
+                draw_string(5, 35, "Lives: ", WHITE);
+                int_to_string(p1->lives, buffer);
+                draw_string(55, 35, buffer, WHITE);
+            }
         }
     } else if (game->num_players >= 2) {
         // --- Multiplayer ---
