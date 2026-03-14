@@ -14,7 +14,7 @@ typedef enum {
 } EntityType;
 
 #define MAXPLAYERS 2
-#define MAXAI 5
+#define MAXAI 14
 #define MAXFOOD 10
 
 #define MAX_ENTITIES (MAXPLAYERS + MAXAI + MAXFOOD)
