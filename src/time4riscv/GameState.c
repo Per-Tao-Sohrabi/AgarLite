@@ -256,8 +256,8 @@ bool GameState_update(GameState* gs, int input_vector[]) {
 
         // =========================================
         // new seeking movement
-        int target_idx = -1;
-        long min_dist_sq = 2000000000; // Infinity
+        int target_idx = -1; // target index
+        long min_dist_sq = 2000000000; // Infinity. Area between nearby entities
 
         // Find the closest entity that is smaller than this AI (food or smaller player/AI)
         for (int j = 0; j < MAX_ENTITIES; j++) {
