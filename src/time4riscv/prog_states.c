@@ -123,7 +123,7 @@ ProgramState state_menu_start(GameState* gs) {
             last_drawn_substate = -1;
             screen_drawn = false;
             
-            return set_transition(STATE_MENU_START, STATE_PLAYING);
+            return set_transition(STATE_MENU_START, STATE_PLAYING, TRANS_WIPE);
         } else {
             menu_substate++;
         }
@@ -160,19 +160,34 @@ ProgramState set_transition(ProgramState from, ProgramState to, TransitionType t
     return STATE_TRANSITION;
 }
 
+ProgramState state_transition_wipe(void);
+ProgramState state_transition_fade(void);
+ProgramState state_transition_particle_burst(void);
+
 /* STATE_TRANSITION: Generalized screen wipe transition */
 ProgramState state_transition(void) {
     switch (trans_type) {
-        case TRANS_WIPE:
-            return state_transition_wipe();
         case TRANS_FADE:
             return state_transition_fade();
         case TRANS_PARTICLE_BURST:
             return state_transition_particle_burst();
+        case TRANS_WIPE:
+        default:
+            return state_transition_wipe();
     }
 }
 
-void state_transition_wipe(void) {
+ProgramState state_transition_fade(void) {
+    // Stub
+    return trans_to;
+}
+
+ProgramState state_transition_particle_burst(void) {
+    // Stub
+    return trans_to;
+}
+
+ProgramState state_transition_wipe(void) {
     static int wipe_timer = 0;
     
     // We could use `trans_from` and `trans_to` to do different styled wipes 

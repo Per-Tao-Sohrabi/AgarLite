@@ -20,7 +20,7 @@ typedef enum {
 } TransitionType;
 
 // Generalized transition trigger
-ProgramState set_transition(ProgramState from, ProgramState to);
+ProgramState set_transition(ProgramState from, ProgramState to, TransitionType type);
 
 // Per-frame state handlers (non-blocking, called once per tick)
 ProgramState state_splash(void);
