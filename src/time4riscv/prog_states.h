@@ -13,6 +13,12 @@ typedef enum {
     STATE_GAME_OVER
 } ProgramState;
 
+typedef enum {
+    TRANS_WIPE,
+    TRANS_FADE,
+    TRANS_PARTICLE_BURST
+} TransitionType;
+
 // Generalized transition trigger
 ProgramState set_transition(ProgramState from, ProgramState to);
 
