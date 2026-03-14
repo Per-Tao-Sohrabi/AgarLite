@@ -189,29 +189,26 @@ ProgramState state_transition_particle_burst(void) {
 
 ProgramState state_transition_wipe(void) {
     static int wipe_timer = 0;
+    int max_frames = 20; // Lasts 20 frames
     
-    // We could use `trans_from` and `trans_to` to do different styled wipes 
-    // in the future if we wanted, but for now we do a standard full flash wipe.
-    //clear_current_buffer();
+    // Calculate the brightness factor (256 = full bright, 0 = black)
+    // We want to go from 256 down to 0 as wipe_timer goes from 0 to max_frames
+    int factor = 256 - ((wipe_timer * 256) / max_frames);
+    if (factor < 0) factor = 0;
     
-    if (wipe_timer < 5) {
-        draw_filled_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_DARK_GRAY);
-    } else if (wipe_timer < 1) {
-        draw_filled_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_LIGHT_GRAY);
-    } else if (wipe_timer < 3) {
-        draw_filled_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
-    } else if (wipe_timer < 4) {
-        draw_filled_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_LIGHT_GRAY);
-    } else if (wipe_timer < 5) {
-        draw_filled_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_DARK_GRAY);
-    } else {
+    // Instead of completely clearing the buffer, dim the existing pixels
+    // from the currently displayed frame to create a fade-out effect.
+    dim_screen(factor);
+    
+    swap_buffers();
+    wipe_timer++;
+    
+    if (wipe_timer > max_frames) {
         wipe_timer = 0;
         screen_drawn = false;
         return trans_to;
     }
     
-    swap_buffers();
-    wipe_timer++;
     return STATE_TRANSITION;
 }
 

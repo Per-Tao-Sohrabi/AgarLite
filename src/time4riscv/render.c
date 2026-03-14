@@ -1089,3 +1089,35 @@ void draw_start_menu(int substate, int mode, int diff) {
 
     swap_buffers();
 }
+
+/*
+ * dim_screen scales the current_display_buffer pixels down toward black.
+ * factor: 0-256 (256 = keep as is, 0 = completely black)
+ */
+void dim_screen(int factor) {
+    if (factor > 256) factor = 256;
+    if (factor < 0) factor = 0;
+    
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        uint8_t pixel = current_display_buffer[i];
+        if (pixel == 0) continue;
+        
+        // Extract RGB332 components
+        int r = (pixel >> 5) & 0x07;
+        int g = (pixel >> 2) & 0x07;
+        int b = pixel & 0x03;
+        
+        // Scale and cap each component
+        r = (r * factor) >> 8;
+        g = (g * factor) >> 8;
+        b = (b * factor) >> 8; // Bit shift by 8 is equivalent to div by 256
+        
+        if (r > 7) r = 7;
+        if (g > 7) g = 7;
+        if (b > 3) b = 3;
+        
+        // Re-pack into output buffer
+        uint8_t new_pixel = (r << 5) | (g << 2) | b;
+        current_draw_buffer[i] = new_pixel;
+    }
+}

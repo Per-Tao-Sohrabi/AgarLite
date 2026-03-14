@@ -87,4 +87,6 @@ void draw_confirm_box(const char* msg, int selected_option);
 
 void draw_start_menu(int substate, int mode, int diff);
 
+void dim_screen(int factor);
+
 #endif
