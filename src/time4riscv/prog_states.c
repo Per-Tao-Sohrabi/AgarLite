@@ -193,7 +193,7 @@ ProgramState state_paused(void) {
             debounce_timer = 15;    // debounce for whatever state comes next
 
             if (current_switch == 1) {
-                return STATE_MENU_MODE; // Yes, restart
+                return STATE_MENU_START; // Yes, restart
             } else {
                 return STATE_PAUSED;    // No, back to main pause screen
             }
