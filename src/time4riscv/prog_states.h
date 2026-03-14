@@ -7,16 +7,19 @@
 typedef enum {
     STATE_SPLASH,
     STATE_MENU_START,
-    STATE_FADE_TO_GAME,
+    STATE_TRANSITION,
     STATE_PLAYING,
     STATE_PAUSED,
     STATE_GAME_OVER
 } ProgramState;
 
+// Generalized transition trigger
+ProgramState set_transition(ProgramState from, ProgramState to);
+
 // Per-frame state handlers (non-blocking, called once per tick)
 ProgramState state_splash(void);
 ProgramState state_menu_start(GameState* gs);
-ProgramState state_fade_to_game(void);
+ProgramState state_transition(void);
 ProgramState state_playing(GameState* gs, int input_vector[]);
 ProgramState state_paused(void);
 ProgramState state_game_over(void);

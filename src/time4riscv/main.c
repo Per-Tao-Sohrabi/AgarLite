@@ -73,8 +73,8 @@ int main() {
       case STATE_MENU_START:
         state = state_menu_start(&gs);
         break;
-      case STATE_FADE_TO_GAME:
-        state = state_fade_to_game();
+      case STATE_TRANSITION:
+        state = state_transition();
         break;
       case STATE_PLAYING:
         state = state_playing(&gs, input_vector);
