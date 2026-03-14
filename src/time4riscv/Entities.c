@@ -13,6 +13,7 @@ void Entity_init_player(Entity* e, int color, int x, int y) {
     e->vel_fp = INT_TO_FP(2);   // 2.0 px/frame
     e->radius = int_sqrt(e->area * 100 / 314);
     e->nutrition = 0;
+    e->lives = 2;               // 2 lives for players
 }
 
 void Entity_init_ai(Entity* e, int color, int x, int y) {
@@ -25,6 +26,7 @@ void Entity_init_ai(Entity* e, int color, int x, int y) {
     e->vel_fp = INT_TO_FP(2);   // 2.0 px/frame
     e->radius = int_sqrt(e->area * 100 / 314);
     e->nutrition = 0;
+    e->lives = 0;               // AI does not respawn
 }
 
 void Entity_init_food(Entity* e, int type, int x, int y) {
@@ -44,6 +46,7 @@ void Entity_init_food(Entity* e, int type, int x, int y) {
     case 3: e->nutrition = 20; e->color = 40;  break; // Grape (Dark / Purplish)
     default: e->nutrition = 0; e->color = 0;   break;
     }
+    e->lives = 0;
 }
 
 void Entity_update_position(Entity* e, GameState* gs, int x_ctrl, int y_ctrl) {

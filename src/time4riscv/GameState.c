@@ -8,9 +8,7 @@
 
 extern int rand_range(int, int);
 
-#define MAXPLAYERS 2
-#define MAXAI 0
-#define MAXFOOD 5
+
 
 /* Initializes the game state */
 void GameState_init(GameState* gs, int gm, int diff) {
@@ -41,30 +39,56 @@ void GameState_init(GameState* gs, int gm, int diff) {
 
 /* Generate a random position that doesn't overlap existing entities */
 int GameState_get_random_position(GameState* gs) {
-    print("------ Generating random position...\n");
-    int x_pos = rand_range(gs->min_x, gs->max_x);
-    int y_pos = rand_range(gs->min_y, gs->max_y);
-    int coord_key = (x_pos << 16) | y_pos;
+    // print("------ Generating random position...\n");
+    // int x_pos = rand_range(gs->min_x, gs->max_x);
+    // int y_pos = rand_range(gs->min_y, gs->max_y);
+    // int coord_key = (x_pos << 16) | y_pos;
 
-    // Check against all active entities
-    for (int i = 0; i < MAX_ENTITIES; i++) {
-        Entity* e = &gs->entities[i];
-        if (!e->is_active) continue;
-        int e_coord = (FP_TO_INT(e->x_fp) << 16) | FP_TO_INT(e->y_fp);
-        while (e_coord == coord_key) {
-            x_pos = rand_range(gs->min_x, gs->max_x);
-            y_pos = rand_range(gs->min_y, gs->max_y);
-            coord_key = (x_pos << 16) | y_pos;
+    // // Check against all active entities
+    // for (int i = 0; i < MAX_ENTITIES; i++) {
+    //     Entity* e = &gs->entities[i];
+    //     if (!e->is_active) continue;
+    //     int e_coord = (FP_TO_INT(e->x_fp) << 16) | FP_TO_INT(e->y_fp);
+    //     while (e_coord == coord_key) {
+    //         x_pos = rand_range(gs->min_x, gs->max_x);
+    //         y_pos = rand_range(gs->min_y, gs->max_y);
+    //         coord_key = (x_pos << 16) | y_pos;
+    //     }
+    // }
+
+    // print("------ Random position = (");
+    // print_dec(x_pos);
+    // print(", ");
+    // print_dec(y_pos);
+    // print(")\n");
+
+    // return coord_key;
+
+    int x_pos, y_pos;
+    bool valid_position = false;
+
+    Entity temp;
+    temp.radius = 10;
+
+    while(!valid_position){
+        x_pos = rand_range(gs->min_x, gs->max_x);
+        y_pos = rand_range(gs->min_y, gs->max_y);
+        temp.x_fp = INT_TO_FP(x_pos);
+        temp.y_fp = INT_TO_FP(y_pos);
+        
+        // assume the position is valid
+        valid_position = true;
+
+        // Check collision with all active entities
+        for(int i = 0; i < MAX_ENTITIES; i++){
+            Entity* e = &gs->entities[i];
+            if(e->is_active && check_collision(&temp, e)){
+                valid_position = false;
+                break;
+            }
         }
     }
-
-    print("------ Random position = (");
-    print_dec(x_pos);
-    print(", ");
-    print_dec(y_pos);
-    print(")\n");
-
-    return coord_key;
+    return (x_pos << 16) | y_pos;
 }
 
 /* Generate players — stored at entities[0..game_mode] */
@@ -146,10 +170,8 @@ bool check_collision(Entity* a, Entity* b) {
 /* Handle eating food: eater gains nutrition, food respawns */
 void handle_food_eat(GameState* gs, Entity* eater, Entity* food) {
     // Update eater
-    int area = eater->radius * eater->radius * 3;
-    int new_area = area + food->nutrition;
-    eater->area = new_area;
-    eater->radius = int_sqrt(new_area * 100 / 314);
+    eater->area += food->nutrition;
+    eater->radius = int_sqrt(eater->area * 100 / 314);
     Entity_update_velocity(eater);
 
     // Respawn food at a new random position
@@ -160,25 +182,54 @@ void handle_food_eat(GameState* gs, Entity* eater, Entity* food) {
 
 /* Handle entity-vs-entity eating: larger eats half of smaller's area */
 void handle_entity_eat(GameState* gs, Entity* eater, Entity* eaten) {
+    Entity* winner = NULL;
+    Entity* loser = NULL;
+
+    // Require winner to be larger than the loser
     if (eater->area > eaten->area) {
-        // Eater takes half of eaten's area
-        int transfer = eaten->area / 2;
-        eaten->area -= transfer;
-        eater->area += transfer;
+        winner = eater;
+        loser = eaten; 
     } else if (eaten->area > eater->area) {
-        // Swap roles
-        int transfer = eater->area / 2;
-        eater->area -= transfer;
-        eaten->area += transfer;
+        winner = eaten;
+        loser = eater;
     } else {
-        // Equal area, nothing happens
+        // Not significantly larger, nothing happens
         return;
     }
-    // Update radii and velocities for both
-    eater->radius = int_sqrt(eater->area * 100 / 314);
-    eaten->radius = int_sqrt(eaten->area * 100 / 314);
-    Entity_update_velocity(eater);
-    Entity_update_velocity(eaten);
+
+    // Transfer half of loser's area to winner
+    int transfer_amount = loser->area / 2;
+    winner->area += transfer_amount;
+    loser->area -= transfer_amount;
+
+    // Update winner stats
+    winner->radius = int_sqrt(winner->area * 100 / 314);
+    Entity_update_velocity(winner);
+    
+    // Loser logic: lose 1 life and instantly respawn with remaining half area
+    if (loser->type == ENTITY_PLAYER) {
+        if (loser->lives > 1) {
+            loser->lives -= 1;
+            // Respawn with remaining area
+            int coord_key = GameState_get_random_position(gs);
+            loser->x_fp = INT_TO_FP(coord_key >> 16);
+            loser->y_fp = INT_TO_FP(coord_key & 0xFFFF);
+            loser->radius = int_sqrt(loser->area * 100 / 314);
+            Entity_update_velocity(loser);
+        } else {
+            // Loser dies permanently (0 lives left)
+            loser->lives = 0;
+            loser->area = 0;
+            loser->is_active = false;
+        }
+    } else {
+        // AI respawn with remaining half area
+        int coord_key = GameState_get_random_position(gs);
+        loser->x_fp = INT_TO_FP(coord_key >> 16);
+        loser->y_fp = INT_TO_FP(coord_key & 0xFFFF);
+        loser->radius = int_sqrt(loser->area * 100 / 314);
+        Entity_update_velocity(loser);
+    }
 }
 
 /* Update the game state. Returns true on game over. */
@@ -194,13 +245,61 @@ bool GameState_update(GameState* gs, int input_vector[]) {
         Entity_update_position(p, gs, x_ctrl, y_ctrl);
     }
 
-    // UPDATE AI POSITIONS (random walk)
+    // UPDATE AI POSITIONS (Seek nearest smaller entity)
     int ai_base = gs->num_players + gs->num_food;
     for (int i = ai_base; i < ai_base + gs->num_ai; i++) {
         Entity* ai = &gs->entities[i];
         if (!ai->is_active) continue;
-        int x_ctrl = rand_range(0, 1);
-        int y_ctrl = rand_range(0, 1);
+        // old random movement
+        // int x_ctrl = rand_range(0, 1);
+        // int y_ctrl = rand_range(0, 1);
+
+        // =========================================
+        // new seeking movement
+        int target_idx = -1; // target index
+        long min_dist_sq = 2000000000; // Infinity. Area between nearby entities
+
+        // Find the closest entity that is smaller than this AI (food or smaller player/AI)
+        for (int j = 0; j < MAX_ENTITIES; j++) {
+            if (i == j) continue; // Don't compare with itself
+            Entity* target = &gs->entities[j];
+            if (!target->is_active) continue; // Skip inactive entities
+            
+            // Only chase things it can eat (area must be smaller, and food area is 0 so it counts)
+            if (target->area < ai->area || target->type == ENTITY_FOOD) {
+                int dx = FP_TO_INT(target->x_fp) - FP_TO_INT(ai->x_fp);
+                int dy = FP_TO_INT(target->y_fp) - FP_TO_INT(ai->y_fp);
+                long dist_sq = (long)dx * dx + (long)dy * dy;
+                
+                // update target if it is closer
+                if (dist_sq < min_dist_sq) {
+                    min_dist_sq = dist_sq;
+                    target_idx = j;
+                }
+            }
+        }
+
+        int x_ctrl = 2; // Default: neutral/stop (value 2 evaluates to 0 in update_position)
+        int y_ctrl = 2; // Default: neutral/stop
+
+        // If a valid target was found, move towards it
+        if (target_idx != -1) {
+            // get target's position
+            Entity* target = &gs->entities[target_idx];
+            int ax = FP_TO_INT(ai->x_fp);
+            int ay = FP_TO_INT(ai->y_fp);
+            int tx = FP_TO_INT(target->x_fp);
+            int ty = FP_TO_INT(target->y_fp);
+
+            // Give a 2-pixel tolerance so it doesn't jitter when directly on top of the target's axis
+            if (tx < ax - 2) x_ctrl = 0;      // Move Left
+            else if (tx > ax + 2) x_ctrl = 1; // Move Right
+            
+            if (ty < ay - 2) y_ctrl = 0;      // Move Up
+            else if (ty > ay + 2) y_ctrl = 1; // Move Down
+        }
+
+        // =========================================
         Entity_update_position(ai, gs, x_ctrl, y_ctrl);
     }
 
@@ -226,14 +325,24 @@ bool GameState_update(GameState* gs, int input_vector[]) {
                 // Entity vs entity (player/ai)
                 handle_entity_eat(gs, a, b);
             }
+
+            // If entity 'a' died permanently in this collision, abort checking it against others
+            if (!a->is_active) break;
         }
     }
 
     // CHECK GAME OVER
+    int active_players = 0;
     for (int i = 0; i < gs->num_players; i++) {
         Entity* p = &gs->entities[i];
-        if (!p->is_active) continue;
-        if (p->area <= 0) return true;
+        if (p->is_active && p->lives > 0) {
+            active_players++;
+        }
     }
+    
+    // Game over if 0 players remain (all modes) or 1 player remains (in multiplayer)
+    if (active_players == 0) return true;
+    if (gs->game_mode == 1 && active_players == 1) return true; // Multiplayer win condition
+    
     return false;
 }
