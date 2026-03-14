@@ -61,18 +61,37 @@ int get_btn_action(void) {
 
 /* STATE_SPLASH: Fades in starting text */
 ProgramState state_splash(void) {
-    if (!screen_drawn) {
+    static int splash_timer = 0;
+    
+    // Animate "...", advance every 15 frames
+    if (splash_timer == 0) {
+        clear_current_buffer();
+        draw_msg("AgarLite\nStarting");
+    } else if (splash_timer == 15) {
+        clear_current_buffer();
+        draw_msg("AgarLite\nStarting.");
+    } else if (splash_timer == 30) {
+        clear_current_buffer();
+        draw_msg("AgarLite\nStarting..");
+    } else if (splash_timer == 45) {
         clear_current_buffer();
         draw_msg("AgarLite\nStarting...");
-        screen_drawn = true;
-    }
-    
-    int action = get_btn_action();
-    if (action == 1) { // single press to skip
+    } else if (splash_timer > 60) {
+        // Auto transition after animation
+        splash_timer = 0;
         screen_drawn = false;
         return STATE_MENU_START;
     }
-    return STATE_SPLASH;
+    
+    splash_timer++;
+
+    // int action = get_btn_action();
+    // if (action == 1) { // single press to skip
+    //     splash_timer = 0;
+    //     screen_drawn = false;
+    //     return STATE_MENU_START;
+    // }
+    // return STATE_SPLASH;
 }
 
 /* STATE_MENU_START: Unified menu handler for mode, difficulty, and confirm */
@@ -82,17 +101,23 @@ ProgramState state_menu_start(GameState* gs) {
     static int last_drawn_mode = -1;
     static int last_drawn_diff = -1;
 
-    // Read current inputs
-    // FR2: Switch 0 controls Single (0) vs Double (1) Player Mode
-    int current_mode = get_switch_state(0);
-    // FR3: Switches 0, 1, 2 determine difficulty 0-7
-    int current_diff = get_switch_state(0) | (get_switch_state(1) << 1) | (get_switch_state(2) << 2);
+    // Use static variables to hold the displayed state, preventing
+    // switches from updating inactive components
+    static int display_mode = 0;
+    static int display_diff = 0;
+
+    // Only update the displayed variables if we are currently in that substate
+    if (menu_substate == 0) {
+        display_mode = get_switch_state(0);
+    } else if (menu_substate == 1) {
+        display_diff = get_switch_state(0) | (get_switch_state(1) << 1) | (get_switch_state(2) << 2);
+    }
 
     int action = get_btn_action();
 
     if (action == 1) { // Single press -> Forward/Confirm
         if (menu_substate == 2) {
-            GameState_init(gs, current_mode, current_diff);
+            GameState_init(gs, display_mode, display_diff);
             
             // Re-initialize local statics for the next time we enter this state
             menu_substate = 0;
@@ -111,14 +136,13 @@ ProgramState state_menu_start(GameState* gs) {
 
     // Only draw if substate changed, or if our selected value in the current substate changed.
     if (!screen_drawn || last_drawn_substate != menu_substate || 
-        (menu_substate == 0 && last_drawn_mode != current_mode) || 
-        (menu_substate == 1 && last_drawn_diff != current_diff)) {
+        last_drawn_mode != display_mode || last_drawn_diff != display_diff) {
         
-        draw_start_menu(menu_substate, current_mode, current_diff);
+        draw_start_menu(menu_substate, display_mode, display_diff);
         
         last_drawn_substate = menu_substate;
-        last_drawn_mode = current_mode;
-        last_drawn_diff = current_diff;
+        last_drawn_mode = display_mode;
+        last_drawn_diff = display_diff;
         screen_drawn = true;
     }
     
