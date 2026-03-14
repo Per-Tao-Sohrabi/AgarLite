@@ -91,7 +91,7 @@ ProgramState state_splash(void) {
     //     screen_drawn = false;
     //     return STATE_MENU_START;
     // }
-    // return STATE_SPLASH;
+    return STATE_SPLASH;
 }
 
 /* STATE_MENU_START: Unified menu handler for mode, difficulty, and confirm */
