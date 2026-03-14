@@ -207,19 +207,28 @@ void handle_entity_eat(GameState* gs, Entity* eater, Entity* eaten) {
     Entity_update_velocity(winner);
     
     // Loser logic: lose 1 life and instantly respawn with remaining half area
-    if (loser->lives > 1) {
-        loser->lives -= 1;
-        // Respawn with remaining area
+    if (loser->type == ENTITY_PLAYER) {
+        if (loser->lives > 1) {
+            loser->lives -= 1;
+            // Respawn with remaining area
+            int coord_key = GameState_get_random_position(gs);
+            loser->x_fp = INT_TO_FP(coord_key >> 16);
+            loser->y_fp = INT_TO_FP(coord_key & 0xFFFF);
+            loser->radius = int_sqrt(loser->area * 100 / 314);
+            Entity_update_velocity(loser);
+        } else {
+            // Loser dies permanently (0 lives left)
+            loser->lives = 0;
+            loser->area = 0;
+            loser->is_active = false;
+        }
+    } else {
+        // AI respawn with remaining half area
         int coord_key = GameState_get_random_position(gs);
         loser->x_fp = INT_TO_FP(coord_key >> 16);
         loser->y_fp = INT_TO_FP(coord_key & 0xFFFF);
         loser->radius = int_sqrt(loser->area * 100 / 314);
         Entity_update_velocity(loser);
-    } else {
-        // Loser dies permanently (0 lives left)
-        loser->lives = 0;
-        loser->area = 0;
-        loser->is_active = false;
     }
 }
 
