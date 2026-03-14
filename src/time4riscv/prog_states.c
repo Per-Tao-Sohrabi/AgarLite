@@ -172,7 +172,7 @@ ProgramState state_transition(void) {
     }
 }
 
-ProgramState state_transition_wipe(void) {
+void state_transition_wipe(void) {
     static int wipe_timer = 0;
     
     // We could use `trans_from` and `trans_to` to do different styled wipes 
