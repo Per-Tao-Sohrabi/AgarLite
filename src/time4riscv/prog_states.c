@@ -79,6 +79,10 @@ ProgramState state_paused(void) {
         draw_msg("Paused.\nToggle switch 4 down to resume.");
         screen_drawn = true;
     }
+    if (btn_just_pressed()) {
+        screen_drawn = false;
+        return STATE_MENU_MODE;
+    }
     if (!get_switch_state(4)) {
         screen_drawn = false;
         return STATE_PLAYING;
