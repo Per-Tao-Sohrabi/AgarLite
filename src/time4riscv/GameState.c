@@ -250,18 +250,20 @@ bool GameState_update(GameState* gs, int input_vector[]) {
     for (int i = ai_base; i < ai_base + gs->num_ai; i++) {
         Entity* ai = &gs->entities[i];
         if (!ai->is_active) continue;
+        // old random movement
         // int x_ctrl = rand_range(0, 1);
         // int y_ctrl = rand_range(0, 1);
 
         // =========================================
+        // new seeking movement
         int target_idx = -1;
         long min_dist_sq = 2000000000; // Infinity
 
         // Find the closest entity that is smaller than this AI (food or smaller player/AI)
         for (int j = 0; j < MAX_ENTITIES; j++) {
-            if (i == j) continue;
+            if (i == j) continue; // Don't compare with itself
             Entity* target = &gs->entities[j];
-            if (!target->is_active) continue;
+            if (!target->is_active) continue; // Skip inactive entities
             
             // Only chase things it can eat (area must be smaller, and food area is 0 so it counts)
             if (target->area < ai->area || target->type == ENTITY_FOOD) {
@@ -269,6 +271,7 @@ bool GameState_update(GameState* gs, int input_vector[]) {
                 int dy = FP_TO_INT(target->y_fp) - FP_TO_INT(ai->y_fp);
                 long dist_sq = (long)dx * dx + (long)dy * dy;
                 
+                // update target if it is closer
                 if (dist_sq < min_dist_sq) {
                     min_dist_sq = dist_sq;
                     target_idx = j;
@@ -281,6 +284,7 @@ bool GameState_update(GameState* gs, int input_vector[]) {
 
         // If a valid target was found, move towards it
         if (target_idx != -1) {
+            // get target's position
             Entity* target = &gs->entities[target_idx];
             int ax = FP_TO_INT(ai->x_fp);
             int ay = FP_TO_INT(ai->y_fp);
