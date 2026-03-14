@@ -951,8 +951,104 @@ void draw_confirm_box(const char* msg, int selected_option) {
     swap_buffers();
 }
 
+// --- UI Helper for Menu Buttons ---
+void draw_menu_btn(int x, int y, int w, int h, const char* text, int border_color, int text_color) {
+    draw_rounded_rectangle(x, y, w, h, 3, border_color);
+    draw_rounded_rectangle(x + 1, y + 1, w - 2, h - 2, 2, COLOR_BLACK);
+    // Rough centering based on text length (5px width + 1px spacing)
+    int len = 0;
+    while (text[len] != '\0') len++;
+    int text_w = len * 6;
+    draw_string(x + (w - text_w)/2, y + (h - 7)/2, text, text_color);
+}
+
+// --- Menu UI: Difficulty Bar ---
+void draw_difficulty_bar(int x, int y, int diff_val, int base_color, int active_color) {
+    int node_radius = 4;
+    int spacing = 18;
+    int items = 8;
+    
+    // Draw connecting lines and nodes
+    for (int i = 0; i < items; i++) {
+        int cx = x + (i * spacing);
+        int cy = y;
+        
+        // Is this node currently "active" based on the difficulty value?
+        bool is_set = (i <= diff_val);
+        int node_color = is_set ? active_color : base_color;
+        
+        // Draw line to next node (if not last)
+        if (i < items - 1) {
+            bool next_is_set = (i + 1 <= diff_val);
+            int line_color = (is_set && next_is_set) ? active_color : base_color;
+            draw_horizontal_line(current_draw_buffer, cx, cx + spacing, cy, line_color);
+        }
+        
+        // Draw the node circle
+        draw_circle(cx, cy, node_radius, node_color);
+        // Inner fill (darker for inactive, bright for active)
+        draw_circle(cx, cy, node_radius - 1, is_set ? COLOR_BRIGHT_GREEN : COLOR_BLACK);
+    }
+    
+    // Draw the number text below the nodes
+    char buf[2];
+    buf[0] = diff_val + '0';
+    buf[1] = '\0';
+    draw_string(x + (items * spacing)/2 - 3, y + 10, buf, base_color);
+}
+
+/* 
+ * draw_start_menu
+ * substate: 0 = Mode, 1 = Difficulty, 2 = Confirm
+ * mode: 0 = 1P, 1 = 2P
+ * diff: 0-7
+ */
 void draw_start_menu(int substate, int mode, int diff) {
-    // Stub implementation. Will be fleshed out in the UI phase.
     clear_current_buffer();
-    draw_msg("Start Menu UI Placeholder");
+    
+    // --- Layout Constants ---
+    int center_x = SCREEN_WIDTH / 2;
+    
+    // --- Static Elements ---
+    // Title
+    draw_string(center_x - 4*6, 15, "AgarLite", WHITE);
+    
+    // Instructions (Left column)
+    int inst_x = 10;
+    draw_string(inst_x, 40, "Controls:", COLOR_LIGHT_GRAY);
+    draw_string(inst_x, 60, "Toggle: SW0/1/2", COLOR_DARK_GRAY);
+    draw_string(inst_x, 80, "Fwd: 1 Click", COLOR_DARK_GRAY);
+    draw_string(inst_x, 100, "Back: 2 Clicks", COLOR_DARK_GRAY);
+
+    // Dynamic Header Text
+    const char* header_str = "";
+    if (substate == 0) header_str = "Select Game Mode";
+    else if (substate == 1) header_str = "Select Difficulty";
+    else if (substate == 2) header_str = "Confirm Selection";
+    draw_string(center_x + 10, 40, header_str, WHITE);
+    
+    // --- Division 1: Player Mode (Substate 0) ---
+    int m_base = (substate == 0) ? WHITE : ((substate > 0) ? COLOR_TINTED : COLOR_DARK_GRAY);
+    int m_1p_color = (mode == 0) ? ((substate == 0) ? COLOR_BRIGHT_GREEN : COLOR_TINTED) : m_base;
+    int m_2p_color = (mode == 1) ? ((substate == 0) ? COLOR_BRIGHT_GREEN : COLOR_TINTED) : m_base;
+    
+    int div1_y = 70;
+    draw_menu_btn(center_x - 10, div1_y, 70, 20, "Single", m_1p_color, m_1p_color);
+    draw_menu_btn(center_x + 70, div1_y, 70, 20, "Double", m_2p_color, m_2p_color);
+    
+    // --- Division 2: Difficulty (Substate 1) ---
+    int d_base = (substate == 1) ? WHITE : ((substate > 1) ? COLOR_TINTED : COLOR_DARK_GRAY);
+    int d_active = (substate == 1) ? COLOR_BRIGHT_GREEN : COLOR_TINTED;
+    int div2_y = 125;
+    
+    draw_difficulty_bar(center_x - 10, div2_y, diff, d_base, d_active);
+    
+    // --- Division 3: Confirm (Substate 2) ---
+    int c_base = (substate == 2) ? WHITE : COLOR_DARK_GRAY;
+    int c_text = (substate == 2) ? COLOR_BRIGHT_GREEN : COLOR_DARK_GRAY;
+    int div3_y = 180;
+    
+    draw_menu_btn(center_x + 30, div3_y, 70, 20, "Confirm", c_base, c_text);
+
+    swap_buffers();
 }
