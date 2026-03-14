@@ -245,13 +245,57 @@ bool GameState_update(GameState* gs, int input_vector[]) {
         Entity_update_position(p, gs, x_ctrl, y_ctrl);
     }
 
-    // UPDATE AI POSITIONS (random walk)
+    // UPDATE AI POSITIONS (Seek nearest smaller entity)
     int ai_base = gs->num_players + gs->num_food;
     for (int i = ai_base; i < ai_base + gs->num_ai; i++) {
         Entity* ai = &gs->entities[i];
         if (!ai->is_active) continue;
-        int x_ctrl = rand_range(0, 1);
-        int y_ctrl = rand_range(0, 1);
+        // int x_ctrl = rand_range(0, 1);
+        // int y_ctrl = rand_range(0, 1);
+
+        // =========================================
+        int target_idx = -1;
+        long min_dist_sq = 2000000000; // Infinity
+
+        // Find the closest entity that is smaller than this AI (food or smaller player/AI)
+        for (int j = 0; j < MAX_ENTITIES; j++) {
+            if (i == j) continue;
+            Entity* target = &gs->entities[j];
+            if (!target->is_active) continue;
+            
+            // Only chase things it can eat (area must be smaller, and food area is 0 so it counts)
+            if (target->area < ai->area || target->type == ENTITY_FOOD) {
+                int dx = FP_TO_INT(target->x_fp) - FP_TO_INT(ai->x_fp);
+                int dy = FP_TO_INT(target->y_fp) - FP_TO_INT(ai->y_fp);
+                long dist_sq = (long)dx * dx + (long)dy * dy;
+                
+                if (dist_sq < min_dist_sq) {
+                    min_dist_sq = dist_sq;
+                    target_idx = j;
+                }
+            }
+        }
+
+        int x_ctrl = 2; // Default: neutral/stop (value 2 evaluates to 0 in update_position)
+        int y_ctrl = 2; // Default: neutral/stop
+
+        // If a valid target was found, move towards it
+        if (target_idx != -1) {
+            Entity* target = &gs->entities[target_idx];
+            int ax = FP_TO_INT(ai->x_fp);
+            int ay = FP_TO_INT(ai->y_fp);
+            int tx = FP_TO_INT(target->x_fp);
+            int ty = FP_TO_INT(target->y_fp);
+
+            // Give a 2-pixel tolerance so it doesn't jitter when directly on top of the target's axis
+            if (tx < ax - 2) x_ctrl = 0;      // Move Left
+            else if (tx > ax + 2) x_ctrl = 1; // Move Right
+            
+            if (ty < ay - 2) y_ctrl = 0;      // Move Up
+            else if (ty > ay + 2) y_ctrl = 1; // Move Down
+        }
+
+        // =========================================
         Entity_update_position(ai, gs, x_ctrl, y_ctrl);
     }
 
