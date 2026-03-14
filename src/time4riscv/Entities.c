@@ -1,188 +1,81 @@
-#include <math.h>
 #include <stdbool.h>
 #include "Entities.h"
 #include "GameState.h"
-#include "math_tools.h" // For Dict_set_value
+#include "math_tools.h"
 
-void Player_init(volatile Player* p, int color, int x_pos, int y_pos) {
-    p->x_pos = x_pos; //TODO: Random start position
-    p->y_pos = y_pos; //TODO: Random start position
-    p->area = 100;
-    p->color = color;
-    p->velocity = 1; // Inital velocity
-    p->dx = 0;
-    p->dy = 0;
-    p->radius = int_sqrt(p->area*100/314);
-    p->is_active = true;
-    //print("-------- Player initialized\n");
+void Entity_init_player(Entity* e, int color, int x, int y) {
+    e->is_active = true;
+    e->type = ENTITY_PLAYER;
+    e->x_fp = INT_TO_FP(x);
+    e->y_fp = INT_TO_FP(y);
+    e->area = 100;
+    e->color = color;
+    e->vel_fp = INT_TO_FP(2);   // 2.0 px/frame
+    e->radius = int_sqrt(e->area * 100 / 314);
+    e->nutrition = 0;
+    e->lives = 2;               // 2 lives for players
 }
 
-void Ai_init(volatile Ai* ai, int color, int x_pos, int y_pos) {
-    ai->x_pos = x_pos; //TODO: Random start position
-    ai->y_pos = y_pos; //TODO: Random start position
-    ai->area = 100;
-    ai->color = color;
-    ai->velocity = 1; // Inital velocity
-    ai->dx = 0;
-    ai->dy = 0;
-    ai->radius = int_sqrt(ai->area*100/314);
-    ai->is_active = true;
-    //print("-------- Calculating radius for AI with area \n");
-    //print("-------- AI initialized: id=...d, pos=(...d,...d), color=...d, radius=\n");
+void Entity_init_ai(Entity* e, int color, int x, int y) {
+    e->is_active = true;
+    e->type = ENTITY_AI;
+    e->x_fp = INT_TO_FP(x);
+    e->y_fp = INT_TO_FP(y);
+    e->area = 100;
+    e->color = color;
+    e->vel_fp = INT_TO_FP(2);   // 2.0 px/frame
+    e->radius = int_sqrt(e->area * 100 / 314);
+    e->nutrition = 0;
+    e->lives = 2;               // 2 lives for AI
 }
 
-void Food_init(volatile Food* f, int type, int x_pos, int y_pos) {
-    f->radius = 1;
-    f->x_pos = x_pos; //TODO: Random start position
-    f->y_pos = y_pos; //TODO: Random start position
-    f->type = type;
-    //print("------- Setting nutrition for food type ...d\n");
-    switch (type)
-    {
-    case 0: // Banana
-        f->nutrition = 5;
-        break;
-    case 1: // Apple
-        f->nutrition = 10;
-        break;
-    case 2: // Pear
-        f->nutrition = 15;
-        break;
-    case 3: // Grape
-        f->nutrition = 20;
-        break;
-    default:
-        f->nutrition = 0;
-        break;
+void Entity_init_food(Entity* e, int type, int x, int y) {
+    e->is_active = true;
+    e->type = ENTITY_FOOD;
+    e->x_fp = INT_TO_FP(x);
+    e->y_fp = INT_TO_FP(y);
+    e->area = 0;
+    e->vel_fp = 0;
+    e->radius = 1;
+
+    // Set nutrition based on food type, reuse color for rendering
+    switch (type) {
+    case 0: e->nutrition = 5;  e->color = 220; break; // Banana (Light / Yellowish)
+    case 1: e->nutrition = 10; e->color = 70;  break; // Apple (Medium Dark / Reddish)
+    case 2: e->nutrition = 15; e->color = 160; break; // Pear (Medium Light / Greenish)
+    case 3: e->nutrition = 20; e->color = 40;  break; // Grape (Dark / Purplish)
+    default: e->nutrition = 0; e->color = 0;   break;
     }
-    f->is_active = true;
-    //print("------ Food initialized: id=...d, type=...d, nutrition=...d, pos=(...d,...d), radius=\n");
+    e->lives = 0;
 }
 
-void Player_update_position(volatile Player* p, volatile GameState* gs, int x_ctrl, int y_ctrl) {
-    // Reset occupied_coords_dict entry for old position
-    // Dict_set_value(&gs->occupied_coords_dict, (p->x_pos << 16) | p->y_pos, -1);
-
+void Entity_update_position(Entity* e, GameState* gs, int x_ctrl, int y_ctrl) {
     // Determine direction based on control input
-    int x_sign = 0;
-    int y_sign = 0;
+    int x_sign = (x_ctrl == 0) ? -1 : (x_ctrl == 1) ? 1 : 0;
+    int y_sign = (y_ctrl == 0) ? -1 : (y_ctrl == 1) ? 1 : 0;
 
-        switch (x_ctrl)
-        {
-        case 0:
-            x_sign = -1;
-            break;
-        case 1:
-            x_sign = 1;
-        default:
-            break;
-        }
-        
-        switch (y_ctrl)
-        {
-        case 0:
-            y_sign = -1;
-            break;
-        case 1:
-            y_sign = 1;
-            break;
-        default:
-            break;
-        }
+    // Calculate new fixed-point position
+    int new_x = e->x_fp + x_sign * e->vel_fp;
+    int new_y = e->y_fp + y_sign * e->vel_fp;
 
-        // Calculate displacement
-        p->dx = x_sign * p->velocity;
-        p->dy = y_sign * p->velocity;
+    // Boundary check using integer pixel conversion
+    int px = FP_TO_INT(new_x);
+    int py = FP_TO_INT(new_y);
 
-        // Calculate new position
-        int p_old_x_pos = p->x_pos;
-        int p_old_y_pos = p->y_pos;
-
-        int new_x_pos = p_old_x_pos + p->dx;
-        int new_y_pos = p_old_y_pos + p->dy;
-
-        // Check x-axis boundaries
-        if (gs->min_x < new_x_pos - ((int)p->radius)) { 
-            if (gs->max_x > new_x_pos + ((int)p->radius)) {
-                p->x_pos = new_x_pos;
-            }
-        }
-        // Check y-axis boundaries
-        if (gs->min_y < new_y_pos - ((int)p->radius)) {
-                if (gs-> max_y > new_y_pos + ((int)p->radius)) {
-                    p->y_pos = new_y_pos;
-                }
-        }
-        // Update occupied coords dictionary in GameState
-        int coord_key = (p->x_pos << 16) | p->y_pos;
-}
-
-void Player_update_velocity(volatile Player* p) {
-    int base_velocity = 1;
-    p->velocity = base_velocity - ((int)p->area / 100);
-    if (p->velocity < 1) {
-        p->velocity = 1;
-    }
-}
-
-void AI_update_position(volatile Ai* ai, volatile GameState* gs, int x_ctrl, int y_ctrl) {
+    if (px - e->radius < gs->min_x) new_x = INT_TO_FP(gs->min_x + e->radius);
+    else if (px + e->radius > gs->max_x) new_x = INT_TO_FP(gs->max_x - e->radius);
     
-    // Dict_set_value(&gs->occupied_coords_dict, (ai->x_pos << 16) | ai->y_pos, -1);
-    int x_sign;
-        int y_sign;
+    if (py - e->radius < gs->min_y) new_y = INT_TO_FP(gs->min_y + e->radius);
+    else if (py + e->radius > gs->max_y) new_y = INT_TO_FP(gs->max_y - e->radius);
 
-        switch (x_ctrl)
-        {
-        case 0:
-            x_sign = -1;
-            break;
-        case 1:
-            x_sign = 1;
-        default:
-            break;
-        }
-        
-        switch (y_ctrl)
-        {
-        case 0:
-            y_sign = -1;
-            break;
-        case 1:
-            y_sign = 1;
-            break;
-        default:
-            break;
-        }
-
-        // Calculate displacement
-        ai->dx = x_sign * ai->velocity;
-        ai->dy = y_sign * ai->velocity;
-
-        // Calculate new position
-        int ai_old_x_pos = ai->x_pos;
-        int ai_old_y_pos = ai->y_pos;
-
-        int new_x_pos = ai_old_x_pos + ai->dx;
-        int new_y_pos = ai_old_y_pos + ai->dy;
-
-        // Check x-axis boundaries
-        if (gs->min_x < new_x_pos - ((int)ai->radius)) {
-            if (gs->max_x > new_x_pos + ((int)ai->radius)) {
-                ai->x_pos = new_x_pos;
-            }
-        }
-        // Check y-axis boundaries
-        if (gs->min_y < new_y_pos - (int)ai->radius) {
-                if (gs-> max_y > new_y_pos + (int)ai->radius) {
-                    ai->y_pos = new_y_pos;
-                }
-        }
+    e->x_fp = new_x;
+    e->y_fp = new_y;
 }
 
-void AI_update_velocity(volatile Ai* ai) {
-    int base_velocity = 1;
-    ai->velocity = base_velocity - ((int)ai->area / 100);
-    if (ai->velocity < 1) {
-        ai->velocity = 1;
-    }
+void Entity_update_velocity(Entity* e) {
+    // Base speed = 2.0 px/frame, decreases with area
+    // Minimum speed = 0.25 px/frame
+    int vel = INT_TO_FP(2) - (e->area * FP_ONE / 500);
+    if (vel < FP_ONE / 4) vel = FP_ONE / 4;
+    e->vel_fp = vel;
 }

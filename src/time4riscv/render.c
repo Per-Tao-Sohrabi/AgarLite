@@ -726,6 +726,127 @@ void draw_string_wrapped(int x, int y, const char *str, int color, int max_width
     }
 }
 
+void int_to_string(int num, char *str){
+    if (num == 0) {
+        str[0] = '0';
+        str[1] = '\0';
+        return;
+    }
+
+    int i = 0;
+    bool is_negative = false;
+
+    if (num < 0) {
+        is_negative = true;
+        num = -num;
+    }
+
+    // Extract digits in reverse order
+    while (num > 0) {
+        str[i++] = (num % 10) + '0';
+        num /= 10;
+    }
+
+    if (is_negative) {
+        str[i++] = '-';
+    }
+
+    str[i] = '\0';
+
+    // Reverse the string
+    int start = 0;
+    int end = i - 1;
+    while (start < end) {
+        char temp = str[start];
+        str[start] = str[end];
+        str[end] = temp;
+        start++;
+        end--;
+    }
+}
+
+void draw_hud(GameState *game){
+    char buffer[32]; // Temporary buffer for string conversions
+
+    // --- Global Stats (Top Center) ---
+    draw_string(130, 5, "Diff:", WHITE);
+    int_to_string(game->difficulty, buffer);
+    draw_string(165, 5, buffer, WHITE);
+
+    int food_count = 0;
+    for (int i = 0; i < MAX_ENTITIES; i++) {
+        if (game->entities[i].is_active && game->entities[i].type == ENTITY_FOOD) {
+            food_count++;
+        }
+    }
+    
+    draw_string(130, 25, "Food:", WHITE);
+    int_to_string(food_count, buffer);
+    draw_string(165, 25, buffer, WHITE);
+
+    if (game->num_players == 1) {
+        // --- Single Player ---
+        Entity* p1 = &game->entities[0];
+        if (p1->is_active) {
+            draw_string(5, 5, "Player 1: ", WHITE);
+
+            draw_string(5, 15, "Area: ", WHITE);
+            int_to_string(p1->area, buffer);
+            draw_string(55, 15, buffer, WHITE);
+
+            draw_string(5, 25, "Velocity: ", WHITE);
+            int_to_string(FP_TO_INT(p1->vel_fp*100), buffer);
+            draw_string(65, 25, buffer, WHITE);
+
+            if(game->difficulty > 0){
+                draw_string(5, 35, "Lives: ", WHITE);
+                int_to_string(p1->lives, buffer);
+                draw_string(55, 35, buffer, WHITE);
+            }
+        }
+    } else if (game->num_players >= 2) {
+        // --- Multiplayer ---
+        
+        // Player 1 (Top Left)
+        Entity* p1 = &game->entities[0];
+        if (p1->is_active) {
+            draw_string(5, 5, "Player 1:", WHITE);
+
+            draw_string(5, 15, "Velocity: ", WHITE);
+            int_to_string(FP_TO_INT(p1->vel_fp*100), buffer);
+            draw_string(65, 15, buffer, WHITE);
+
+            draw_string(5, 25, "Area: ", WHITE);
+            int_to_string(p1->area, buffer);
+            draw_string(45, 25, buffer, WHITE);
+            
+            draw_string(5, 35, "Lives: ", WHITE);
+            int_to_string(p1->lives, buffer);
+            draw_string(55, 35, buffer, WHITE);
+        }
+
+        // Player 2 (Top Right, starting at x=250 to avoid center HUD)
+        Entity* p2 = &game->entities[1];
+        if (p2->is_active) {
+            draw_string(250, 5, "Player 2:", WHITE);
+            
+            draw_string(250, 15, "Velocity: ", WHITE);
+            int_to_string(FP_TO_INT(p2->vel_fp*100), buffer);
+            draw_string(310, 15, buffer, WHITE);
+
+            draw_string(250, 25, "Area: ", WHITE);
+            int_to_string(p2->area, buffer);
+            draw_string(290, 25, buffer, WHITE);
+            
+            draw_string(250, 35, "Lives: ", WHITE);
+            int_to_string(p2->lives, buffer);
+            draw_string(300, 35, buffer, WHITE);
+        }
+    }
+
+    draw_horizontal_line(current_draw_buffer, 0, SCREEN_WIDTH, 48, WHITE);
+}
+
 // ===========================================================
 // =================== Game rendering ========================
 // ===========================================================
@@ -733,26 +854,15 @@ void draw_string_wrapped(int x, int y, const char *str, int color, int max_width
 /* Render game to buffer*/
 void render_game(GameState *game) {
     clear_current_buffer(); // Clear, then draw to the buffer. 
-    //players
-    int antal_players = sizeof(game -> players) / sizeof(game -> players[0]); 
-    for(int i = 0; i < antal_players; i++){
-        Player player = game -> players[i];
-        draw_circle(player.x_pos, player.y_pos, player.radius, player.color);
+    for (int i = 0; i < MAX_ENTITIES; i++) {
+        Entity* e = &game->entities[i];
+        if (!e->is_active) continue;
+        draw_circle(FP_TO_INT(e->x_fp), FP_TO_INT(e->y_fp), e->radius, e->color);
+        if(e->type == ENTITY_PLAYER){
+            draw_circle(FP_TO_INT(e->x_fp), FP_TO_INT(e->y_fp), e->radius/3, 0);
+        }
     }
-
-    //food
-    int antal_food = sizeof(game -> crumbs) / sizeof(game -> crumbs[0]); 
-    for(int i = 0; i < antal_food;  i++){
-        Food food = game -> crumbs[i];
-        draw_circle(food.x_pos, food.y_pos, food.radius, food.nutrition);
-    }
-
-    //ai
-    int antal_ai = sizeof(game -> ais)/sizeof(game->ais[0]);
-    for(int i = 0; i < antal_ai; i++){
-        Ai ai = game -> ais[i];
-        draw_circle(ai.x_pos, ai.y_pos, ai.radius, ai.color);
-    }
+    draw_hud(game);
     swap_buffers();
 }
 
@@ -777,4 +887,237 @@ void draw_msg(char* ch) {
     
     // buttar buffer
     swap_buffers();
+}
+
+void draw_rounded_rectangle(int x, int y, int width, int height, int radius, int color) {
+    // Fill middle parts
+    draw_filled_rectangle(x + radius, y, width - 2*radius, height, color); // horizontal
+    draw_filled_rectangle(x, y + radius, width, height - 2*radius, color); // vertical
+    
+    // Corners
+    draw_circle(x + radius, y + radius, radius, color); // Top-left
+    draw_circle(x + width - 1 - radius, y + radius, radius, color); // Top-right
+    draw_circle(x + radius, y + height - 1 - radius, radius, color); // Bottom-left
+    draw_circle(x + width - 1 - radius, y + height - 1 - radius, radius, color); // Bottom-right
+}
+
+void draw_game_over_box(const char* msg, const char* button, void* callback) {
+    int msg_x = 35;
+    int msg_y = 60;
+    int msg_width = MSG_WIDTH;
+    int msg_height = MSG_HEIGHT;
+    
+    // Draw white border, black interior
+    draw_rounded_rectangle(msg_x, msg_y, msg_width, msg_height, 5, WHITE);
+    draw_rounded_rectangle(msg_x + 2, msg_y + 2, msg_width - 4, msg_height - 4, 3, COLOR_BLACK);
+    
+    // Draw msg
+    draw_string_wrapped(msg_x + 10, msg_y + 10, msg, WHITE, msg_width - 20);
+    
+    // Draw button
+    if (button) {
+        int btn_w = 60;
+        int btn_h = 20;
+        int btn_x = msg_x + (msg_width - btn_w)/2;
+        int btn_y = msg_y + msg_height - 30;
+        draw_rounded_rectangle(btn_x, btn_y, btn_w, btn_h, 3, WHITE);
+        draw_rounded_rectangle(btn_x+1, btn_y+1, btn_w-2, btn_h-2, 2, COLOR_BLACK);
+        draw_string(btn_x + 10, btn_y + 6, button, WHITE);
+    }
+    swap_buffers();
+}
+
+void draw_pause_box(const char* msg, const char* button, void* callback) {
+    int msg_x = 35;
+    int msg_y = 60;
+    int msg_width = MSG_WIDTH;
+    int msg_height = MSG_HEIGHT;
+    
+    // Draw white border, black interior
+    draw_rounded_rectangle(msg_x, msg_y, msg_width, msg_height, 5, WHITE);
+    draw_rounded_rectangle(msg_x + 2, msg_y + 2, msg_width - 4, msg_height - 4, 3, COLOR_BLACK);
+    
+    // Draw msg
+    draw_string_wrapped(msg_x + 10, msg_y + 10, msg, WHITE, msg_width - 20);
+    
+    // Draw button
+    if (button) {
+        int btn_w = 60;
+        int btn_h = 20;
+        int btn_x = msg_x + (msg_width - btn_w)/2;
+        int btn_y = msg_y + msg_height - 30;
+        draw_rounded_rectangle(btn_x, btn_y, btn_w, btn_h, 3, WHITE);
+        draw_rounded_rectangle(btn_x+1, btn_y+1, btn_w-2, btn_h-2, 2, COLOR_BLACK);
+        draw_string(btn_x + 10, btn_y + 6, button, WHITE);
+    }
+    swap_buffers();
+}
+
+void draw_confirm_box(const char* msg, int selected_option) {
+    int msg_x = 35;
+    int msg_y = 60;
+    int msg_width = MSG_WIDTH;
+    int msg_height = MSG_HEIGHT;
+    
+    // Draw white border, black interior
+    draw_rounded_rectangle(msg_x, msg_y, msg_width, msg_height, 5, WHITE);
+    draw_rounded_rectangle(msg_x + 2, msg_y + 2, msg_width - 4, msg_height - 4, 3, COLOR_BLACK);
+    
+    draw_string_wrapped(msg_x + 10, msg_y + 10, msg, WHITE, msg_width - 20);
+    
+    // Options: 1 = Yes, 0 = No
+    int btn_w = 40;
+    int btn_h = 20;
+    int btn1_x = msg_x + msg_width/2 - btn_w - 10;
+    int btn0_x = msg_x + msg_width/2 + 10;
+    int btn_y = msg_y + msg_height - 30;
+    
+    int color1 = (selected_option == 1) ? COLOR_BRIGHT_GREEN : WHITE;
+    int color0 = (selected_option == 0) ? COLOR_BRIGHT_GREEN : WHITE;
+    
+    // Yes button
+    draw_rounded_rectangle(btn1_x, btn_y, btn_w, btn_h, 3, color1);
+    draw_rounded_rectangle(btn1_x+1, btn_y+1, btn_w-2, btn_h-2, 2, COLOR_BLACK);
+    draw_string(btn1_x + 10, btn_y + 6, "Yes", color1);
+    
+    // No button
+    draw_rounded_rectangle(btn0_x, btn_y, btn_w, btn_h, 3, color0);
+    draw_rounded_rectangle(btn0_x+1, btn_y+1, btn_w-2, btn_h-2, 2, COLOR_BLACK);
+    draw_string(btn0_x + 10, btn_y + 6, "No", color0);
+    
+    swap_buffers();
+}
+
+// --- UI Helper for Menu Buttons ---
+void draw_menu_btn(int x, int y, int w, int h, const char* text, int border_color, int text_color) {
+    draw_rounded_rectangle(x, y, w, h, 3, border_color);
+    draw_rounded_rectangle(x + 1, y + 1, w - 2, h - 2, 2, COLOR_BLACK);
+    // Rough centering based on text length (5px width + 1px spacing)
+    int len = 0;
+    while (text[len] != '\0') len++;
+    int text_w = len * 6;
+    draw_string(x + (w - text_w)/2, y + (h - 7)/2, text, text_color);
+}
+
+// --- Menu UI: Difficulty Bar ---
+void draw_difficulty_bar(int x, int y, int diff_val, int base_color, int active_color) {
+    int node_radius = 4;
+    int spacing = 18;
+    int items = 8;
+    
+    // Draw connecting lines and nodes
+    for (int i = 0; i < items; i++) {
+        int cx = x + (i * spacing);
+        int cy = y;
+        
+        // Is this node currently "active" based on the difficulty value?
+        bool is_set = (i <= diff_val);
+        int node_color = is_set ? active_color : base_color;
+        
+        // Draw line to next node (if not last)
+        if (i < items - 1) {
+            bool next_is_set = (i + 1 <= diff_val);
+            int line_color = (is_set && next_is_set) ? active_color : base_color;
+            draw_horizontal_line(current_draw_buffer, cx, cx + spacing, cy, line_color);
+        }
+        
+        // Draw the node circle
+        draw_circle(cx, cy, node_radius, node_color);
+        // Inner fill (darker for inactive, bright for active)
+        draw_circle(cx, cy, node_radius - 1, is_set ? COLOR_BRIGHT_GREEN : COLOR_BLACK);
+    }
+    
+    // Draw the number text below the nodes
+    char buf[2];
+    buf[0] = diff_val + '0';
+    buf[1] = '\0';
+    draw_string(x + (items * spacing)/2 - 3, y + 10, buf, base_color);
+}
+
+/* 
+ * draw_start_menu
+ * substate: 0 = Mode, 1 = Difficulty, 2 = Confirm
+ * mode: 0 = 1P, 1 = 2P
+ * diff: 0-7
+ */
+void draw_start_menu(int substate, int mode, int diff) {
+    clear_current_buffer();
+    
+    // --- Layout Constants ---
+    int center_x = SCREEN_WIDTH / 2;
+    
+    // --- Static Elements ---
+    // Title
+    draw_string(center_x - 4*6, 15, "AgarLite", WHITE);
+    
+    // Instructions (Left column)
+    int inst_x = 10;
+    draw_string(inst_x, 40, "Controls:", COLOR_LIGHT_GRAY);
+    draw_string(inst_x, 60, "Toggle: SW0/1/2", COLOR_DARK_GRAY);
+    draw_string(inst_x, 80, "Fwd: 1 Click", COLOR_DARK_GRAY);
+    draw_string(inst_x, 100, "Back: 2 Clicks", COLOR_DARK_GRAY);
+
+    // Dynamic Header Text
+    const char* header_str = "";
+    if (substate == 0) header_str = "Select Game Mode";
+    else if (substate == 1) header_str = "Select Difficulty";
+    else if (substate == 2) header_str = "Confirm Selection";
+    draw_string(center_x + 10, 40, header_str, WHITE);
+    
+    // --- Division 1: Player Mode (Substate 0) ---
+    int m_base = (substate == 0) ? WHITE : ((substate > 0) ? COLOR_TINTED : COLOR_DARK_GRAY);
+    int m_1p_color = (mode == 0) ? ((substate == 0) ? COLOR_BRIGHT_GREEN : COLOR_TINTED) : m_base;
+    int m_2p_color = (mode == 1) ? ((substate == 0) ? COLOR_BRIGHT_GREEN : COLOR_TINTED) : m_base;
+    
+    int div1_y = 70;
+    draw_menu_btn(center_x - 10, div1_y, 70, 20, "Single", m_1p_color, m_1p_color);
+    draw_menu_btn(center_x + 70, div1_y, 70, 20, "Double", m_2p_color, m_2p_color);
+    
+    // --- Division 2: Difficulty (Substate 1) ---
+    int d_base = (substate == 1) ? WHITE : ((substate > 1) ? COLOR_TINTED : COLOR_DARK_GRAY);
+    int d_active = (substate == 1) ? COLOR_BRIGHT_GREEN : COLOR_TINTED;
+    int div2_y = 125;
+    
+    draw_difficulty_bar(center_x - 10, div2_y, diff, d_base, d_active);
+    
+    // --- Division 3: Confirm (Substate 2) ---
+    int c_base = (substate == 2) ? WHITE : COLOR_DARK_GRAY;
+    int c_text = (substate == 2) ? COLOR_BRIGHT_GREEN : COLOR_DARK_GRAY;
+    int div3_y = 180;
+    
+    draw_menu_btn(center_x + 30, div3_y, 70, 20, "Confirm", c_base, c_text);
+
+    swap_buffers();
+}
+
+/*
+ * dim_screen scales the current_display_buffer pixels down toward black.
+ * factor: 0-256 (256 = keep as is, 0 = completely black)
+ */
+void dim_screen(int factor) {
+    if (factor > 256) factor = 256;
+    if (factor < 0) factor = 0;
+    
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        uint8_t pixel = current_display_buffer[i];
+        if (pixel == 0) continue;
+        
+        // Extract RGB332 components
+        int r = (pixel >> 5) & 0x07;
+        int g = (pixel >> 2) & 0x07;
+        int b = pixel & 0x03;
+        
+        // Scale and cap each component
+        r = (r * factor) >> 8;
+        g = (g * factor) >> 8;
+        b = (b * factor) >> 8; // Bit shift by 8 is equivalent to div by 256
+        
+        if (r > 7) r = 7;
+        if (g > 7) g = 7;
+        if (b > 3) b = 3;
+        
+        // Re-pack into output buffer
+        uint8_t new_pixel = (r << 5) | (g << 2) | b;
+        current_draw_buffer[i] = new_pixel;
+    }
 }
