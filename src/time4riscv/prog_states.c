@@ -150,40 +150,53 @@ ProgramState state_menu_start(GameState* gs) {
 
 static ProgramState trans_from;
 static ProgramState trans_to;
+static TransitionType trans_type;
 
 /* Generalized transition helper: sets the transition targets and kicks off the wipe */
-ProgramState set_transition(ProgramState from, ProgramState to) {
+ProgramState set_transition(ProgramState from, ProgramState to, TransitionType type) {
     trans_from = from;
     trans_to = to;
+    trans_type = type;
     return STATE_TRANSITION;
 }
 
 /* STATE_TRANSITION: Generalized screen wipe transition */
 ProgramState state_transition(void) {
-    static int fade_timer = 0;
+    switch (trans_type) {
+        case TRANS_WIPE:
+            return state_transition_wipe();
+        case TRANS_FADE:
+            return state_transition_fade();
+        case TRANS_PARTICLE_BURST:
+            return state_transition_particle_burst();
+    }
+}
+
+ProgramState state_transition_wipe(void) {
+    static int wipe_timer = 0;
     
     // We could use `trans_from` and `trans_to` to do different styled wipes 
     // in the future if we wanted, but for now we do a standard full flash wipe.
-    clear_current_buffer();
+    //clear_current_buffer();
     
-    if (fade_timer < 5) {
+    if (wipe_timer < 5) {
         draw_filled_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_DARK_GRAY);
-    } else if (fade_timer < 10) {
+    } else if (wipe_timer < 1) {
         draw_filled_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_LIGHT_GRAY);
-    } else if (fade_timer < 15) {
+    } else if (wipe_timer < 3) {
         draw_filled_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
-    } else if (fade_timer < 20) {
+    } else if (wipe_timer < 4) {
         draw_filled_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_LIGHT_GRAY);
-    } else if (fade_timer < 25) {
+    } else if (wipe_timer < 5) {
         draw_filled_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_DARK_GRAY);
     } else {
-        fade_timer = 0;
+        wipe_timer = 0;
         screen_drawn = false;
         return trans_to;
     }
     
     swap_buffers();
-    fade_timer++;
+    wipe_timer++;
     return STATE_TRANSITION;
 }
 
