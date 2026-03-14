@@ -63,20 +63,18 @@ int get_btn_action(void) {
 ProgramState state_splash(void) {
     static int splash_timer = 0;
     
-    // Animate "...", advance every 15 frames
-    if (splash_timer == 0) {
-        clear_current_buffer();
+    clear_current_buffer();
+    
+    // Animate "...", advance every 10 frames (faster & drawn every tick to prevent buffer staleness)
+    if (splash_timer < 10) {
         draw_msg("AgarLite\nStarting");
-    } else if (splash_timer == 15) {
-        clear_current_buffer();
+    } else if (splash_timer < 20) {
         draw_msg("AgarLite\nStarting.");
-    } else if (splash_timer == 30) {
-        clear_current_buffer();
+    } else if (splash_timer < 30) {
         draw_msg("AgarLite\nStarting..");
-    } else if (splash_timer == 45) {
-        clear_current_buffer();
+    } else if (splash_timer < 40) {
         draw_msg("AgarLite\nStarting...");
-    } else if (splash_timer > 60) {
+    } else {
         // Auto transition after animation
         splash_timer = 0;
         screen_drawn = false;
@@ -85,12 +83,13 @@ ProgramState state_splash(void) {
     
     splash_timer++;
 
-    // int action = get_btn_action();
-    // if (action == 1) { // single press to skip
-    //     splash_timer = 0;
-    //     screen_drawn = false;
-    //     return STATE_MENU_START;
-    // }
+    int action = get_btn_action();
+    if (action == 1) { // single press to skip
+        splash_timer = 0;
+        screen_drawn = false;
+        return STATE_MENU_START;
+    }
+    
     return STATE_SPLASH;
 }
 
