@@ -161,11 +161,11 @@ void handle_entity_eat(GameState* gs, Entity* eater, Entity* eaten) {
     Entity* winner = NULL;
     Entity* loser = NULL;
 
-    // Require winner to be at least 10% larger than the loser
-    if (eater->area >= eaten->area + (eaten->area / 10)) {
+    // Require winner to be larger than the loser
+    if (eater->area > eaten->area) {
         winner = eater;
-        loser = eaten;
-    } else if (eaten->area >= eater->area + (eater->area / 10)) {
+        loser = eaten; 
+    } else if (eaten->area > eater->area) {
         winner = eaten;
         loser = eater;
     } else {
@@ -173,63 +173,29 @@ void handle_entity_eat(GameState* gs, Entity* eater, Entity* eaten) {
         return;
     }
 
-    // Measure overlap depth
-    int dx = FP_TO_INT(winner->x_fp) - FP_TO_INT(loser->x_fp);
-    int dy = FP_TO_INT(winner->y_fp) - FP_TO_INT(loser->y_fp);
-    int dist_sq = dx * dx + dy * dy;
-    int dist = int_sqrt(dist_sq);
-    int r_sum = winner->radius + loser->radius;
-    
-    // Calculate overlap amount (penetration depth)
-    int overlap = r_sum - dist;
-    
-    if (overlap <= 0) {
-        // No overlap
-        return;
-    }
-
-    // Transfer area based on overlap depth.
-    // The deeper the overlap, the more area is transferred per frame.
-    // Ensure we transfer at least 1 area unit, but limit based on overlap.
-    int transfer_amount = overlap / 2; // Tune this divisor to control transfer speed
-    if (transfer_amount < 1) transfer_amount = 1;
-
-    // Don't transfer more than the loser has
-    if (transfer_amount > loser->area) {
-        transfer_amount = loser->area;
-    }
-
-    // Apply transfer
+    // Transfer half of loser's area to winner
+    int transfer_amount = loser->area / 2;
     winner->area += transfer_amount;
     loser->area -= transfer_amount;
 
-    // Update radii and velocities for both
+    // Update winner stats
     winner->radius = int_sqrt(winner->area * 100 / 314);
     Entity_update_velocity(winner);
     
-    // Loser might be completely eaten or just shrunk
-    if (loser->area <= 50) { // Threshold for being "completely eaten"
-        // Loser logic: if player with lives > 1, respawn
-        if (loser->type == ENTITY_PLAYER && loser->lives > 1) {
-            loser->lives -= 1;
-            loser->area = 100;
-            int coord_key = GameState_get_random_position(gs);
-            loser->x_fp = INT_TO_FP(coord_key >> 16);
-            loser->y_fp = INT_TO_FP(coord_key & 0xFFFF);
-            loser->radius = int_sqrt(loser->area * 100 / 314);
-            Entity_update_velocity(loser);
-        } else {
-            // Loser dies permanently
-            if (loser->type == ENTITY_PLAYER) {
-                loser->lives = 0;
-            }
-            loser->area = 0;
-            loser->is_active = false;
-        }
-    } else {
-        // Just shrunk, update stats
+    // Loser logic: lose 1 life and instantly respawn with remaining half area
+    if (loser->lives > 1) {
+        loser->lives -= 1;
+        // Respawn with remaining area
+        int coord_key = GameState_get_random_position(gs);
+        loser->x_fp = INT_TO_FP(coord_key >> 16);
+        loser->y_fp = INT_TO_FP(coord_key & 0xFFFF);
         loser->radius = int_sqrt(loser->area * 100 / 314);
         Entity_update_velocity(loser);
+    } else {
+        // Loser dies permanently (0 lives left)
+        loser->lives = 0;
+        loser->area = 0;
+        loser->is_active = false;
     }
 }
 
@@ -278,6 +244,9 @@ bool GameState_update(GameState* gs, int input_vector[]) {
                 // Entity vs entity (player/ai)
                 handle_entity_eat(gs, a, b);
             }
+
+            // If entity 'a' died permanently in this collision, abort checking it against others
+            if (!a->is_active) break;
         }
     }
 
