@@ -21,6 +21,8 @@ void GameState_init(GameState* gs, int gm, int diff) {
     gs->min_y = 48;
     gs->max_y = 240;
 
+    gs->ticks = 0;
+
     // Clear all entity slots
     for (int i = 0; i < MAX_ENTITIES; i++) {
         gs->entities[i].is_active = false;
@@ -314,7 +316,6 @@ bool GameState_update(GameState* gs, int input_vector[]) {
         // =========================================
         Entity_update_position(ai, gs, x_ctrl, y_ctrl);
     }
-
     gs->ticks++;
 
     // HANDLE COLLISIONS — single O(N²/2) loop
