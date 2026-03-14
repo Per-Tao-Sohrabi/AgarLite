@@ -181,7 +181,7 @@ ProgramState state_paused(void) {
 
     if (pause_substate == 0) {
         if (!screen_drawn) {
-            clear_current_buffer();
+            //clear_current_buffer();
             draw_pause_box("Paused.\nDown S4 to resume.\nPress btn to restart.", "Restart", NULL);
             screen_drawn = true;
         }
@@ -203,7 +203,7 @@ ProgramState state_paused(void) {
         int current_switch = get_switch_state(0);
 
         if (!screen_drawn || current_switch != last_switch_state) {
-            clear_current_buffer();
+            //clear_current_buffer();
             draw_confirm_box("Are you sure you want to restart?\nUp S0 = Yes, Down S0 = No", current_switch);
             screen_drawn = true;
             last_switch_state = current_switch;
@@ -231,7 +231,7 @@ ProgramState state_game_over(void) {
     if (!screen_drawn) {
         //clear_current_buffer();
         
-        draw_game_over_box("Game Over!", "Back to menu", NULL);
+        draw_game_over_box("Game Over!", "Restart", NULL);
         screen_drawn = true;
     }
     if (btn_just_pressed()) {
