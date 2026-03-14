@@ -798,7 +798,7 @@ void draw_hud(GameState *game){
             int_to_string(FP_TO_INT(p1->vel_fp*100), buffer);
             draw_string(65, 25, buffer, WHITE);
 
-            if(game->difficulty > 1){
+            if(game->difficulty > 0){
                 draw_string(5, 35, "Lives: ", WHITE);
                 int_to_string(p1->lives, buffer);
                 draw_string(55, 35, buffer, WHITE);
@@ -812,35 +812,35 @@ void draw_hud(GameState *game){
         if (p1->is_active) {
             draw_string(5, 5, "Player 1:", WHITE);
 
-            draw_string(5, 15, "Lives: ", WHITE);
-            int_to_string(p1->lives, buffer);
-            draw_string(55, 15, buffer, WHITE);
-
-            draw_string(5, 25, "Velocity: ", WHITE);
+            draw_string(5, 15, "Velocity: ", WHITE);
             int_to_string(FP_TO_INT(p1->vel_fp*100), buffer);
-            draw_string(65, 25, buffer, WHITE);
+            draw_string(65, 15, buffer, WHITE);
 
-            draw_string(5, 35, "Area: ", WHITE);
+            draw_string(5, 25, "Area: ", WHITE);
             int_to_string(p1->area, buffer);
-            draw_string(45, 35, buffer, WHITE);
+            draw_string(45, 25, buffer, WHITE);
+            
+            draw_string(5, 35, "Lives: ", WHITE);
+            int_to_string(p1->lives, buffer);
+            draw_string(55, 35, buffer, WHITE);
         }
 
         // Player 2 (Top Right, starting at x=250 to avoid center HUD)
         Entity* p2 = &game->entities[1];
         if (p2->is_active) {
             draw_string(250, 5, "Player 2:", WHITE);
-
-            draw_string(250, 15, "Lives: ", WHITE);
-            int_to_string(p2->lives, buffer);
-            draw_string(300, 15, buffer, WHITE);
-
-            draw_string(250, 25, "Velocity: ", WHITE);
+            
+            draw_string(250, 15, "Velocity: ", WHITE);
             int_to_string(FP_TO_INT(p2->vel_fp*100), buffer);
-            draw_string(310, 25, buffer, WHITE);
+            draw_string(310, 15, buffer, WHITE);
 
-            draw_string(250, 35, "Area: ", WHITE);
+            draw_string(250, 25, "Area: ", WHITE);
             int_to_string(p2->area, buffer);
-            draw_string(290, 35, buffer, WHITE);
+            draw_string(290, 25, buffer, WHITE);
+            
+            draw_string(250, 35, "Lives: ", WHITE);
+            int_to_string(p2->lives, buffer);
+            draw_string(300, 35, buffer, WHITE);
         }
     }
 
