@@ -788,13 +788,21 @@ void draw_hud(GameState *game){
         // --- Single Player ---
         Entity* p1 = &game->entities[0];
         if (p1->is_active) {
-            draw_string(5, 5, "Velocity: ", WHITE);
-            int_to_string(FP_TO_INT(p1->vel_fp), buffer);
-            draw_string(55, 5, buffer, WHITE);
+            draw_string(5, 5, "Player 1: ", WHITE);
 
             draw_string(5, 15, "Area: ", WHITE);
             int_to_string(p1->area, buffer);
-            draw_string(65, 15, buffer, WHITE);
+            draw_string(55, 15, buffer, WHITE);
+
+            draw_string(5, 25, "Velocity: ", WHITE);
+            int_to_string(FP_TO_INT(p1->vel_fp*100), buffer);
+            draw_string(65, 25, buffer, WHITE);
+
+            if(game->difficulty > 0){
+                draw_string(5, 35, "Lives: ", WHITE);
+                int_to_string(p1->lives, buffer);
+                draw_string(55, 35, buffer, WHITE);
+            }
         }
     } else if (game->num_players >= 2) {
         // --- Multiplayer ---
@@ -804,35 +812,35 @@ void draw_hud(GameState *game){
         if (p1->is_active) {
             draw_string(5, 5, "Player 1:", WHITE);
 
-            draw_string(5, 15, "Lives: ", WHITE);
-            int_to_string(p1->lives, buffer);
-            draw_string(55, 15, buffer, WHITE);
+            draw_string(5, 15, "Velocity: ", WHITE);
+            int_to_string(FP_TO_INT(p1->vel_fp*100), buffer);
+            draw_string(65, 15, buffer, WHITE);
 
-            draw_string(5, 25, "Velocity: ", WHITE);
-            int_to_string(FP_TO_INT(p1->vel_fp), buffer);
-            draw_string(65, 25, buffer, WHITE);
-
-            draw_string(5, 35, "Area: ", WHITE);
+            draw_string(5, 25, "Area: ", WHITE);
             int_to_string(p1->area, buffer);
-            draw_string(45, 35, buffer, WHITE);
+            draw_string(45, 25, buffer, WHITE);
+            
+            draw_string(5, 35, "Lives: ", WHITE);
+            int_to_string(p1->lives, buffer);
+            draw_string(55, 35, buffer, WHITE);
         }
 
         // Player 2 (Top Right, starting at x=250 to avoid center HUD)
         Entity* p2 = &game->entities[1];
         if (p2->is_active) {
             draw_string(250, 5, "Player 2:", WHITE);
+            
+            draw_string(250, 15, "Velocity: ", WHITE);
+            int_to_string(FP_TO_INT(p2->vel_fp*100), buffer);
+            draw_string(310, 15, buffer, WHITE);
 
-            draw_string(250, 15, "Lives: ", WHITE);
-            int_to_string(p2->lives, buffer);
-            draw_string(300, 15, buffer, WHITE);
-
-            draw_string(250, 25, "Velocity: ", WHITE);
-            int_to_string(FP_TO_INT(p2->vel_fp), buffer);
-            draw_string(310, 25, buffer, WHITE);
-
-            draw_string(250, 35, "Area: ", WHITE);
+            draw_string(250, 25, "Area: ", WHITE);
             int_to_string(p2->area, buffer);
-            draw_string(290, 35, buffer, WHITE);
+            draw_string(290, 25, buffer, WHITE);
+            
+            draw_string(250, 35, "Lives: ", WHITE);
+            int_to_string(p2->lives, buffer);
+            draw_string(300, 35, buffer, WHITE);
         }
     }
 
@@ -850,6 +858,9 @@ void render_game(GameState *game) {
         Entity* e = &game->entities[i];
         if (!e->is_active) continue;
         draw_circle(FP_TO_INT(e->x_fp), FP_TO_INT(e->y_fp), e->radius, e->color);
+        if(e->type == ENTITY_PLAYER){
+            draw_circle(FP_TO_INT(e->x_fp), FP_TO_INT(e->y_fp), e->radius/3, 0);
+        }
     }
     draw_hud(game);
     swap_buffers();

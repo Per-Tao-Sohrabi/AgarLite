@@ -26,7 +26,7 @@ void Entity_init_ai(Entity* e, int color, int x, int y) {
     e->vel_fp = INT_TO_FP(2);   // 2.0 px/frame
     e->radius = int_sqrt(e->area * 100 / 314);
     e->nutrition = 0;
-    e->lives = 0;               // AI does not respawn
+    e->lives = 0;               // AI has no lives
 }
 
 void Entity_init_food(Entity* e, int type, int x, int y) {

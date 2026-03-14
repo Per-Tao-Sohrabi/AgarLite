@@ -21,6 +21,8 @@ void GameState_init(GameState* gs, int gm, int diff) {
     gs->min_y = 48;
     gs->max_y = 240;
 
+    gs->ticks = 0;
+
     // Clear all entity slots
     for (int i = 0; i < MAX_ENTITIES; i++) {
         gs->entities[i].is_active = false;
@@ -224,10 +226,13 @@ void handle_entity_eat(GameState* gs, Entity* eater, Entity* eaten) {
         }
     } else {
         // AI respawn with remaining half area
+        int temp_r = int_sqrt(loser->area * 100 / 314);
+        if(temp_r > MIN_AI_RADIUS) {
+            loser->radius = temp_r;
+        }
         int coord_key = GameState_get_random_position(gs);
         loser->x_fp = INT_TO_FP(coord_key >> 16);
         loser->y_fp = INT_TO_FP(coord_key & 0xFFFF);
-        loser->radius = int_sqrt(loser->area * 100 / 314);
         Entity_update_velocity(loser);
     }
 }
@@ -250,58 +255,71 @@ bool GameState_update(GameState* gs, int input_vector[]) {
     for (int i = ai_base; i < ai_base + gs->num_ai; i++) {
         Entity* ai = &gs->entities[i];
         if (!ai->is_active) continue;
-        // old random movement
-        // int x_ctrl = rand_range(0, 1);
-        // int y_ctrl = rand_range(0, 1);
 
-        // =========================================
-        // new seeking movement
-        int target_idx = -1; // target index
-        long min_dist_sq = 2000000000; // Infinity. Area between nearby entities
+        int x_ctrl, y_ctrl;
 
-        // Find the closest entity that is smaller than this AI (food or smaller player/AI)
-        for (int j = 0; j < MAX_ENTITIES; j++) {
-            if (i == j) continue; // Don't compare with itself
-            Entity* target = &gs->entities[j];
-            if (!target->is_active) continue; // Skip inactive entities
+        if (gs->difficulty == 1) {
+            // Smooth roaming (changes direction every 60 ticks)
+            int time_chunk = gs->ticks / 60;
+
+            // Create a pseudo-random hash using the AI's index and the current time chunk
+            // This ensures each AI gets a unique random number that stays constant for 60 frames.
+            int seed = (i * 17) ^ (time_chunk * 31);
             
-            // Only chase things it can eat (area must be smaller, and food area is 0 so it counts)
-            if (target->area < ai->area || target->type == ENTITY_FOOD) {
-                int dx = FP_TO_INT(target->x_fp) - FP_TO_INT(ai->x_fp);
-                int dy = FP_TO_INT(target->y_fp) - FP_TO_INT(ai->y_fp);
-                long dist_sq = (long)dx * dx + (long)dy * dy;
+            // Extract direction from the seed hash
+            x_ctrl = (seed % 3);       // 0, 1, or 2 (left, right, neutral)
+            y_ctrl = ((seed / 3) % 3); // 0, 1, or 2 (up, down, neutral)
+        } else {
+            // =========================================
+            // new seeking movement
+            int target_idx = -1; // target index
+            long min_dist_sq = 2000000000; // Infinity. Area between nearby entities
+
+            // Find the closest entity that is smaller than this AI (food or smaller player/AI)
+            for (int j = 0; j < MAX_ENTITIES; j++) {
+                if (i == j) continue; // Don't compare with itself
+                Entity* target = &gs->entities[j];
+                if (!target->is_active) continue; // Skip inactive entities
+            
+                // Only chase things it can eat (area must be smaller, and food area is 0 so it counts)
+                if (target->area < ai->area || target->type == ENTITY_FOOD) {
+                    int dx = FP_TO_INT(target->x_fp) - FP_TO_INT(ai->x_fp);
+                    int dy = FP_TO_INT(target->y_fp) - FP_TO_INT(ai->y_fp);
+                    long dist_sq = (long)dx * dx + (long)dy * dy;
                 
-                // update target if it is closer
-                if (dist_sq < min_dist_sq) {
-                    min_dist_sq = dist_sq;
-                    target_idx = j;
+                    // update target if it is closer
+                    if (dist_sq < min_dist_sq) {
+                        min_dist_sq = dist_sq;
+                        target_idx = j;
+                    }
                 }
             }
-        }
 
-        int x_ctrl = 2; // Default: neutral/stop (value 2 evaluates to 0 in update_position)
-        int y_ctrl = 2; // Default: neutral/stop
+            x_ctrl = 2; // Default: neutral/stop (value 2 evaluates to 0 in update_position)
+            y_ctrl = 2; // Default: neutral/stop
 
-        // If a valid target was found, move towards it
-        if (target_idx != -1) {
-            // get target's position
-            Entity* target = &gs->entities[target_idx];
-            int ax = FP_TO_INT(ai->x_fp);
-            int ay = FP_TO_INT(ai->y_fp);
-            int tx = FP_TO_INT(target->x_fp);
-            int ty = FP_TO_INT(target->y_fp);
+            // If a valid target was found, move towards it
+            if (target_idx != -1) {
+                // get target's position
+                Entity* target = &gs->entities[target_idx];
+                int ax = FP_TO_INT(ai->x_fp);
+                int ay = FP_TO_INT(ai->y_fp);
+                int tx = FP_TO_INT(target->x_fp);
+                int ty = FP_TO_INT(target->y_fp);
 
-            // Give a 2-pixel tolerance so it doesn't jitter when directly on top of the target's axis
-            if (tx < ax - 2) x_ctrl = 0;      // Move Left
-            else if (tx > ax + 2) x_ctrl = 1; // Move Right
-            
-            if (ty < ay - 2) y_ctrl = 0;      // Move Up
-            else if (ty > ay + 2) y_ctrl = 1; // Move Down
+                // Give a 2-pixel tolerance so it doesn't jitter when directly on top of the target's axis
+                if (tx < ax - 2) x_ctrl = 0;      // Move Left
+                else if (tx > ax + 2) x_ctrl = 1; // Move Right
+                
+                if (ty < ay - 2) y_ctrl = 0;      // Move Up
+                else if (ty > ay + 2) y_ctrl = 1; // Move Down
+            }
         }
 
         // =========================================
         Entity_update_position(ai, gs, x_ctrl, y_ctrl);
     }
+    gs->ticks++;
 
     // HANDLE COLLISIONS — single O(N²/2) loop
     for (int i = 0; i < MAX_ENTITIES; i++) {
