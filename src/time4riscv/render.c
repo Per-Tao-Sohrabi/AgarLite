@@ -850,7 +850,7 @@ void render_game(GameState *game) {
         Entity* e = &game->entities[i];
         if (!e->is_active) continue;
         draw_circle(FP_TO_INT(e->x_fp), FP_TO_INT(e->y_fp), e->radius, e->color);
-        if(e->type == Entity_AI){
+        if(e->type == ENTITY_AI){
             draw_string(FP_TO_INT(e->x_fp), FP_TO_INT(e->y_fp), "AI", e->color);
         }
     }
