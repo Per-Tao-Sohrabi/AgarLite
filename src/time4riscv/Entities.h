@@ -13,7 +13,11 @@ typedef enum {
     ENTITY_FOOD
 } EntityType;
 
-#define MAX_ENTITIES 7  // 2 players + 0 AI + 5 food
+#define MAXPLAYERS 2
+#define MAXAI 5
+#define MAXFOOD 10
+
+#define MAX_ENTITIES (MAXPLAYERS + MAXAI + MAXFOOD)
 
 typedef struct {
     bool is_active;

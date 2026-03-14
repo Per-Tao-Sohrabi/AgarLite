@@ -8,9 +8,7 @@
 
 extern int rand_range(int, int);
 
-#define MAXPLAYERS 2
-#define MAXAI 0
-#define MAXFOOD 5
+
 
 /* Initializes the game state */
 void GameState_init(GameState* gs, int gm, int diff) {
@@ -41,30 +39,56 @@ void GameState_init(GameState* gs, int gm, int diff) {
 
 /* Generate a random position that doesn't overlap existing entities */
 int GameState_get_random_position(GameState* gs) {
-    print("------ Generating random position...\n");
-    int x_pos = rand_range(gs->min_x, gs->max_x);
-    int y_pos = rand_range(gs->min_y, gs->max_y);
-    int coord_key = (x_pos << 16) | y_pos;
+    // print("------ Generating random position...\n");
+    // int x_pos = rand_range(gs->min_x, gs->max_x);
+    // int y_pos = rand_range(gs->min_y, gs->max_y);
+    // int coord_key = (x_pos << 16) | y_pos;
 
-    // Check against all active entities
-    for (int i = 0; i < MAX_ENTITIES; i++) {
-        Entity* e = &gs->entities[i];
-        if (!e->is_active) continue;
-        int e_coord = (FP_TO_INT(e->x_fp) << 16) | FP_TO_INT(e->y_fp);
-        while (e_coord == coord_key) {
-            x_pos = rand_range(gs->min_x, gs->max_x);
-            y_pos = rand_range(gs->min_y, gs->max_y);
-            coord_key = (x_pos << 16) | y_pos;
+    // // Check against all active entities
+    // for (int i = 0; i < MAX_ENTITIES; i++) {
+    //     Entity* e = &gs->entities[i];
+    //     if (!e->is_active) continue;
+    //     int e_coord = (FP_TO_INT(e->x_fp) << 16) | FP_TO_INT(e->y_fp);
+    //     while (e_coord == coord_key) {
+    //         x_pos = rand_range(gs->min_x, gs->max_x);
+    //         y_pos = rand_range(gs->min_y, gs->max_y);
+    //         coord_key = (x_pos << 16) | y_pos;
+    //     }
+    // }
+
+    // print("------ Random position = (");
+    // print_dec(x_pos);
+    // print(", ");
+    // print_dec(y_pos);
+    // print(")\n");
+
+    // return coord_key;
+
+    int x_pos, y_pos;
+    bool valid_position = false;
+
+    Entity temp;
+    temp.radius = 10;
+
+    while(!valid_position){
+        x_pos = rand_range(gs->min_x, gs->max_x);
+        y_pos = rand_range(gs->min_y, gs->max_y);
+        temp.x_fp = INT_TO_FP(x_pos);
+        temp.y_fp = INT_TO_FP(y_pos);
+        
+        // assume the position is valid
+        valid_position = true;
+
+        // Check collision with all active entities
+        for(int i = 0; i < MAX_ENTITIES; i++){
+            Entity* e = &gs->entities[i];
+            if(e->is_active && check_collision(&temp, e)){
+                valid_position = false;
+                break;
+            }
         }
     }
-
-    print("------ Random position = (");
-    print_dec(x_pos);
-    print(", ");
-    print_dec(y_pos);
-    print(")\n");
-
-    return coord_key;
+    return (x_pos << 16) | y_pos;
 }
 
 /* Generate players — stored at entities[0..game_mode] */
