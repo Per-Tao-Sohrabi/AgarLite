@@ -790,11 +790,11 @@ void draw_hud(GameState *game){
         if (p1->is_active) {
             draw_string(5, 5, "Velocity: ", WHITE);
             int_to_string(FP_TO_INT(p1->vel_fp), buffer);
-            draw_string(55, 5, buffer, WHITE);
+            draw_string(65, 5, buffer, WHITE);
 
             draw_string(5, 15, "Area: ", WHITE);
             int_to_string(p1->area, buffer);
-            draw_string(65, 15, buffer, WHITE);
+            draw_string(55, 15, buffer, WHITE);
         }
     } else if (game->num_players >= 2) {
         // --- Multiplayer ---
@@ -850,9 +850,6 @@ void render_game(GameState *game) {
         Entity* e = &game->entities[i];
         if (!e->is_active) continue;
         draw_circle(FP_TO_INT(e->x_fp), FP_TO_INT(e->y_fp), e->radius, e->color);
-        if(e->type == ENTITY_AI){
-            draw_string(FP_TO_INT(e->x_fp), FP_TO_INT(e->y_fp), "AI", e->color);
-        }
     }
     draw_hud(game);
     swap_buffers();
