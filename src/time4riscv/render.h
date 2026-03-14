@@ -20,6 +20,10 @@
 #define WHITE 255
 #define COLOR_BLACK 0
 #define COLOR_BRIGHT_GREEN 0x1C  // RGB332 000 111 00
+#define COLOR_DARK_GREEN 0x08    // RGB332 000 010 00
+#define COLOR_LIGHT_GRAY 0xB6    // RGB332 101 101 10
+#define COLOR_DARK_GRAY 0x49     // RGB332 010 010 01
+#define COLOR_TINTED 0x6D        // RGB332 011 011 01
 #define MSG_WIDTH 250
 #define MSG_HEIGHT 120
 
@@ -80,5 +84,7 @@ void draw_rounded_rectangle(int x, int y, int width, int height, int radius, int
 void draw_pause_box(const char* msg, const char* button, void* callback);
 
 void draw_confirm_box(const char* msg, int selected_option);
+
+void draw_start_menu(int substate, int mode, int diff);
 
 #endif

@@ -24,35 +24,111 @@ bool btn_just_pressed(void) {
     return pressed;
 }
 
-/* STATE_MENU_MODE: player selects 1P or 2P via switch 0 */
-ProgramState state_menu_mode(GameState* gs) {
-    if (!screen_drawn) {
-        clear_current_buffer();
-        draw_msg("Select Game Mode: toggle switch 0.\nUp = 2P, Down = 1P.\nPress button to confirm.");
-        screen_drawn = true;
+static int btn_action_timer = 0;
+static int btn_press_count = 0;
+
+/* Advanced input detection: returns 0 (none), 1 (single press), 2 (double press) */
+int get_btn_action(void) {
+    bool pressed = btn_just_pressed();
+    
+    if (pressed) {
+        btn_press_count++;
+        if (btn_press_count == 1) {
+            btn_action_timer = 15; // 15 frames max delay between clicks
+        }
     }
-    selected_mode = get_switch_state(0);
-    if (btn_just_pressed()) {
-        screen_drawn = false;
-        return STATE_MENU_DIFFICULTY;
+    
+    if (btn_press_count > 0) {
+        if (btn_action_timer > 0) {
+            btn_action_timer--;
+            
+            if (btn_press_count == 2) {
+                // Double press confirmed
+                btn_press_count = 0;
+                btn_action_timer = 0;
+                return 2;
+            }
+        } else {
+            // Timer expired, confirm whatever we have
+            int result = btn_press_count; // should be 1
+            btn_press_count = 0;
+            return result == 1 ? 1 : 0;
+        }
     }
-    return STATE_MENU_MODE;
+    
+    return 0;
 }
 
-/* STATE_MENU_DIFFICULTY: player selects difficulty via switches 0-2 */
-ProgramState state_menu_difficulty(GameState* gs) {
+/* STATE_SPLASH: Fades in starting text */
+ProgramState state_splash(void) {
     if (!screen_drawn) {
         clear_current_buffer();
-        draw_msg("Set difficulty with switches 0-2.\nPress button to confirm.");
+        draw_msg("AgarLite\nStarting...");
         screen_drawn = true;
     }
-    selected_difficulty = get_switch_state(0) + get_switch_state(1) + get_switch_state(2);
-    if (btn_just_pressed()) {
+    
+    int action = get_btn_action();
+    if (action == 1) { // single press to skip
         screen_drawn = false;
-        GameState_init(gs, selected_mode, selected_difficulty);
-        return STATE_PLAYING;
+        return STATE_MENU_START;
     }
-    return STATE_MENU_DIFFICULTY;
+    return STATE_SPLASH;
+}
+
+/* STATE_MENU_START: Unified menu handler for mode, difficulty, and confirm */
+ProgramState state_menu_start(GameState* gs) {
+    static int menu_substate = 0; // 0=Mode, 1=Diff, 2=Confirm
+    static int last_drawn_substate = -1;
+    static int last_drawn_mode = -1;
+    static int last_drawn_diff = -1;
+
+    // Read current inputs
+    // FR2: Switch 0 controls Single (0) vs Double (1) Player Mode
+    int current_mode = get_switch_state(0);
+    // FR3: Switches 0, 1, 2 determine difficulty 0-7
+    int current_diff = get_switch_state(0) | (get_switch_state(1) << 1) | (get_switch_state(2) << 2);
+
+    int action = get_btn_action();
+
+    if (action == 1) { // Single press -> Forward/Confirm
+        if (menu_substate == 2) {
+            GameState_init(gs, current_mode, current_diff);
+            
+            // Re-initialize local statics for the next time we enter this state
+            menu_substate = 0;
+            last_drawn_substate = -1;
+            screen_drawn = false;
+            
+            return STATE_FADE_TO_GAME;
+        } else {
+            menu_substate++;
+        }
+    } else if (action == 2) { // Double press -> Backward
+        if (menu_substate > 0) {
+            menu_substate--;
+        }
+    }
+
+    // Only draw if substate changed, or if our selected value in the current substate changed.
+    if (!screen_drawn || last_drawn_substate != menu_substate || 
+        (menu_substate == 0 && last_drawn_mode != current_mode) || 
+        (menu_substate == 1 && last_drawn_diff != current_diff)) {
+        
+        draw_start_menu(menu_substate, current_mode, current_diff);
+        
+        last_drawn_substate = menu_substate;
+        last_drawn_mode = current_mode;
+        last_drawn_diff = current_diff;
+        screen_drawn = true;
+    }
+    
+    return STATE_MENU_START;
+}
+
+/* STATE_FADE_TO_GAME: Screen wipe transition */
+ProgramState state_fade_to_game(void) {
+    // For now, jump straight to game
+    return STATE_PLAYING;
 }
 
 /* STATE_PLAYING: core game loop — move, collide, render */

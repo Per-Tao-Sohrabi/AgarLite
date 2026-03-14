@@ -57,7 +57,7 @@ int main() {
 
   GameState gs;
   int input_vector[5] = {0};
-  ProgramState state = STATE_MENU_MODE;
+  ProgramState state = STATE_SPLASH;
 
   // Single frame loop — all states are non-blocking
   while (1) {
@@ -67,11 +67,14 @@ int main() {
     read_inputs(input_vector);
 
     switch (state) {
-      case STATE_MENU_MODE:
-        state = state_menu_mode(&gs);
+      case STATE_SPLASH:
+        state = state_splash();
         break;
-      case STATE_MENU_DIFFICULTY:
-        state = state_menu_difficulty(&gs);
+      case STATE_MENU_START:
+        state = state_menu_start(&gs);
+        break;
+      case STATE_FADE_TO_GAME:
+        state = state_fade_to_game();
         break;
       case STATE_PLAYING:
         state = state_playing(&gs, input_vector);
