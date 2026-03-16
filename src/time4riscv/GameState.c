@@ -72,6 +72,7 @@ int GameState_get_random_position(GameState* gs) {
     Entity temp;
     temp.radius = 10;
 
+    // try to find a valid position
     while(!valid_position){
         x_pos = rand_range(gs->min_x, gs->max_x);
         y_pos = rand_range(gs->min_y, gs->max_y);
@@ -84,6 +85,7 @@ int GameState_get_random_position(GameState* gs) {
         // Check collision with all active entities
         for(int i = 0; i < MAX_ENTITIES; i++){
             Entity* e = &gs->entities[i];
+            // if the entity is active and collides with the temporary entity, the position is invalid
             if(e->is_active && check_collision(&temp, e)){
                 valid_position = false;
                 break;
