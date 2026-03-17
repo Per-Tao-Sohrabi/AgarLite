@@ -9,6 +9,7 @@
 #include "inputs.h"
 #include "prog_states.h"
 #include "render.h"
+#include "performance_analysis.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -77,7 +78,10 @@ int main() {
         state = state_transition();
         break;
       case STATE_PLAYING:
+        performance_counter_start();
         state = state_playing(&gs, input_vector);
+        performance_counter_end();
+        performance_counter_print();
         break;
       case STATE_PAUSED:
         state = state_paused();
